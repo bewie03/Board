@@ -110,15 +110,15 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
 
       // Insert new packages using exact deployed schema
       for (const pkg of packages) {
-        // Convert features to simple text string
+        // Convert features to PostgreSQL array format
         const formatFeatures = (features: any) => {
           if (Array.isArray(features)) {
-            return features.join(', ');
+            return features.slice(0, 5); // Max 5 features, return as array
           }
           if (typeof features === 'string') {
-            return features;
+            return [features]; // Convert single string to array
           }
-          return 'Service delivery';
+          return ['Service delivery']; // Default as array
         };
 
         // Insert basic package

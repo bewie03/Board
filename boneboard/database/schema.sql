@@ -49,7 +49,7 @@ CREATE TABLE service_packages (
     freelancer_id UUID REFERENCES freelancer_profiles(id) ON DELETE CASCADE,
     title VARCHAR(200) NOT NULL,
     description TEXT,
-    features TEXT, -- Single text field, not array
+    features TEXT[], -- Array of feature strings
     price NUMERIC NOT NULL,
     currency VARCHAR(10) DEFAULT 'ADA',
     delivery_time VARCHAR(50),

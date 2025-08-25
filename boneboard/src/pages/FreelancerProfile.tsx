@@ -130,7 +130,7 @@ const FreelancerProfile: React.FC = () => {
                       currency: pkg.currency,
                       deliveryTime: pkg.delivery_time,
                       description: pkg.description,
-                      features: pkg.features ? (typeof pkg.features === 'string' ? pkg.features.split(', ') : pkg.features) : ['Service delivery']
+                      features: Array.isArray(pkg.features) ? pkg.features : ['Service delivery']
                     };
                     return acc;
                   }, {});
@@ -290,7 +290,7 @@ const FreelancerProfile: React.FC = () => {
                   currency: pkg.currency,
                   deliveryTime: pkg.delivery_time,
                   description: pkg.description,
-                  features: pkg.features ? (typeof pkg.features === 'string' ? pkg.features.split(', ') : pkg.features) : ['Service delivery']
+                  features: Array.isArray(pkg.features) ? pkg.features : ['Service delivery']
                 };
                 return acc;
               }, {});
