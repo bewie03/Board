@@ -643,13 +643,13 @@ const FreelancerProfile: React.FC = () => {
             // Include all package tiers
             basicPrice: service.pricing.basic.price,
             basicDeliveryTime: service.pricing.basic.deliveryTime,
-            basicFeatures: service.pricing.basic.features,
+            basicFeatures: Array.isArray(service.pricing.basic.features) ? service.pricing.basic.features.slice(0, 5) : [],
             standardPrice: service.pricing.standard.price,
             standardDeliveryTime: service.pricing.standard.deliveryTime,
-            standardFeatures: service.pricing.standard.features,
+            standardFeatures: Array.isArray(service.pricing.standard.features) ? service.pricing.standard.features.slice(0, 5) : [],
             premiumPrice: service.pricing.premium.price,
             premiumDeliveryTime: service.pricing.premium.deliveryTime,
-            premiumFeatures: service.pricing.premium.features
+            premiumFeatures: Array.isArray(service.pricing.premium.features) ? service.pricing.premium.features.slice(0, 5) : []
           }));
           
           const success = await FreelancerService.saveServicePackages(updatedFreelancer.walletAddress, packages);

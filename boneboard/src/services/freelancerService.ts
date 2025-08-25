@@ -402,19 +402,19 @@ class FreelancerServiceClass {
             basic_currency: 'ADA',
             basic_delivery_days: pkg.basicDeliveryDays || pkg.deliveryDays || 7,
             basic_description: pkg.basicDescription || pkg.name || 'Basic Package',
-            basic_features: pkg.basicFeatures || pkg.features || ['Basic service delivery', 'Standard support'],
+            basic_features: Array.isArray(pkg.basicFeatures) ? pkg.basicFeatures.slice(0, 5) : (Array.isArray(pkg.features) ? pkg.features.slice(0, 5) : ['Basic service delivery', 'Standard support']),
             // Standard tier
             standard_price: pkg.standardPrice || Math.ceil((pkg.price || 100) * 1.5),
             standard_currency: 'ADA',
             standard_delivery_days: pkg.standardDeliveryDays || Math.ceil((pkg.deliveryDays || 7) * 0.8),
             standard_description: pkg.standardDescription || `Enhanced ${pkg.name || 'Service'}`,
-            standard_features: pkg.standardFeatures || [...(pkg.features || ['Basic service delivery']), 'Priority support', '3 revisions'],
+            standard_features: Array.isArray(pkg.standardFeatures) ? pkg.standardFeatures.slice(0, 5) : [...(Array.isArray(pkg.features) ? pkg.features.slice(0, 3) : ['Basic service delivery']), 'Priority support', '3 revisions'].slice(0, 5),
             // Premium tier
             premium_price: pkg.premiumPrice || (pkg.price || 100) * 2,
             premium_currency: 'ADA',
             premium_delivery_days: pkg.premiumDeliveryDays || Math.ceil((pkg.deliveryDays || 7) * 0.6),
             premium_description: pkg.premiumDescription || `Premium ${pkg.name || 'Service'}`,
-            premium_features: pkg.premiumFeatures || [...(pkg.features || ['Basic service delivery']), 'Priority support', 'Unlimited revisions', 'Express delivery'],
+            premium_features: Array.isArray(pkg.premiumFeatures) ? pkg.premiumFeatures.slice(0, 5) : [...(Array.isArray(pkg.features) ? pkg.features.slice(0, 2) : ['Basic service delivery']), 'Priority support', 'Unlimited revisions', 'Express delivery'].slice(0, 5),
             hourly_rate: pkg.hourlyRate || null,
             is_active: true
           }))
