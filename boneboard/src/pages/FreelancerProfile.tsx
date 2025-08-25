@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import FreelancerService from '../services/freelancerService';
-import type { Freelancer, ServiceType } from 'types/freelancer';
+import { FreelancerService, Freelancer, FreelancerService as ServiceType } from '../services/freelancerService';
 import { MessageService, MessageAttachment } from '../services/messageService';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
@@ -100,7 +99,7 @@ const FreelancerProfile: React.FC = () => {
           const updatedFreelancer = { ...editedFreelancer, avatar: result };
           setEditedFreelancer(updatedFreelancer);
           // Update preview immediately
-          setFreelancer((prev: Freelancer | null) => prev ? { ...prev, avatar: result } : null);
+          setFreelancer(prev => prev ? { ...prev, avatar: result } : null);
         }
       };
       reader.readAsDataURL(file);
@@ -115,38 +114,9 @@ const FreelancerProfile: React.FC = () => {
           const freelancerData = await FreelancerService.getFreelancerById(id);
           if (freelancerData) {
             // Ensure freelancer has at least one service with proper package structure
-            const addService = (service: any) => {
-              return {
-                ...service,
-                pricing: {
-                  basic: {
-                    price: 100,
-                    currency: 'ADA',
-                    deliveryTime: '7 days',
-                    description: 'Basic Package',
-                    features: ['Basic service delivery', 'Standard support', '1 revision']
-                  },
-                  standard: {
-                    price: 200,
-                    currency: 'ADA',
-                    deliveryTime: '5 days',
-                    description: 'Standard Package',
-                    features: ['Enhanced service delivery', 'Priority support', '3 revisions', 'Faster delivery']
-                  },
-                  premium: {
-                    price: 350,
-                    currency: 'ADA',
-                    deliveryTime: '3 days',
-                    description: 'Premium Package',
-                    features: ['Premium service delivery', '24/7 support', 'Unlimited revisions', 'Express delivery', 'Additional consultation']
-                  }
-                }
-              };
-            };
-
             const freelancerWithServices = {
               ...freelancerData,
-              services: freelancerData.services.length > 0 ? freelancerData.services.map(addService) : [
+              services: freelancerData.services.length > 0 ? freelancerData.services : [
                 {
                   id: `${freelancerData.id}-service-0`,
                   freelancerId: freelancerData.id,
@@ -447,7 +417,7 @@ const FreelancerProfile: React.FC = () => {
     toast.success('Profile link copied to clipboard!');
   };
 
-  const toggleBusyStatus = async () => {
+  const toggleBusyStatus = () => {
     if (!freelancer || !isOwner) return;
     
     let newStatus: 'available' | 'busy' | 'unavailable';
@@ -468,40 +438,72 @@ const FreelancerProfile: React.FC = () => {
         break;
     }
     
+    setBusyStatus(newStatus);
+    const updatedFreelancer = { 
+      ...freelancer, 
+      isOnline: newStatus === 'available',
+      busyStatus: newStatus
+    };
+    setFreelancer(updatedFreelancer);
+    
+    // Update the freelancer service with both isOnline and busyStatus
+    FreelancerService.updateFreelancer(walletAddress!, { 
+      isOnline: newStatus === 'available',
+      busyStatus: newStatus
+    });
+    
+    // Also try to update via API for database persistence
     try {
-      // Update database first
-      const success = await FreelancerService.updateFreelancer(walletAddress!, { 
-        is_online: newStatus === 'available',
-        busy_status: newStatus
-      });
-      
-      if (success) {
-        // Update local state only after successful database update
-        setBusyStatus(newStatus);
-        const updatedFreelancer = { 
-          ...freelancer, 
+      fetch(`/api/freelancers?walletAddress=${walletAddress}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           isOnline: newStatus === 'available',
           busyStatus: newStatus
-        };
-        setFreelancer(updatedFreelancer);
-        
-        // Dispatch events to notify other components
-        window.dispatchEvent(new CustomEvent('freelancerUpdated', { 
-          detail: { walletAddress: walletAddress, updatedData: updatedFreelancer }
-        }));
-        
-        window.dispatchEvent(new CustomEvent('freelancerStatusUpdated', {
-          detail: { walletAddress: walletAddress, status: newStatus }
-        }));
-        
-        toast.success(`Status updated to ${statusText}`);
-      } else {
-        toast.error('Failed to update status. Please try again.');
+        })
+      }).catch(error => console.log('API status update failed (non-critical):', error));
+    } catch (error) {
+      console.log('API status update failed (non-critical):', error);
+    }
+    
+    // Save to individual freelancer storage
+    localStorage.setItem(`freelancer_${walletAddress}`, JSON.stringify(updatedFreelancer));
+    
+    // Update the freelancerProfiles array in localStorage
+    try {
+      const stored = localStorage.getItem('freelancerProfiles');
+      if (stored) {
+        const profiles = JSON.parse(stored);
+        const profileIndex = profiles.findIndex((p: any) => p.walletAddress === walletAddress);
+        if (profileIndex !== -1) {
+          profiles[profileIndex] = {
+            ...profiles[profileIndex],
+            isOnline: newStatus === 'available',
+            busyStatus: newStatus
+          };
+          localStorage.setItem('freelancerProfiles', JSON.stringify(profiles));
+        }
       }
     } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update status. Please try again.');
+      console.error('Error updating freelancerProfiles with status:', error);
     }
+    
+    // Dispatch events to notify other components
+    window.dispatchEvent(new CustomEvent('freelancerUpdated', { 
+      detail: { walletAddress: walletAddress, updatedData: updatedFreelancer }
+    }));
+    
+    window.dispatchEvent(new CustomEvent('freelancerStatusUpdated', {
+      detail: { walletAddress: walletAddress, status: newStatus }
+    }));
+    
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: `freelancer_${walletAddress}`,
+      newValue: JSON.stringify(updatedFreelancer),
+      storageArea: localStorage
+    }));
+    
+    toast.success(`Status updated to ${statusText}`);
   };
 
   const handleEditToggle = async () => {
@@ -752,7 +754,8 @@ const FreelancerProfile: React.FC = () => {
                       </div>
                     )}
                     <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-4 border-white ${
-                      busyStatus === 'available' ? 'bg-green-500' : busyStatus === 'busy' ? 'bg-yellow-500' : 'bg-red-500'
+                      busyStatus === 'available' ? 'bg-green-500' : 
+                      busyStatus === 'busy' ? 'bg-yellow-500' : 'bg-red-500'
                     }`}></div>
                   </div>
                   <div className="flex-1">
@@ -764,7 +767,7 @@ const FreelancerProfile: React.FC = () => {
                           <div className="mt-2">
                             <select
                               value={editedFreelancer?.category || ''}
-                              onChange={(e) => setEditedFreelancer((prev: Freelancer | null) => prev ? {
+                              onChange={(e) => setEditedFreelancer(prev => prev ? {
                                 ...prev,
                                 category: e.target.value
                               } : null)}
@@ -799,14 +802,14 @@ const FreelancerProfile: React.FC = () => {
                             </div>
                           ) : (
                             <div className="flex flex-wrap gap-2">
-                              {editedFreelancer?.languages.map((language: string, index: number) => (
+                              {editedFreelancer?.languages.map((language, index) => (
                                 <div key={index} className="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
                                   <FaGlobe className="mr-1 text-sm" />
                                   <span className="mr-1">{language}</span>
                                   <button
-                                    onClick={() => setEditedFreelancer((prev: Freelancer | null) => prev ? {
+                                    onClick={() => setEditedFreelancer(prev => prev ? {
                                       ...prev,
-                                      languages: prev.languages.filter((_: string, i: number) => i !== index)
+                                      languages: prev.languages.filter((_, i) => i !== index)
                                     } : null)}
                                     className="text-red-500 hover:text-red-700 font-bold text-xs"
                                   >
@@ -838,7 +841,7 @@ const FreelancerProfile: React.FC = () => {
                                           key={language}
                                           type="button"
                                           onClick={() => {
-                                            setEditedFreelancer((prev: Freelancer | null) => prev ? {
+                                            setEditedFreelancer(prev => prev ? {
                                               ...prev,
                                               languages: [...prev.languages, language]
                                             } : null);
@@ -935,7 +938,7 @@ const FreelancerProfile: React.FC = () => {
                       onChange={(e) => {
                         const value = e.target.value;
                         if (value.length <= 600) {
-                          setEditedFreelancer((prev: Freelancer | null) => prev ? {...prev, bio: value} : null);
+                          setEditedFreelancer(prev => prev ? {...prev, bio: value} : null);
                         }
                       }}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-6"
@@ -957,13 +960,13 @@ const FreelancerProfile: React.FC = () => {
                   {isEditing ? (
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2">
-                        {editedFreelancer?.skills.map((skill: string, index: number) => (
+                        {editedFreelancer?.skills.map((skill, index) => (
                           <div key={index} className="flex items-center bg-blue-100 text-blue-800 px-3 py-2 rounded-lg">
                             <span className="mr-2">{skill}</span>
                             <button
-                              onClick={() => setEditedFreelancer((prev: Freelancer | null) => prev ? {
+                              onClick={() => setEditedFreelancer(prev => prev ? {
                                 ...prev,
-                                skills: prev.skills.filter((_: string, i: number) => i !== index)
+                                skills: prev.skills.filter((_, i) => i !== index)
                               } : null)}
                               className="text-red-500 hover:text-red-700 font-bold"
                             >
@@ -981,7 +984,7 @@ const FreelancerProfile: React.FC = () => {
                             disabled={(editedFreelancer?.skills.length || 0) >= 10}
                             onKeyPress={(e) => {
                               if (e.key === 'Enter' && newSkillInput.trim() && (editedFreelancer?.skills.length || 0) < 10) {
-                                setEditedFreelancer((prev: Freelancer | null) => prev ? {
+                                setEditedFreelancer(prev => prev ? {
                                   ...prev,
                                   skills: [...prev.skills, newSkillInput.trim()]
                                 } : null);
@@ -992,7 +995,7 @@ const FreelancerProfile: React.FC = () => {
                           <button
                             onClick={() => {
                               if (newSkillInput.trim() && (editedFreelancer?.skills.length || 0) < 10) {
-                                setEditedFreelancer((prev: Freelancer | null) => prev ? {
+                                setEditedFreelancer(prev => prev ? {
                                   ...prev,
                                   skills: [...prev.skills, newSkillInput.trim()]
                                 } : null);
@@ -1009,7 +1012,7 @@ const FreelancerProfile: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {freelancer.skills.map((skill: string, index: number) => (
+                      {freelancer.skills.map((skill, index) => (
                         <span key={index} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
                           {skill}
                         </span>
@@ -1031,7 +1034,7 @@ const FreelancerProfile: React.FC = () => {
                             type="text"
                             placeholder="Website URL"
                             value={socialLinks.website}
-                            onChange={(e) => setSocialLinks((prev: any) => ({...prev, website: e.target.value}))}
+                            onChange={(e) => setSocialLinks(prev => ({...prev, website: e.target.value}))}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -1041,7 +1044,7 @@ const FreelancerProfile: React.FC = () => {
                             type="text"
                             placeholder="X (Twitter) URL"
                             value={socialLinks.twitter}
-                            onChange={(e) => setSocialLinks((prev: any) => ({...prev, twitter: e.target.value}))}
+                            onChange={(e) => setSocialLinks(prev => ({...prev, twitter: e.target.value}))}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -1051,7 +1054,7 @@ const FreelancerProfile: React.FC = () => {
                             type="text"
                             placeholder="Discord URL"
                             value={socialLinks.discord}
-                            onChange={(e) => setSocialLinks((prev: any) => ({...prev, discord: e.target.value}))}
+                            onChange={(e) => setSocialLinks(prev => ({...prev, discord: e.target.value}))}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -1061,7 +1064,7 @@ const FreelancerProfile: React.FC = () => {
                             type="text"
                             placeholder="GitHub URL"
                             value={socialLinks.github}
-                            onChange={(e) => setSocialLinks((prev: any) => ({...prev, github: e.target.value}))}
+                            onChange={(e) => setSocialLinks(prev => ({...prev, github: e.target.value}))}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -1071,7 +1074,7 @@ const FreelancerProfile: React.FC = () => {
                             type="text"
                             placeholder="LinkedIn URL"
                             value={socialLinks.linkedin}
-                            onChange={(e) => setSocialLinks((prev: any) => ({...prev, linkedin: e.target.value}))}
+                            onChange={(e) => setSocialLinks(prev => ({...prev, linkedin: e.target.value}))}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -1081,7 +1084,7 @@ const FreelancerProfile: React.FC = () => {
                             type="text"
                             placeholder="Custom Link URL"
                             value={socialLinks.custom}
-                            onChange={(e) => setSocialLinks((prev: any) => ({...prev, custom: e.target.value}))}
+                            onChange={(e) => setSocialLinks(prev => ({...prev, custom: e.target.value}))}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -1141,7 +1144,7 @@ const FreelancerProfile: React.FC = () => {
                                 const reader = new FileReader();
                                 reader.onload = (event) => {
                                   const newImage = event.target?.result as string;
-                                  setWorkImages((prev: string[]) => {
+                                  setWorkImages(prev => {
                                     const updated = prev.length < 6 ? [...prev, newImage] : prev;
                                     // Save to freelancer data for persistence
                                     if (freelancer) {
@@ -1174,7 +1177,7 @@ const FreelancerProfile: React.FC = () => {
                             <div key={index} className="relative">
                               <img src={image} alt={`Work ${index + 1}`} className="w-full aspect-square object-cover rounded-lg" />
                               <button
-                                onClick={() => setWorkImages((prev: string[]) => prev.filter((_: string, i: number) => i !== index))}
+                                onClick={() => setWorkImages(prev => prev.filter((_, i) => i !== index))}
                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                               >
                                 ×
@@ -1261,7 +1264,7 @@ const FreelancerProfile: React.FC = () => {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
-                            onClick={() => setNewReview((prev: any) => ({ ...prev, rating: star }))}
+                            onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
                             className={`text-2xl ${
                               star <= newReview.rating ? 'text-yellow-400' : 'text-gray-300'
                             }`}
@@ -1275,7 +1278,7 @@ const FreelancerProfile: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
                       <textarea
                         value={newReview.comment}
-                        onChange={(e) => setNewReview((prev: any) => ({ ...prev, comment: e.target.value }))}
+                        onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Share your experience..."
@@ -1375,7 +1378,7 @@ const FreelancerProfile: React.FC = () => {
                             value={editedFreelancer?.services[0]?.pricing[selectedPackage].description || ''}
                             onChange={(e) => {
                               if (editedFreelancer?.services[0]) {
-                                setEditedFreelancer((prev: Freelancer | null) => {
+                                setEditedFreelancer(prev => {
                                   if (!prev) return null;
                                   const updated = { ...prev };
                                   updated.services[0].pricing[selectedPackage].description = e.target.value;
@@ -1395,7 +1398,7 @@ const FreelancerProfile: React.FC = () => {
                               value={editedFreelancer?.services[0]?.pricing[selectedPackage].price || 0}
                               onChange={(e) => {
                                 if (editedFreelancer?.services[0]) {
-                                  setEditedFreelancer((prev: Freelancer | null) => {
+                                  setEditedFreelancer(prev => {
                                     if (!prev) return null;
                                     const updated = { ...prev };
                                     updated.services[0].pricing[selectedPackage].price = parseInt(e.target.value) || 0;
@@ -1413,7 +1416,7 @@ const FreelancerProfile: React.FC = () => {
                               value={editedFreelancer?.services[0]?.pricing[selectedPackage].currency || 'ADA'}
                               onChange={(e) => {
                                 if (editedFreelancer?.services[0]) {
-                                  setEditedFreelancer((prev: Freelancer | null) => {
+                                  setEditedFreelancer(prev => {
                                     if (!prev) return null;
                                     const updated = { ...prev };
                                     updated.services[0].pricing[selectedPackage].currency = e.target.value;
@@ -1449,7 +1452,7 @@ const FreelancerProfile: React.FC = () => {
                             value={editedFreelancer?.services[0]?.pricing[selectedPackage].deliveryTime || ''}
                             onChange={(e) => {
                               if (editedFreelancer?.services[0]) {
-                                setEditedFreelancer((prev: Freelancer | null) => {
+                                setEditedFreelancer(prev => {
                                   if (!prev) return null;
                                   const updated = { ...prev };
                                   updated.services[0].pricing[selectedPackage].deliveryTime = e.target.value;
@@ -1473,7 +1476,7 @@ const FreelancerProfile: React.FC = () => {
                       <div className="space-y-3">
                         <label className="block text-sm font-medium text-gray-700">Features</label>
                         <div className="space-y-2">
-                          {(editedFreelancer?.services[0]?.pricing[selectedPackage].features || []).map((feature: string, index: number) => (
+                          {(editedFreelancer?.services[0]?.pricing[selectedPackage].features || []).map((feature, index) => (
                             <div key={index} className="flex items-center space-x-2">
                               <FaCheckCircle className="text-green-500 flex-shrink-0" />
                               <input
@@ -1481,7 +1484,7 @@ const FreelancerProfile: React.FC = () => {
                                 value={feature}
                                 onChange={(e) => {
                                   if (editedFreelancer?.services[0]) {
-                                    setEditedFreelancer((prev: Freelancer | null) => {
+                                    setEditedFreelancer(prev => {
                                       if (!prev) return null;
                                       const updated = { ...prev };
                                       const newFeatures = [...updated.services[0].pricing[selectedPackage].features];
@@ -1498,11 +1501,11 @@ const FreelancerProfile: React.FC = () => {
                                 type="button"
                                 onClick={() => {
                                   if (editedFreelancer?.services[0]) {
-                                    setEditedFreelancer((prev: Freelancer | null) => {
+                                    setEditedFreelancer(prev => {
                                       if (!prev) return null;
                                       const updated = { ...prev };
                                       updated.services[0].pricing[selectedPackage].features = 
-                                        updated.services[0].pricing[selectedPackage].features.filter((_: string, i: number) => i !== index);
+                                        updated.services[0].pricing[selectedPackage].features.filter((_, i) => i !== index);
                                       return updated;
                                     });
                                   }
@@ -1517,7 +1520,7 @@ const FreelancerProfile: React.FC = () => {
                             type="button"
                             onClick={() => {
                               if (editedFreelancer?.services[0]) {
-                                setEditedFreelancer((prev: Freelancer | null) => {
+                                setEditedFreelancer(prev => {
                                   if (!prev) return null;
                                   const updated = { ...prev };
                                   updated.services[0].pricing[selectedPackage].features = 
@@ -1535,7 +1538,7 @@ const FreelancerProfile: React.FC = () => {
                       </div>
                     ) : (
                       <ul className="space-y-2">
-                        {selectedService.pricing[selectedPackage].features.map((feature: string, index: number) => (
+                        {selectedService.pricing[selectedPackage].features.map((feature, index) => (
                           <li key={index} className="flex items-center text-gray-700">
                             <FaCheckCircle className="text-green-500 mr-2 flex-shrink-0" />
                             <span>{feature}</span>

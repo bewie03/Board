@@ -65,7 +65,7 @@ class MessageServiceClass {
     }
 
     // Get user profiles
-    const FreelancerService = await import('./freelancerService').then(m => m.default);
+    const FreelancerService = await import('./freelancerService').then(m => m.FreelancerService);
     const user1Profile = await FreelancerService.getFreelancerByWallet(user1Wallet);
     const user2Profile = await FreelancerService.getFreelancerByWallet(user2Wallet);
 

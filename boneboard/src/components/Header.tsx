@@ -4,7 +4,7 @@ import { FaUserCircle, FaBone, FaWallet, FaRegBookmark, FaBell } from 'react-ico
 import { FiChevronDown } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { useWallet } from '../contexts/WalletContext';
-import FreelancerService from '../services/freelancerService';
+import { FreelancerService } from '../services/freelancerService';
 import { MessageService } from '../services/messageService';
 import WalletSelector from './WalletSelector';
 import { motion } from 'framer-motion';

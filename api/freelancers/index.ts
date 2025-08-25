@@ -1,5 +1,13 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
+import { 
+  getFreelancerByWallet, 
+  getAllFreelancers, 
+  createFreelancer, 
+  updateFreelancer,
+  getUserByWallet,
+  createUser
+} from '../../boneboard/src/lib/database';
 
 // Database connection for packages functionality
 let pool: any = null;
@@ -29,9 +37,9 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed for packages' });
   }
 
-  const { walletAddress, servicePackages } = req.body;
+  const { walletAddress, packages } = req.body;
 
-  if (!walletAddress || !servicePackages || !Array.isArray(servicePackages)) {
+  if (!walletAddress || !packages || !Array.isArray(packages)) {
     return res.status(400).json({ error: 'Invalid request data' });
   }
 
@@ -41,17 +49,39 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
     try {
       await client.query('BEGIN');
 
-      // Get freelancer profile by wallet address
+      // First, get or create freelancer profile
+      let freelancerId;
       const freelancerResult = await client.query(
-        'SELECT fp.id FROM freelancer_profiles fp JOIN users u ON fp.user_id = u.id WHERE u.wallet_address = $1',
+        'SELECT id FROM freelancer_profiles WHERE wallet_address = $1',
         [walletAddress]
       );
 
-      if (freelancerResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Freelancer profile not found' });
+      if (freelancerResult.rows.length > 0) {
+        freelancerId = freelancerResult.rows[0].id;
+      } else {
+        // Create basic freelancer profile if it doesn't exist
+        const createResult = await client.query(
+          `INSERT INTO freelancer_profiles (wallet_address, name, title, bio, category, skills, languages, rating, review_count, completed_orders, response_time, is_online, busy_status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+           RETURNING id`,
+          [
+            walletAddress,
+            'Freelancer',
+            'Professional Service Provider',
+            'Experienced freelancer ready to help with your projects.',
+            'Other',
+            ['General'],
+            ['English'],
+            5.0,
+            0,
+            0,
+            '1 hour',
+            true,
+            'available'
+          ]
+        );
+        freelancerId = createResult.rows[0].id;
       }
-
-      const freelancerId = freelancerResult.rows[0].id;
 
       // Delete existing packages for this freelancer
       await client.query(
@@ -60,7 +90,7 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
       );
 
       // Insert new packages
-      for (const pkg of servicePackages) {
+      for (const pkg of packages) {
         await client.query(
           `INSERT INTO service_packages (
             freelancer_id, service_title, service_description, category,
@@ -101,7 +131,7 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
         success: true, 
         message: 'Service packages saved successfully',
         freelancerId,
-        packagesCount: servicePackages.length
+        packagesCount: packages.length
       });
 
     } catch (error) {
@@ -136,162 +166,74 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return await handlePackages(req, res);
     }
 
-    const client = await getPool().connect();
+    switch (req.method) {
+      case 'GET':
+        if (req.query.walletAddress) {
+          // Get freelancer by wallet address
+          const freelancer = await getFreelancerByWallet(req.query.walletAddress as string);
+          return res.status(200).json(freelancer);
+        } else {
+          // Get all freelancers
+          const freelancers = await getAllFreelancers();
+          return res.status(200).json(freelancers);
+        }
 
-    try {
-      switch (req.method) {
-        case 'GET':
-          if (req.query.walletAddress) {
-            // Get freelancer by wallet address with packages
-            const freelancerResult = await client.query(`
-              SELECT fp.*, u.wallet_address,
-                     array_agg(
-                       json_build_object(
-                         'id', sp.id,
-                         'service_title', sp.service_title,
-                         'service_description', sp.service_description,
-                         'category', sp.category,
-                         'basic_price', sp.basic_price,
-                         'basic_currency', sp.basic_currency,
-                         'basic_delivery_days', sp.basic_delivery_days,
-                         'basic_description', sp.basic_description,
-                         'basic_features', sp.basic_features,
-                         'standard_price', sp.standard_price,
-                         'standard_currency', sp.standard_currency,
-                         'standard_delivery_days', sp.standard_delivery_days,
-                         'standard_description', sp.standard_description,
-                         'standard_features', sp.standard_features,
-                         'premium_price', sp.premium_price,
-                         'premium_currency', sp.premium_currency,
-                         'premium_delivery_days', sp.premium_delivery_days,
-                         'premium_description', sp.premium_description,
-                         'premium_features', sp.premium_features,
-                         'hourly_rate', sp.hourly_rate,
-                         'is_active', sp.is_active
-                       )
-                     ) FILTER (WHERE sp.id IS NOT NULL) as service_packages
-              FROM freelancer_profiles fp
-              JOIN users u ON fp.user_id = u.id
-              LEFT JOIN service_packages sp ON fp.id = sp.freelancer_id
-              WHERE u.wallet_address = $1
-              GROUP BY fp.id, u.wallet_address
-            `, [req.query.walletAddress]);
-            
-            if (freelancerResult.rows.length === 0) {
-              return res.status(404).json({ error: 'Freelancer not found' });
-            }
-            
-            return res.status(200).json(freelancerResult.rows[0]);
-          } else {
-            // Get all freelancers with basic package info
-            const freelancersResult = await client.query(`
-              SELECT fp.*, u.wallet_address,
-                     MIN(sp.basic_price) as starting_price
-              FROM freelancer_profiles fp
-              JOIN users u ON fp.user_id = u.id
-              LEFT JOIN service_packages sp ON fp.id = sp.freelancer_id
-              GROUP BY fp.id, u.wallet_address
-              ORDER BY fp.created_at DESC
-            `);
-            
-            return res.status(200).json(freelancersResult.rows);
-          }
+      case 'POST':
+        // Create new freelancer
+        const freelancerData = req.body;
+        
+        // First, create or get user
+        let user = await getUserByWallet(freelancerData.walletAddress);
+        if (!user) {
+          user = await createUser(freelancerData.walletAddress);
+        }
+        
+        // Transform frontend data to match database schema
+        const dbFreelancerData = {
+          userId: user.id,
+          name: freelancerData.name,
+          title: freelancerData.title,
+          bio: freelancerData.bio,
+          avatarUrl: null, // No avatar in creation form
+          category: freelancerData.category || 'Other',
+          skills: freelancerData.skills || [],
+          languages: freelancerData.languages || ['English'],
+          location: freelancerData.location || '',
+          rating: 0,
+          reviewCount: 0,
+          completedOrders: 0,
+          responseTime: '24 hours',
+          isOnline: false,
+          busyStatus: 'available',
+          socialLinks: {},
+          workImages: freelancerData.workExamples || []
+        };
+        
+        const newFreelancer = await createFreelancer(dbFreelancerData);
+        return res.status(201).json(newFreelancer);
 
-        case 'POST':
-          // Create new freelancer
-          const freelancerData = req.body;
-          
-          // First, ensure user exists or create one
-          const userResult = await client.query(
-            `INSERT INTO users (wallet_address, profile_type) 
-             VALUES ($1, 'freelancer') 
-             ON CONFLICT (wallet_address) 
-             DO UPDATE SET profile_type = 'freelancer'
-             RETURNING id`,
-            [freelancerData.walletAddress]
-          );
-          
-          const userId = userResult.rows[0].id;
-          
-          const createResult = await client.query(
-            `INSERT INTO freelancer_profiles (
-              user_id, name, title, bio, avatar_url, category, skills, languages, 
-              location, rating, review_count, completed_orders, response_time, 
-              is_online, busy_status, social_links, work_images
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-            RETURNING *`,
-            [
-              userId,
-              freelancerData.name,
-              freelancerData.title,
-              freelancerData.bio,
-              freelancerData.avatarUrl || null,
-              freelancerData.category || 'Other',
-              freelancerData.skills || [],
-              freelancerData.languages || ['English'],
-              freelancerData.location || '',
-              0,
-              0,
-              0,
-              '24 hours',
-              false,
-              'available',
-              freelancerData.socialLinks || {},
-              freelancerData.workImages || []
-            ]
-          );
-          
-          return res.status(201).json(createResult.rows[0]);
+      case 'PUT':
+        // Update freelancers
+        if (!req.query.walletAddress) {
+          return res.status(400).json({ error: 'Wallet address required' });
+        }
+        const updatedFreelancer = await updateFreelancer(
+          req.query.walletAddress as string,
+          req.body
+        );
+        return res.status(200).json(updatedFreelancer);
 
-        case 'PUT':
-          // Update freelancer
-          if (!req.query.walletAddress) {
-            return res.status(400).json({ error: 'Wallet address required' });
-          }
-
-          const updateData = req.body;
-          const updateFields: string[] = [];
-          const updateValues: any[] = [];
-          let paramIndex = 1;
-
-          // Build dynamic update query
-          Object.keys(updateData).forEach(key => {
-            if (updateData[key] !== undefined) {
-              updateFields.push(`${key} = $${paramIndex}`);
-              updateValues.push(updateData[key]);
-              paramIndex++;
-            }
-          });
-
-          if (updateFields.length === 0) {
-            return res.status(400).json({ error: 'No fields to update' });
-          }
-
-          updateValues.push(req.query.walletAddress);
-          
-          const updateResult = await client.query(
-            `UPDATE freelancer_profiles 
-             SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-             FROM users u
-             WHERE freelancer_profiles.user_id = u.id AND u.wallet_address = $${paramIndex}
-             RETURNING freelancer_profiles.*`,
-            updateValues
-          );
-
-          if (updateResult.rows.length === 0) {
-            return res.status(404).json({ error: 'Freelancer not found' });
-          }
-
-          return res.status(200).json(updateResult.rows[0]);
-
-        default:
-          return res.status(405).json({ error: 'Method not allowed' });
-      }
-    } finally {
-      client.release();
+      default:
+        return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error: any) {
     console.error('Freelancer API Error:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      code: error?.code
+    });
     return res.status(500).json({ 
       error: 'Internal server error',
       details: error?.message || 'Unknown error',
