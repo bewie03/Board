@@ -118,7 +118,7 @@ const FreelancerProfile: React.FC = () => {
             
             try {
               // Fetch service packages from database
-              const packagesResponse = await fetch(`/api/freelancers/${freelancerData.id}/packages`);
+              const packagesResponse = await fetch(`/api/freelancers?id=${freelancerData.id}&packages=true`);
               if (packagesResponse.ok) {
                 const packagesData = await packagesResponse.json();
                 
@@ -246,14 +246,10 @@ const FreelancerProfile: React.FC = () => {
               setBusyStatus((freelancerData as any).busyStatus);
             }
             
-            // Load additional data from localStorage for social links, work images, etc.
-            const savedData = localStorage.getItem(`freelancer_${freelancerData.walletAddress}`);
-            if (savedData) {
-              const parsedData = JSON.parse(savedData);
-              if (parsedData.socialLinks) setSocialLinks(parsedData.socialLinks);
-              if (parsedData.workImages) setWorkImages(parsedData.workImages);
-              if (parsedData.busyStatus) setBusyStatus(parsedData.busyStatus);
-            }
+            // Load social links, work images, and busy status from database
+            if ((freelancerWithServices as any).socialLinks) setSocialLinks((freelancerWithServices as any).socialLinks);
+            if ((freelancerWithServices as any).workImages) setWorkImages((freelancerWithServices as any).workImages);
+            if (freelancerWithServices.busyStatus) setBusyStatus(freelancerWithServices.busyStatus);
             
             // Load reviews from localStorage
             const storedReviews = localStorage.getItem(`reviews_${id}`);
@@ -283,7 +279,7 @@ const FreelancerProfile: React.FC = () => {
       if (customEvent.detail.walletAddress === walletAddress && freelancer) {
         // Reload packages from database
         try {
-          const packagesResponse = await fetch(`/api/freelancers/${freelancer.id}/packages`);
+          const packagesResponse = await fetch(`/api/freelancers?id=${freelancer.id}&packages=true`);
           if (packagesResponse.ok) {
             const packagesData = await packagesResponse.json();
             
@@ -524,8 +520,8 @@ const FreelancerProfile: React.FC = () => {
     toast.success('Profile link copied to clipboard!');
   };
 
-  const toggleBusyStatus = () => {
-    if (!freelancer || !isOwner) return;
+  const toggleBusyStatus = async () => {
+    if (!freelancer || !isOwner || !walletAddress) return;
     
     let newStatus: 'available' | 'busy' | 'unavailable';
     let statusText: string;
@@ -546,31 +542,24 @@ const FreelancerProfile: React.FC = () => {
     }
     
     setBusyStatus(newStatus);
-    const updatedFreelancer = { 
-      ...freelancer, 
-      isOnline: newStatus === 'available',
-      busyStatus: newStatus
+    
+    const updatedFreelancer = {
+      ...freelancer,
+      busyStatus: newStatus,
+      isOnline: newStatus === 'available'
     };
+    
     setFreelancer(updatedFreelancer);
+    setEditedFreelancer(updatedFreelancer);
     
-    // Update the freelancer service with both isOnline and busyStatus
-    FreelancerService.updateFreelancer(walletAddress!, { 
-      isOnline: newStatus === 'available',
-      busyStatus: newStatus
-    });
-    
-    // Also try to update via API for database persistence
+    // Update freelancer profile in database
     try {
-      fetch(`/api/freelancers?walletAddress=${walletAddress}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          isOnline: newStatus === 'available',
-          busyStatus: newStatus
-        })
-      }).catch(error => console.log('API status update failed (non-critical):', error));
+      await FreelancerService.updateFreelancerProfile(walletAddress, {
+        busyStatus: newStatus,
+        isOnline: newStatus === 'available'
+      });
     } catch (error) {
-      console.log('API status update failed (non-critical):', error);
+      console.error('Error updating busy status in database:', error);
     }
     
     // Save to individual freelancer storage
@@ -674,56 +663,23 @@ const FreelancerProfile: React.FC = () => {
         }
       }
       
-      // Save to individual freelancer storage first
-      localStorage.setItem(`freelancer_${updatedFreelancer.walletAddress}`, JSON.stringify(updatedFreelancer));
-      
-      // Update the freelancerProfiles array in localStorage for the listing page
-      try {
-        const stored = localStorage.getItem('freelancerProfiles');
-        if (stored) {
-          const profiles = JSON.parse(stored);
-          const profileIndex = profiles.findIndex((p: any) => p.walletAddress === updatedFreelancer.walletAddress);
-          if (profileIndex !== -1) {
-            // Completely replace the profile data to ensure sync
-            profiles[profileIndex] = {
-              ...profiles[profileIndex], // Keep existing data
-              // Update with new data
-              name: updatedFreelancer.name,
-              username: updatedFreelancer.username,
-              avatar: updatedFreelancer.avatar,
-              title: updatedFreelancer.title,
-              bio: updatedFreelancer.bio,
-              category: updatedFreelancer.category,
-              skills: updatedFreelancer.skills,
-              languages: updatedFreelancer.languages,
-              workExamples: updatedFreelancer.workImages || profiles[profileIndex].workExamples,
-              workImages: updatedFreelancer.workImages,
-              socialLinks: updatedFreelancer.socialLinks || socialLinks,
-              busyStatus: updatedFreelancer.busyStatus || busyStatus,
-              isOnline: updatedFreelancer.isOnline,
-              rating: updatedFreelancer.rating,
-              reviewCount: updatedFreelancer.reviewCount,
-              completedOrders: updatedFreelancer.completedOrders,
-              responseTime: updatedFreelancer.responseTime
-            };
-            localStorage.setItem('freelancerProfiles', JSON.stringify(profiles));
-          }
-        }
-      } catch (error) {
-        console.error('Error updating freelancerProfiles:', error);
-      }
+      // Profile saved to database via API call above - no localStorage needed
       
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('freelancerUpdated', { 
         detail: { walletAddress: updatedFreelancer.walletAddress, updatedData: updatedFreelancer }
       }));
       
-      // Also trigger storage event manually for same-tab updates
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: `freelancer_${updatedFreelancer.walletAddress}`,
-        newValue: JSON.stringify(updatedFreelancer),
-        storageArea: localStorage
-      }));
+      // Reload freelancer data from database to ensure UI is in sync
+      try {
+        const reloadedData = await FreelancerService.getFreelancerById(updatedFreelancer.id);
+        if (reloadedData) {
+          setFreelancer(reloadedData);
+          setEditedFreelancer(reloadedData);
+        }
+      } catch (error) {
+        console.error('Error reloading freelancer data:', error);
+      }
       
       // Trigger storage event for main profiles array to ensure mini profile sync
       window.dispatchEvent(new StorageEvent('storage', {

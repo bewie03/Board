@@ -219,6 +219,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // Get freelancer by wallet address
           const freelancer = await getFreelancerByWallet(req.query.walletAddress as string);
           return res.status(200).json(freelancer);
+        } else if (req.query.id && req.query.packages === 'true') {
+          // Get packages for freelancer by ID
+          try {
+            const client = await getPool().connect();
+            try {
+              const packagesResult = await client.query(
+                `SELECT * FROM service_packages WHERE freelancer_id = $1 ORDER BY package_type, created_at`,
+                [req.query.id]
+              );
+              return res.status(200).json({ 
+                success: true,
+                packages: packagesResult.rows
+              });
+            } finally {
+              client.release();
+            }
+          } catch (error: any) {
+            console.error('Error fetching service packages:', error);
+            return res.status(500).json({ 
+              error: 'Failed to fetch service packages',
+              details: error.message 
+            });
+          }
         } else {
           // Get all freelancers
           const freelancers = await getAllFreelancers();
