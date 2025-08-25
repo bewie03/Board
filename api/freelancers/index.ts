@@ -52,20 +52,39 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
       // First, get or create freelancer profile
       let freelancerId;
       const freelancerResult = await client.query(
-        'SELECT id FROM freelancer_profiles WHERE wallet_address = $1',
+        `SELECT f.id FROM freelancer_profiles f
+         JOIN users u ON f.user_id = u.id
+         WHERE u.wallet_address = $1`,
         [walletAddress]
       );
 
       if (freelancerResult.rows.length > 0) {
         freelancerId = freelancerResult.rows[0].id;
       } else {
+        // First get or create user
+        let userId;
+        const userResult = await client.query(
+          'SELECT id FROM users WHERE wallet_address = $1',
+          [walletAddress]
+        );
+        
+        if (userResult.rows.length > 0) {
+          userId = userResult.rows[0].id;
+        } else {
+          const createUserResult = await client.query(
+            'INSERT INTO users (wallet_address) VALUES ($1) RETURNING id',
+            [walletAddress]
+          );
+          userId = createUserResult.rows[0].id;
+        }
+        
         // Create basic freelancer profile if it doesn't exist
         const createResult = await client.query(
-          `INSERT INTO freelancer_profiles (wallet_address, name, title, bio, category, skills, languages, rating, review_count, completed_orders, response_time, is_online, busy_status)
+          `INSERT INTO freelancer_profiles (user_id, name, title, bio, category, skills, languages, rating, review_count, completed_orders, response_time, is_online, busy_status)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
            RETURNING id`,
           [
-            walletAddress,
+            userId,
             'Freelancer',
             'Professional Service Provider',
             'Experienced freelancer ready to help with your projects.',
