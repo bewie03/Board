@@ -1,0 +1,567 @@
+import { Lucid, Blockfrost } from 'lucid-cardano';
+import { JobService } from './jobService';
+
+// BONE token configuration (using YUMMI token for testing)
+const BONE_POLICY_ID = import.meta.env.VITE_BONE_POLICY_ID || '078eafce5cd7edafdf63900edef2c1ea759e77f30ca81d6bbdeec924';
+const BONE_TOKEN_NAME = import.meta.env.VITE_BONE_TOKEN_NAME || '79756d6d69';
+
+// Blockfrost configuration
+const BLOCKFROST_API_KEY = import.meta.env.VITE_BLOCKFROST_API_KEY;
+const NETWORK = import.meta.env.VITE_NETWORK || 'Mainnet'; // 'Preview' for testnet, 'Mainnet' for mainnet
+
+// Contract addresses - Using mainnet address for job posting payments
+const JOB_POSTING_ADDRESS = import.meta.env.VITE_JOB_POSTING_ADDRESS || 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
+
+// Fixed fees: 2 ADA for all posting types
+const JOB_POSTING_FEE_ADA = 2;
+const PROJECT_POSTING_FEE_ADA = 2;
+const FREELANCER_PROFILE_FEE_ADA = 2;
+
+export interface JobPostingData {
+  title: string;
+  company: string;
+  description: string;
+  salary: string;
+  salaryType: string;
+  category: string;
+  type: string;
+  contactEmail: string;
+  howToApply: string;
+  duration: number;
+  paymentAmount: number;
+  paymentCurrency: 'BONE' | 'ADA';
+  walletAddress: string;
+  timestamp: number;
+  workArrangement?: 'remote' | 'hybrid' | 'onsite';
+  requiredSkills?: string[];
+  additionalInfo?: string[];
+  companyWebsite?: string;
+  companyLogo?: string | null;
+  website?: string;
+  twitter?: string;
+  discord?: string;
+}
+
+export interface ProjectPostingData {
+  title: string;
+  description: string;
+  fundingGoal: number;
+  category: string;
+  contactEmail: string;
+  walletAddress: string;
+  paymentAmount: number;
+  paymentCurrency: 'BONE' | 'ADA';
+  timestamp: number;
+  website?: string;
+  twitter?: string;
+  discord?: string;
+  additionalInfo?: string[];
+}
+
+export interface FreelancerProfileData {
+  name: string;
+  title: string;
+  description: string;
+  skills: string[];
+  experience: string;
+  hourlyRate?: string;
+  contactEmail: string;
+  walletAddress: string;
+  paymentAmount: number;
+  paymentCurrency: 'BONE' | 'ADA';
+  timestamp: number;
+  website?: string;
+  twitter?: string;
+  discord?: string;
+  portfolio?: string[];
+}
+
+export class ContractService {
+  private lucid: Lucid | null = null;
+
+  async initializeLucid(walletApi: any) {
+    try {
+      console.log('Initializing Lucid with Blockfrost...', walletApi ? 'with wallet' : 'without wallet');
+      console.log('Network:', NETWORK);
+      console.log('Blockfrost URL:', `https://cardano-${NETWORK.toLowerCase()}.blockfrost.io/api/v0`);
+      console.log('API Key present:', !!BLOCKFROST_API_KEY);
+      console.log('API Key length:', BLOCKFROST_API_KEY?.length || 0);
+      
+      if (!BLOCKFROST_API_KEY) {
+        throw new Error('Blockfrost API key not configured. Please set VITE_BLOCKFROST_API_KEY environment variable.');
+      }
+      
+      // Initialize Lucid with Blockfrost provider
+      const lucid = await Lucid.new(
+        new Blockfrost(
+          `https://cardano-${NETWORK.toLowerCase()}.blockfrost.io/api/v0`,
+          BLOCKFROST_API_KEY
+        ),
+        NETWORK as 'Preview' | 'Mainnet'
+      );
+      
+      // Select wallet if provided
+      if (walletApi) {
+        lucid.selectWallet(walletApi);
+      }
+      
+      this.lucid = lucid;
+      console.log('Lucid initialized successfully');
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize Lucid:', error);
+      return false;
+    }
+  }
+
+  async postJobWithBONE(jobData: JobPostingData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      // Create the job posting metadata - truncate strings to fit Cardano 64 char limit
+      const metadata = {
+        674: { // Standard metadata label for job postings
+          job: {
+            title: jobData.title.substring(0, 60),
+            company: jobData.company.substring(0, 60),
+            description: jobData.description.substring(0, 60),
+            salary: jobData.salary.substring(0, 30),
+            salaryType: jobData.salaryType.substring(0, 20),
+            category: jobData.category.substring(0, 30),
+            type: jobData.type.substring(0, 20),
+            contactEmail: jobData.contactEmail.substring(0, 60),
+            duration: jobData.duration,
+            timestamp: jobData.timestamp,
+            poster: jobData.walletAddress.substring(0, 60)
+          }
+        }
+      };
+
+      // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
+      const boneAmount = Math.floor(jobData.paymentAmount);
+      
+      // Construct the full asset ID: policyId + tokenName (hex)
+      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
+      
+      console.log(`Sending ${boneAmount} BONE tokens`);
+      console.log(`Asset ID: ${fullAssetId}`);
+      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(
+          JOB_POSTING_ADDRESS,
+          { 
+            [fullAssetId]: BigInt(boneAmount)
+          }
+        )
+        .attachMetadata(674, metadata[674]);
+
+      // Complete and submit the transaction
+      const completeTx = await tx.complete();
+      const signedTx = await completeTx.sign().complete();
+      const txHash = await signedTx.submit();
+
+      // Track BONE payment in database
+      try {
+        await fetch('/api/burnedbone', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount: boneAmount })
+        });
+      } catch (error) {
+        console.warn('Failed to track BONE payment in database:', error);
+      }
+
+      // Job will be stored by useContract after successful transaction
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting job with BONE:', error);
+      const boneAmount = Math.floor(jobData.paymentAmount);
+      const errorMessage = this.parsePaymentError(error, 'BONE', boneAmount);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async postJobWithADA(jobData: JobPostingData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      console.log('Creating ADA job posting transaction...');
+      
+      // Create the job posting metadata - truncate strings to fit Cardano 64 char limit
+      const metadata = {
+        674: { // Standard metadata label for job postings
+          job: {
+            title: jobData.title.substring(0, 60),
+            company: jobData.company.substring(0, 60),
+            description: jobData.description.substring(0, 60),
+            salary: jobData.salary.substring(0, 30),
+            salaryType: jobData.salaryType.substring(0, 20),
+            category: jobData.category.substring(0, 30),
+            type: jobData.type.substring(0, 20),
+            contactEmail: jobData.contactEmail.substring(0, 60),
+            duration: jobData.duration,
+            timestamp: jobData.timestamp,
+            poster: jobData.walletAddress.substring(0, 60),
+            fee: `${JOB_POSTING_FEE_ADA} ADA`
+          }
+        }
+      };
+
+      // Fixed fee: 2 ADA in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(JOB_POSTING_FEE_ADA * 1_000_000);
+      
+      console.log(`Sending ${JOB_POSTING_FEE_ADA} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction - send 2 ADA to the job posting address
+      const tx = this.lucid.newTx()
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
+        .attachMetadata(674, metadata[674]);
+
+      console.log('Building transaction...');
+      const completeTx = await tx.complete();
+      
+      console.log('Signing transaction...');
+      const signedTx = await completeTx.sign().complete();
+      
+      console.log('Submitting transaction...');
+      const txHash = await signedTx.submit();
+      
+      console.log('Transaction submitted successfully:', txHash);
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting job with ADA:', error);
+      const errorMessage = this.parsePaymentError(error, 'ADA', JOB_POSTING_FEE_ADA);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+
+  async postProjectWithADA(projectData: ProjectPostingData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      console.log('Creating ADA project posting transaction...');
+      
+      // Create the project posting metadata - truncate strings to fit Cardano 64 char limit
+      const metadata = {
+        675: { // Standard metadata label for project postings
+          project: {
+            title: projectData.title.substring(0, 60),
+            description: projectData.description.substring(0, 60),
+            fundingGoal: projectData.fundingGoal,
+            category: projectData.category.substring(0, 30),
+            contactEmail: projectData.contactEmail.substring(0, 60),
+            timestamp: projectData.timestamp,
+            poster: projectData.walletAddress.substring(0, 60),
+            fee: `${PROJECT_POSTING_FEE_ADA} ADA`
+          }
+        }
+      };
+
+      // Fixed fee: 2 ADA in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(PROJECT_POSTING_FEE_ADA * 1_000_000);
+      
+      console.log(`Sending ${PROJECT_POSTING_FEE_ADA} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction - send 2 ADA to the posting address
+      const tx = this.lucid.newTx()
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
+        .attachMetadata(675, metadata[675]);
+
+      console.log('Building transaction...');
+      const completeTx = await tx.complete();
+      
+      console.log('Signing transaction...');
+      const signedTx = await completeTx.sign().complete();
+      
+      console.log('Submitting transaction...');
+      const txHash = await signedTx.submit();
+      
+      console.log('Transaction submitted successfully:', txHash);
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting project with ADA:', error);
+      const errorMessage = this.parsePaymentError(error, 'ADA', PROJECT_POSTING_FEE_ADA);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async postProjectWithBONE(projectData: ProjectPostingData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      // Create the project posting metadata - truncate strings to fit Cardano 64 char limit
+      const metadata = {
+        675: { // Standard metadata label for project postings
+          project: {
+            title: projectData.title.substring(0, 60),
+            description: projectData.description.substring(0, 60),
+            fundingGoal: projectData.fundingGoal,
+            category: projectData.category.substring(0, 30),
+            contactEmail: projectData.contactEmail.substring(0, 60),
+            timestamp: projectData.timestamp,
+            poster: projectData.walletAddress.substring(0, 60)
+          }
+        }
+      };
+
+      // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
+      const boneAmount = Math.floor(projectData.paymentAmount);
+      
+      // Construct the full asset ID: policyId + tokenName (hex)
+      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
+      
+      console.log(`Sending ${boneAmount} BONE tokens`);
+      console.log(`Asset ID: ${fullAssetId}`);
+      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(
+          JOB_POSTING_ADDRESS,
+          { 
+            [fullAssetId]: BigInt(boneAmount)
+          }
+        )
+        .attachMetadata(675, metadata[675]);
+
+      // Complete and submit the transaction
+      const completeTx = await tx.complete();
+      const signedTx = await completeTx.sign().complete();
+      const txHash = await signedTx.submit();
+
+      // Track BONE payment in database
+      try {
+        await fetch('/api/burnedbone', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount: boneAmount })
+        });
+      } catch (error) {
+        console.warn('Failed to track BONE payment in database:', error);
+      }
+
+      // Project will be stored by useContract after successful transaction
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting project with BONE:', error);
+      const boneAmount = Math.floor(projectData.paymentAmount);
+      const errorMessage = this.parsePaymentError(error, 'BONE', boneAmount);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async postFreelancerWithADA(freelancerData: FreelancerProfileData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      console.log('Creating ADA freelancer profile transaction...');
+      
+      // Create the freelancer profile metadata - truncate strings to fit Cardano 64 char limit
+      const metadata = {
+        676: { // Standard metadata label for freelancer profiles
+          freelancer: {
+            name: freelancerData.name.substring(0, 60),
+            title: freelancerData.title.substring(0, 60),
+            description: freelancerData.description.substring(0, 60),
+            skills: freelancerData.skills.join(',').substring(0, 60),
+            experience: freelancerData.experience.substring(0, 60),
+            hourlyRate: freelancerData.hourlyRate?.substring(0, 30) || '',
+            contactEmail: freelancerData.contactEmail.substring(0, 60),
+            timestamp: freelancerData.timestamp,
+            poster: freelancerData.walletAddress.substring(0, 60),
+            fee: `${FREELANCER_PROFILE_FEE_ADA} ADA`
+          }
+        }
+      };
+
+      // Fixed fee: 2 ADA in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(FREELANCER_PROFILE_FEE_ADA * 1_000_000);
+      
+      console.log(`Sending ${FREELANCER_PROFILE_FEE_ADA} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction - send 2 ADA to the posting address
+      const tx = this.lucid.newTx()
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
+        .attachMetadata(676, metadata[676]);
+
+      console.log('Building transaction...');
+      const completeTx = await tx.complete();
+      
+      console.log('Signing transaction...');
+      const signedTx = await completeTx.sign().complete();
+      
+      console.log('Submitting transaction...');
+      const txHash = await signedTx.submit();
+      
+      console.log('Transaction submitted successfully:', txHash);
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting freelancer with ADA:', error);
+      const errorMessage = this.parsePaymentError(error, 'ADA', FREELANCER_PROFILE_FEE_ADA);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async postFreelancerWithBONE(freelancerData: FreelancerProfileData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      // Create the freelancer profile metadata - truncate strings to fit Cardano 64 char limit
+      const metadata = {
+        676: { // Standard metadata label for freelancer profiles
+          freelancer: {
+            name: freelancerData.name.substring(0, 60),
+            title: freelancerData.title.substring(0, 60),
+            description: freelancerData.description.substring(0, 60),
+            skills: freelancerData.skills.join(',').substring(0, 60),
+            experience: freelancerData.experience.substring(0, 60),
+            hourlyRate: freelancerData.hourlyRate?.substring(0, 30) || '',
+            contactEmail: freelancerData.contactEmail.substring(0, 60),
+            timestamp: freelancerData.timestamp,
+            poster: freelancerData.walletAddress.substring(0, 60)
+          }
+        }
+      };
+
+      // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
+      const boneAmount = Math.floor(freelancerData.paymentAmount);
+      
+      // Construct the full asset ID: policyId + tokenName (hex)
+      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
+      
+      console.log(`Sending ${boneAmount} BONE tokens`);
+      console.log(`Asset ID: ${fullAssetId}`);
+      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(
+          JOB_POSTING_ADDRESS,
+          { 
+            [fullAssetId]: BigInt(boneAmount)
+          }
+        )
+        .attachMetadata(676, metadata[676]);
+
+      // Complete and submit the transaction
+      const completeTx = await tx.complete();
+      const signedTx = await completeTx.sign().complete();
+      const txHash = await signedTx.submit();
+
+      // Track BONE payment in database
+      try {
+        await fetch('/api/burnedbone', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount: boneAmount })
+        });
+      } catch (error) {
+        console.warn('Failed to track BONE payment in database:', error);
+      }
+
+      // Freelancer profile will be stored by useContract after successful transaction
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting freelancer with BONE:', error);
+      const boneAmount = Math.floor(freelancerData.paymentAmount);
+      const errorMessage = this.parsePaymentError(error, 'BONE', boneAmount);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  private parsePaymentError(error: any, currency: 'ADA' | 'BONE', amount: number): string {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Check for insufficient funds patterns (including InputsExhaustedError)
+    if (errorMessage.includes('insufficient') || 
+        errorMessage.includes('not enough') || 
+        errorMessage.includes('UTxO Balance Insufficient') ||
+        errorMessage.includes('InsufficientCollateral') ||
+        errorMessage.includes('ValueNotConserved') ||
+        errorMessage.includes('InputsExhaustedError') ||
+        errorMessage.includes('inputs exhausted')) {
+      return `Not enough ${currency} in your wallet. You need at least ${amount} ${currency} to complete this payment.`;
+    }
+    
+    // Check for asset not found (BONE token not in wallet)
+    if (errorMessage.includes('asset') && errorMessage.includes('not found')) {
+      return `${currency} token not found in your wallet. Please ensure you have ${amount} ${currency} tokens.`;
+    }
+    
+    // Check for wallet connection issues
+    if (errorMessage.includes('wallet') || errorMessage.includes('connection')) {
+      return 'Wallet connection error. Please reconnect your wallet and try again.';
+    }
+    
+    // Check for network issues
+    if (errorMessage.includes('network') || errorMessage.includes('timeout')) {
+      return 'Network error. Please check your connection and try again.';
+    }
+    
+    // Check for transaction building errors
+    if (errorMessage.includes('transaction') && (errorMessage.includes('build') || errorMessage.includes('construct'))) {
+      return 'Unable to create transaction. Please check your wallet balance and try again.';
+    }
+    
+    // Default to a user-friendly message instead of technical error
+    return 'Payment failed. Please check your wallet balance and try again.';
+  }
+
+  async getJobPostings(): Promise<any[]> {
+    try {
+      // In a real application, this would query the blockchain/backend
+      // For now, we'll return jobs from JobService
+      return JobService.getAllJobs();
+    } catch (error) {
+      console.error('Error getting job postings:', error);
+      return [];
+    }
+  }
+
+  async checkTransactionStatus(txHash: string): Promise<'pending' | 'confirmed' | 'failed'> {
+    if (!this.lucid) {
+      return 'failed';
+    }
+
+    try {
+      console.log('Checking transaction status:', txHash);
+      
+      // Wait for transaction confirmation
+      const confirmed = await this.lucid.awaitTx(txHash);
+      
+      if (confirmed) {
+        console.log('Transaction confirmed:', txHash);
+        return 'confirmed';
+      } else {
+        console.log('Transaction still pending:', txHash);
+        return 'pending';
+      }
+    } catch (error) {
+      console.error('Error checking transaction status:', error);
+      return 'failed';
+    }
+  }
+}
+
+export const contractService = new ContractService();

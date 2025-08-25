@@ -1,0 +1,660 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaEdit, FaTimes, FaGlobe, FaTwitter, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt } from 'react-icons/fa';
+import { useWallet } from '../../contexts/WalletContext';
+import { ProjectService, Project } from '../../services/projectService';
+import { JobService } from '../../services/jobService';
+import { toast } from 'react-toastify';
+import PageTransition from '../../components/PageTransition';
+import { Link } from 'react-router-dom';
+
+const MyProjects: React.FC = () => {
+  const { isConnected, walletAddress } = useWallet();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Project>>({});
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [allJobs, setAllJobs] = useState<any[]>([]);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProjects = async () => {
+      if (isConnected && walletAddress) {
+        try {
+          const userProjects = await ProjectService.getProjectsByWallet(walletAddress);
+          setProjects(userProjects);
+          
+          // Load all jobs to show related ones
+          const fetchedJobs = await JobService.getActiveJobs();
+          setAllJobs(fetchedJobs);
+        } catch (error) {
+          console.error('Error fetching user projects:', error);
+        }
+      } else {
+        setProjects([]);
+        setAllJobs([]);
+      }
+      setLoading(false);
+    };
+
+    fetchUserProjects();
+  }, [isConnected, walletAddress]);
+
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project);
+    setEditFormData({
+      name: project.title || project.name,
+      description: project.description,
+      website: project.website,
+      category: project.category,
+      logo: project.logo,
+      twitter: typeof project.twitter === 'string' ? project.twitter : project.twitterLink || '',
+      discord: typeof project.discord === 'string' ? project.discord : project.discordLink || ''
+    });
+    setLogoPreview(project.logo || null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingProject) return;
+
+    try {
+      const success = await ProjectService.updateProject(editingProject.id, editFormData);
+      if (success) {
+        // Refresh projects list
+        const updatedProjects = await ProjectService.getProjectsByWallet(walletAddress!);
+        setProjects(updatedProjects);
+        setEditingProject(null);
+        setEditFormData({});
+        setLogoPreview(null);
+        toast.success('Project updated successfully!');
+      } else {
+        toast.error('Failed to update project');
+      }
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast.error('Failed to update project');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProject(null);
+    setEditFormData({});
+    setLogoPreview(null);
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('File size should not exceed 2MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setLogoPreview(result);
+        setEditFormData(prev => ({ ...prev, logo: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  if (!isConnected) {
+    return (
+      <PageTransition>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+              <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">Connect Your Wallet</h3>
+                <p className="mt-1 text-sm text-gray-500">Connect your wallet to view and manage your projects.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+            <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading your projects...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <PageTransition>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+            <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
+          </div>
+        
+        <div className="p-6">
+          {projects.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <h3 className="mt-2 text-lg font-medium text-gray-900">No projects yet</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
+              <div className="mt-6">
+                <Link
+                  to="/projects/new"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  New Project
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-600">
+                  {projects.length} project{projects.length !== 1 ? 's' : ''} found
+                </p>
+                <Link
+                  to="/projects/new"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  New Project
+                </Link>
+              </div>
+              
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {projects.map((project, index) => (
+                  <motion.div 
+                    key={project.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      delay: index * 0.1,
+                      ease: 'easeOut'
+                    }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedProject(project)}
+                    className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-center mb-4">
+                        <div className="w-12 h-12 rounded-full mr-4 bg-white border border-gray-200 flex items-center justify-center">
+                          {project.logo ? (
+                            <img 
+                              src={project.logo} 
+                              alt={`${project.name} logo`}
+                              className="w-full h-full rounded-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                const parent = (e.target as HTMLImageElement).parentElement;
+                                if (parent) {
+                                  parent.innerHTML = '<div class="text-blue-600 text-lg"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                                }
+                              }}
+                            />
+                          ) : (
+                            <FaBuilding className="text-blue-600 text-lg" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
+                          <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            {project.category}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditProject(project);
+                          }}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Edit project"
+                        >
+                          <FaEdit className="h-4 w-4" />
+                        </button>
+                      </div>
+                      
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                        {project.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-end mb-4">
+                        <div className="flex space-x-2">
+                          {project.website && (
+                            <a href={project.website} target="_blank" rel="noopener noreferrer">
+                              <FaGlobe className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                            </a>
+                          )}
+                          {(typeof project.twitter === 'object' && project.twitter?.verified) && (
+                            <a href={`https://twitter.com/${project.twitter.username}`} target="_blank" rel="noopener noreferrer">
+                              <FaTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                            </a>
+                          )}
+                          {(typeof project.twitter === 'string' && project.twitter) && (
+                            <a href={project.twitter.startsWith('http') ? project.twitter : `https://twitter.com/${project.twitter}`} target="_blank" rel="noopener noreferrer">
+                              <FaTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                            </a>
+                          )}
+                          {(typeof project.discord === 'object' && project.discord?.verified) && (
+                            <a href={project.discord.inviteUrl} target="_blank" rel="noopener noreferrer">
+                              <FaDiscord className="h-4 w-4 text-gray-400 hover:text-indigo-600" />
+                            </a>
+                          )}
+                          {(typeof project.discord === 'string' && project.discord) && (
+                            <a href={project.discord} target="_blank" rel="noopener noreferrer">
+                              <FaDiscord className="h-4 w-4 text-gray-400 hover:text-indigo-600" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500">
+                        Created {new Date(project.timestamp || project.createdAt || Date.now()).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Edit Project Modal */}
+      {editingProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Edit Project</h2>
+                <button
+                  onClick={handleCancelEdit}
+                  className="p-2 text-gray-400 hover:text-gray-600"
+                >
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Project Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Project Name *
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.name || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter project name"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={editFormData.description || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Describe your project"
+                />
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={editFormData.website || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://your-project.com"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category *
+                </label>
+                <select
+                  value={editFormData.category || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select a category</option>
+                  <option value="DeFi">DeFi</option>
+                  <option value="NFT">NFT</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Infrastructure">Infrastructure</option>
+                  <option value="Tools">Tools</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* Logo Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Project Logo
+                </label>
+                <div className="flex items-center space-x-4">
+                  {logoPreview && (
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Twitter Username
+                  </label>
+                  <input
+                    type="text"
+                    value={typeof editFormData.twitter === 'object' ? editFormData.twitter?.username || '' : editFormData.twitter || ''}
+                    onChange={(e) => setEditFormData(prev => ({ 
+                      ...prev, 
+                      twitter: e.target.value
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="username (without @)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Discord Server Invite
+                  </label>
+                  <input
+                    type="text"
+                    value={typeof editFormData.discord === 'object' ? editFormData.discord?.inviteUrl || '' : editFormData.discord || ''}
+                    onChange={(e) => setEditFormData(prev => ({ 
+                      ...prev, 
+                      discord: e.target.value
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://discord.gg/invite-code"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={handleCancelEdit}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+              >
+                <FaSave className="h-4 w-4 mr-2" />
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Project Detail Modal */}
+      <AnimatePresence>
+        {selectedProject && (
+          <>
+            {/* Overlay */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={() => setSelectedProject(null)}
+            />
+            
+            {/* Modal */}
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+              className="fixed inset-y-0 right-0 w-full max-w-4xl bg-white shadow-xl z-50 overflow-y-auto" 
+              style={{ top: '64px' }}
+            >
+              <div className="flex flex-col h-full">
+                {/* Header */}
+                <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="h-12 w-12 rounded-xl border border-gray-200 flex items-center justify-center bg-white">
+                        {selectedProject!.logo ? (
+                          <img 
+                            className="h-full w-full rounded-xl object-cover" 
+                            src={selectedProject!.logo} 
+                            alt={`${selectedProject!.name} logo`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const parent = (e.target as HTMLImageElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="text-blue-600 text-xl"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <FaBuilding className="text-blue-600 text-xl" />
+                        )}
+                      </div>
+                      <div className="ml-4">
+                        <h2 className="text-2xl font-bold text-gray-900">{selectedProject!.name}</h2>
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-1">
+                          {selectedProject!.category}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedProject(null)}
+                      className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <FaTimes className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 px-6 py-6 space-y-8">
+                  {/* Description */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">About {selectedProject!.name}</h3>
+                    <p className="text-gray-700 leading-relaxed">{selectedProject!.description}</p>
+                  </div>
+
+                  {/* Links */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Links & Social</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {selectedProject!.website && (
+                        <a 
+                          href={selectedProject!.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <FaGlobe className="h-5 w-5 text-gray-600 mr-3" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Website</div>
+                            <div className="text-xs text-gray-500">Visit site</div>
+                          </div>
+                          <FaExternalLinkAlt className="h-3 w-3 text-gray-400 ml-auto" />
+                        </a>
+                      )}
+                      {(typeof selectedProject!.twitter === 'object' && selectedProject!.twitter?.verified) && (
+                        <a 
+                          href={`https://twitter.com/${selectedProject!.twitter.username}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <FaTwitter className="h-5 w-5 text-blue-400 mr-3" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">X (Twitter)</div>
+                            <div className="text-xs text-gray-500">Follow us</div>
+                          </div>
+                          <FaExternalLinkAlt className="h-3 w-3 text-gray-400 ml-auto" />
+                        </a>
+                      )}
+                      {(typeof selectedProject!.discord === 'object' && selectedProject!.discord?.verified) && (
+                        <a 
+                          href={selectedProject!.discord.inviteUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <FaDiscord className="h-5 w-5 text-indigo-500 mr-3" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Discord</div>
+                            <div className="text-xs text-gray-500">Join server</div>
+                          </div>
+                          <FaExternalLinkAlt className="h-3 w-3 text-gray-400 ml-auto" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Related Jobs */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Available Jobs ({allJobs.filter(job => 
+                        job.company && selectedProject!.name && (
+                          job.company.toLowerCase().includes(selectedProject!.name.toLowerCase()) ||
+                          selectedProject!.name.toLowerCase().includes(job.company.toLowerCase())
+                        )
+                      ).length})
+                    </h3>
+                    <div className="space-y-4">
+                      {allJobs
+                        .filter(job => 
+                          job.company && selectedProject!.name && (
+                            job.company.toLowerCase().includes(selectedProject!.name.toLowerCase()) ||
+                            selectedProject!.name.toLowerCase().includes(job.company.toLowerCase())
+                          )
+                        )
+                        .map((job) => (
+                          <Link
+                            key={job.id}
+                            to={`/jobs/${job.id}`}
+                            className="block p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h4 className="text-lg font-medium text-gray-900 hover:text-blue-600">
+                                  {job.title}
+                                </h4>
+                                <p className="text-sm text-gray-500 mt-1">{job.company}</p>
+                                <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
+                                  <span className="flex items-center">
+                                    <FaMapMarkerAlt className="h-3 w-3 mr-1" />
+                                    {job.workArrangement || 'Remote'}
+                                  </span>
+                                  <span className="flex items-center">
+                                    <FaClock className="h-3 w-3 mr-1" />
+                                    {job.type || 'Full-time'}
+                                  </span>
+                                  <span className="flex items-center">
+                                    {job.salaryType === 'ADA' ? (
+                                      <FaCoins className="h-3 w-3 mr-1" />
+                                    ) : (
+                                      <FaDollarSign className="h-3 w-3 mr-1" />
+                                    )}
+                                    {job.salary || 'Competitive'}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700 mt-2 line-clamp-2">
+                                  {job.description}
+                                </p>
+                              </div>
+                              <div className="ml-4 text-xs text-blue-600 font-medium">
+                                View Job →
+                              </div>
+                            </div>
+                          </Link>
+                        ))
+                      }
+                      {allJobs.filter(job => 
+                        job.company && selectedProject!.name && (
+                          job.company.toLowerCase().includes(selectedProject!.name.toLowerCase()) ||
+                          selectedProject!.name.toLowerCase().includes(job.company.toLowerCase())
+                        )
+                      ).length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <p>No jobs currently available for this project.</p>
+                          <Link 
+                            to="/jobs" 
+                            className="text-blue-600 hover:text-blue-800 font-medium mt-2 inline-block"
+                          >
+                            Browse all jobs →
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      </div>
+    </PageTransition>
+  );
+};
+
+export default MyProjects;
