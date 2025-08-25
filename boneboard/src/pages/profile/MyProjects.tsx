@@ -250,7 +250,7 @@ const MyProjects: React.FC = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">{project.title || project.name}</h3>
                           <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                             {project.category}
                           </span>
@@ -527,7 +527,7 @@ const MyProjects: React.FC = () => {
                         )}
                       </div>
                       <div className="ml-4">
-                        <h2 className="text-2xl font-bold text-gray-900">{selectedProject!.name}</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{selectedProject!.title || selectedProject!.name}</h2>
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-1">
                           {selectedProject!.category}
                         </span>
@@ -546,7 +546,7 @@ const MyProjects: React.FC = () => {
                 <div className="flex-1 px-6 py-6 space-y-8">
                   {/* Description */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">About {selectedProject!.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">About {selectedProject!.title || selectedProject!.name}</h3>
                     <p className="text-gray-700 leading-relaxed">{selectedProject!.description}</p>
                   </div>
 
@@ -605,21 +605,26 @@ const MyProjects: React.FC = () => {
                   {/* Related Jobs */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Available Jobs ({allJobs.filter(job => 
-                        job.company && selectedProject!.name && (
-                          job.company.toLowerCase().includes(selectedProject!.name.toLowerCase()) ||
-                          selectedProject!.name.toLowerCase().includes(job.company.toLowerCase())
-                        )
-                      ).length})
+                      Available Jobs ({(() => {
+                        const projectName = selectedProject!.title || selectedProject!.name;
+                        return allJobs.filter(job => 
+                          job.company && projectName && (
+                            job.company.toLowerCase().includes(projectName.toLowerCase()) ||
+                            projectName.toLowerCase().includes(job.company.toLowerCase())
+                          )
+                        ).length;
+                      })()})
                     </h3>
                     <div className="space-y-4">
-                      {allJobs
-                        .filter(job => 
-                          job.company && selectedProject!.name && (
-                            job.company.toLowerCase().includes(selectedProject!.name.toLowerCase()) ||
-                            selectedProject!.name.toLowerCase().includes(job.company.toLowerCase())
+                      {(() => {
+                        const projectName = selectedProject!.title || selectedProject!.name;
+                        return allJobs.filter(job => 
+                          job.company && projectName && (
+                            job.company.toLowerCase().includes(projectName.toLowerCase()) ||
+                            projectName.toLowerCase().includes(job.company.toLowerCase())
                           )
-                        )
+                        );
+                      })()
                         .map((job) => (
                           <Link
                             key={job.id}
@@ -661,12 +666,15 @@ const MyProjects: React.FC = () => {
                           </Link>
                         ))
                       }
-                      {allJobs.filter(job => 
-                        job.company && selectedProject!.name && (
-                          job.company.toLowerCase().includes(selectedProject!.name.toLowerCase()) ||
-                          selectedProject!.name.toLowerCase().includes(job.company.toLowerCase())
-                        )
-                      ).length === 0 && (
+                      {(() => {
+                        const projectName = selectedProject!.title || selectedProject!.name;
+                        return allJobs.filter(job => 
+                          job.company && projectName && (
+                            job.company.toLowerCase().includes(projectName.toLowerCase()) ||
+                            projectName.toLowerCase().includes(job.company.toLowerCase())
+                          )
+                        ).length === 0;
+                      })() && (
                         <div className="text-center py-8 text-gray-500">
                           <p>No jobs currently available for this project.</p>
                           <Link 

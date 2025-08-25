@@ -883,24 +883,32 @@ const JobListings: React.FC = () => {
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
                         <div className="flex flex-wrap gap-2">
-                          {selectedJob.requiredSkills.map((skill, index) => (
+                          {selectedJob.requiredSkills
+                            .filter(skill => skill && skill.trim() !== '')
+                            .map((skill, index) => (
                             <span
                               key={index}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
                             >
-                              {skill}
+                              {skill.replace(/[{}"\s]+/g, ' ').trim()}
                             </span>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Additional Requirements */}
+                    {/* Additional Information */}
                     {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Requirements</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
                         <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="whitespace-pre-line leading-relaxed">{selectedJob.additionalInfo.join('\n')}</p>
+                          <p className="whitespace-pre-line leading-relaxed">
+                            {selectedJob.additionalInfo
+                              .filter(info => info && info.trim() !== '')
+                              .map(info => info.replace(/[{}"\s]+/g, ' ').trim())
+                              .join('\n')
+                            }
+                          </p>
                         </div>
                       </div>
                     )}

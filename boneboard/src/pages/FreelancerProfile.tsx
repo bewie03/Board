@@ -274,7 +274,7 @@ const FreelancerProfile: React.FC = () => {
     
     // Check if user has set a username before allowing messaging
     if (!username) {
-      alert('Please set a username in your account settings before using the messaging system.');
+      toast.error('Please set a username in your account settings before using the messaging system.');
       return;
     }
     
