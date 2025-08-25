@@ -167,11 +167,18 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
 
       await client.query('COMMIT');
       
+      // Fetch and return the saved packages
+      const savedPackagesResult = await client.query(
+        `SELECT * FROM service_packages WHERE freelancer_id = $1 ORDER BY package_type, created_at`,
+        [freelancerId]
+      );
+
       return res.status(200).json({ 
         success: true, 
         message: 'Service packages saved successfully',
         freelancerId,
-        packagesCount: packages.length
+        packagesCount: packages.length * 3, // 3 tiers per package
+        packages: savedPackagesResult.rows
       });
 
     } catch (error) {

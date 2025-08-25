@@ -113,52 +113,118 @@ const FreelancerProfile: React.FC = () => {
           // First try to get freelancer by ID from the service
           const freelancerData = await FreelancerService.getFreelancerById(id);
           if (freelancerData) {
-            // Ensure freelancer has at least one service with proper package structure
-            const freelancerWithServices = {
-              ...freelancerData,
-              services: freelancerData.services.length > 0 ? freelancerData.services : [
-                {
-                  id: `${freelancerData.id}-service-0`,
-                  freelancerId: freelancerData.id,
-                  walletAddress: freelancerData.walletAddress,
-                  title: `${freelancerData.title} Service`,
-                  description: freelancerData.bio || 'Professional service',
-                  shortDescription: freelancerData.bio?.substring(0, 100) || 'Professional service',
-                  category: freelancerData.category,
-                  skills: freelancerData.skills,
-                  images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
-                  pricing: {
-                    basic: {
-                      price: 100,
-                      currency: 'ADA',
-                      deliveryTime: '7 days',
-                      description: 'Basic Package',
-                      features: ['Basic service delivery', 'Standard support', '1 revision']
+            // Load service packages from database
+            let freelancerWithServices: Freelancer = { ...freelancerData, services: [] };
+            
+            try {
+              // Fetch service packages from database
+              const packagesResponse = await fetch(`/api/freelancers/${freelancerData.id}/packages`);
+              if (packagesResponse.ok) {
+                const packagesData = await packagesResponse.json();
+                
+                if (packagesData.packages && packagesData.packages.length > 0) {
+                  // Group packages by service (assuming one service for now)
+                  const packagesByType = packagesData.packages.reduce((acc: any, pkg: any) => {
+                    acc[pkg.package_type] = {
+                      price: pkg.price,
+                      currency: pkg.currency,
+                      deliveryTime: pkg.delivery_time,
+                      description: pkg.description,
+                      features: Array.isArray(pkg.features) ? pkg.features : [pkg.features || 'Service delivery']
+                    };
+                    return acc;
+                  }, {});
+                  
+                  // Create service with loaded packages
+                  freelancerWithServices.services = [{
+                    id: `${freelancerData.id}-service-0`,
+                    freelancerId: freelancerData.id,
+                    walletAddress: freelancerData.walletAddress,
+                    title: packagesData.packages[0]?.title || `${freelancerData.title} Service`,
+                    description: freelancerData.bio || 'Professional service',
+                    shortDescription: freelancerData.bio?.substring(0, 100) || 'Professional service',
+                    category: freelancerData.category,
+                    skills: freelancerData.skills,
+                    images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
+                    pricing: {
+                      basic: packagesByType.basic || {
+                        price: 100,
+                        currency: 'ADA',
+                        deliveryTime: '7 days',
+                        description: 'Basic Package',
+                        features: ['Basic service delivery']
+                      },
+                      standard: packagesByType.standard || {
+                        price: 150,
+                        currency: 'ADA',
+                        deliveryTime: '5 days',
+                        description: 'Standard Package',
+                        features: ['Enhanced service delivery', 'Priority support']
+                      },
+                      premium: packagesByType.premium || {
+                        price: 200,
+                        currency: 'ADA',
+                        deliveryTime: '3 days',
+                        description: 'Premium Package',
+                        features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
+                      }
                     },
-                    standard: {
-                      price: 200,
-                      currency: 'ADA',
-                      deliveryTime: '5 days',
-                      description: 'Standard Package',
-                      features: ['Enhanced service delivery', 'Priority support', '3 revisions', 'Faster delivery']
-                    },
-                    premium: {
-                      price: 350,
-                      currency: 'ADA',
-                      deliveryTime: '3 days',
-                      description: 'Premium Package',
-                      features: ['Premium service delivery', '24/7 support', 'Unlimited revisions', 'Express delivery', 'Additional consultation']
-                    }
-                  },
-                  rating: freelancerData.rating,
-                  reviewCount: freelancerData.reviewCount,
-                  completedOrders: freelancerData.completedOrders,
-                  responseTime: freelancerData.responseTime,
-                  isActive: true,
-                  createdAt: new Date().toISOString()
+                    rating: freelancerData.rating,
+                    reviewCount: freelancerData.reviewCount,
+                    completedOrders: freelancerData.completedOrders,
+                    responseTime: freelancerData.responseTime,
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                  }];
                 }
-              ]
-            };
+              }
+            } catch (error) {
+              console.error('Error loading service packages:', error);
+            }
+            
+            // Fallback to default service if no packages loaded
+            if (freelancerWithServices.services.length === 0) {
+              freelancerWithServices.services = [{
+                id: `${freelancerData.id}-service-0`,
+                freelancerId: freelancerData.id,
+                walletAddress: freelancerData.walletAddress,
+                title: `${freelancerData.title} Service`,
+                description: freelancerData.bio || 'Professional service',
+                shortDescription: freelancerData.bio?.substring(0, 100) || 'Professional service',
+                category: freelancerData.category,
+                skills: freelancerData.skills,
+                images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
+                pricing: {
+                  basic: {
+                    price: 100,
+                    currency: 'ADA',
+                    deliveryTime: '7 days',
+                    description: 'Basic Package',
+                    features: ['Basic service delivery']
+                  },
+                  standard: {
+                    price: 150,
+                    currency: 'ADA',
+                    deliveryTime: '5 days',
+                    description: 'Standard Package',
+                    features: ['Enhanced service delivery', 'Priority support']
+                  },
+                  premium: {
+                    price: 200,
+                    currency: 'ADA',
+                    deliveryTime: '3 days',
+                    description: 'Premium Package',
+                    features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
+                  }
+                },
+                rating: freelancerData.rating,
+                reviewCount: freelancerData.reviewCount,
+                completedOrders: freelancerData.completedOrders,
+                responseTime: freelancerData.responseTime,
+                isActive: true,
+                createdAt: new Date().toISOString()
+              }];
+            }
             
             setFreelancer(freelancerWithServices);
             setEditedFreelancer(freelancerWithServices);
@@ -180,23 +246,10 @@ const FreelancerProfile: React.FC = () => {
               setBusyStatus((freelancerData as any).busyStatus);
             }
             
-            // Try to load from localStorage as backup for additional data
+            // Load additional data from localStorage for social links, work images, etc.
             const savedData = localStorage.getItem(`freelancer_${freelancerData.walletAddress}`);
             if (savedData) {
               const parsedData = JSON.parse(savedData);
-              // Merge saved data with freelancer data, prioritizing saved data for most fields
-              const mergedData = {
-                ...freelancerData,
-                ...parsedData,
-                // Ensure core profile data is up to date
-                id: freelancerData.id,
-                walletAddress: freelancerData.walletAddress,
-                // Prioritize saved category over service-generated category
-                category: parsedData.category || freelancerData.category
-              };
-              console.log('FreelancerProfile loading - Service category:', freelancerData.category, 'Saved category:', parsedData.category, 'Final category:', mergedData.category);
-              setFreelancer(mergedData);
-              setEditedFreelancer(mergedData);
               if (parsedData.socialLinks) setSocialLinks(parsedData.socialLinks);
               if (parsedData.workImages) setWorkImages(parsedData.workImages);
               if (parsedData.busyStatus) setBusyStatus(parsedData.busyStatus);
@@ -222,6 +275,60 @@ const FreelancerProfile: React.FC = () => {
 
     loadFreelancer();
   }, [id, walletAddress]);
+
+  // Listen for package updates and reload data
+  useEffect(() => {
+    const handlePackagesUpdated = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail.walletAddress === walletAddress && freelancer) {
+        // Reload packages from database
+        try {
+          const packagesResponse = await fetch(`/api/freelancers/${freelancer.id}/packages`);
+          if (packagesResponse.ok) {
+            const packagesData = await packagesResponse.json();
+            
+            if (packagesData.packages && packagesData.packages.length > 0) {
+              const packagesByType = packagesData.packages.reduce((acc: any, pkg: any) => {
+                acc[pkg.package_type] = {
+                  price: pkg.price,
+                  currency: pkg.currency,
+                  deliveryTime: pkg.delivery_time,
+                  description: pkg.description,
+                  features: Array.isArray(pkg.features) ? pkg.features : [pkg.features || 'Service delivery']
+                };
+                return acc;
+              }, {});
+              
+              // Update freelancer services with new packages
+              const updatedFreelancer = {
+                ...freelancer,
+                services: freelancer.services.map(service => ({
+                  ...service,
+                  pricing: {
+                    basic: packagesByType.basic || service.pricing.basic,
+                    standard: packagesByType.standard || service.pricing.standard,
+                    premium: packagesByType.premium || service.pricing.premium
+                  }
+                }))
+              };
+              
+              setFreelancer(updatedFreelancer);
+              setEditedFreelancer(updatedFreelancer);
+              setSelectedService(updatedFreelancer.services[0]);
+            }
+          }
+        } catch (error) {
+          console.error('Error reloading packages:', error);
+        }
+      }
+    };
+
+    window.addEventListener('freelancerPackagesUpdated', handlePackagesUpdated);
+    
+    return () => {
+      window.removeEventListener('freelancerPackagesUpdated', handlePackagesUpdated);
+    };
+  }, [walletAddress, freelancer]);
 
   // Real-time preview update effect - sync freelancer state with editedFreelancer when editing
   useEffect(() => {
