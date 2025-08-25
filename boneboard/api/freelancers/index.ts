@@ -9,7 +9,7 @@ import {
   createUser
 } from '../../src/lib/database';
 
-// Database connection for packages functionalityy
+// Database connection for packages functionality
 let pool: any = null;
 
 function getPool() {
