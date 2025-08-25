@@ -7,7 +7,7 @@ import {
   updateFreelancer,
   getUserByWallet,
   createUser
-} from '../../src/lib/database';
+} from '../../boneboard/src/lib/database';
 
 // Database connection for packages functionality
 let pool: any = null;

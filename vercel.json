@@ -1,16 +1,16 @@
 {
-  "buildCommand": "cd boneboard && npm ci && npm run build",
-  "installCommand": "cd boneboard && npm ci",
+  "buildCommand": "npm ci && cd boneboard && npm ci && npm run build",
+  "installCommand": "npm ci && cd boneboard && npm ci",
   "outputDirectory": "boneboard/dist",
   "functions": {
-    "boneboard/api/**/*.ts": {
+    "api/**/*.ts": {
       "runtime": "@vercel/node@3.2.29"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/boneboard/api/$1"
+      "destination": "/api/$1"
     },
     {
       "source": "/(.*)",

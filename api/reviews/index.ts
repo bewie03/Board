@@ -1,6 +1,6 @@
 // Vercel API route for review operations
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { createReview, getReviewsByFreelancer } from '../../src/lib/database';
+import { createReview, getReviewsByFreelancer } from '../../boneboard/src/lib/database';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
