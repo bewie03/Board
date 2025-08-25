@@ -43,7 +43,7 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
 
       // Get freelancer profile by wallet address
       const freelancerResult = await client.query(
-        'SELECT id FROM freelancer_profiles WHERE wallet_address = $1',
+        'SELECT fp.id FROM freelancer_profiles fp JOIN users u ON fp.user_id = u.id WHERE u.wallet_address = $1',
         [walletAddress]
       );
 
@@ -144,7 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (req.query.walletAddress) {
             // Get freelancer by wallet address with packages
             const freelancerResult = await client.query(`
-              SELECT fp.*, 
+              SELECT fp.*, u.wallet_address,
                      array_agg(
                        json_build_object(
                          'id', sp.id,
@@ -171,9 +171,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                        )
                      ) FILTER (WHERE sp.id IS NOT NULL) as service_packages
               FROM freelancer_profiles fp
+              JOIN users u ON fp.user_id = u.id
               LEFT JOIN service_packages sp ON fp.id = sp.freelancer_id
-              WHERE fp.wallet_address = $1
-              GROUP BY fp.id
+              WHERE u.wallet_address = $1
+              GROUP BY fp.id, u.wallet_address
             `, [req.query.walletAddress]);
             
             if (freelancerResult.rows.length === 0) {
@@ -184,11 +185,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           } else {
             // Get all freelancers with basic package info
             const freelancersResult = await client.query(`
-              SELECT fp.*,
+              SELECT fp.*, u.wallet_address,
                      MIN(sp.basic_price) as starting_price
               FROM freelancer_profiles fp
+              JOIN users u ON fp.user_id = u.id
               LEFT JOIN service_packages sp ON fp.id = sp.freelancer_id
-              GROUP BY fp.id
+              GROUP BY fp.id, u.wallet_address
               ORDER BY fp.created_at DESC
             `);
             
@@ -199,15 +201,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // Create new freelancer
           const freelancerData = req.body;
           
+          // First, ensure user exists or create one
+          const userResult = await client.query(
+            `INSERT INTO users (wallet_address, profile_type) 
+             VALUES ($1, 'freelancer') 
+             ON CONFLICT (wallet_address) 
+             DO UPDATE SET profile_type = 'freelancer'
+             RETURNING id`,
+            [freelancerData.walletAddress]
+          );
+          
+          const userId = userResult.rows[0].id;
+          
           const createResult = await client.query(
             `INSERT INTO freelancer_profiles (
-              wallet_address, name, title, bio, avatar_url, category, skills, languages, 
+              user_id, name, title, bio, avatar_url, category, skills, languages, 
               location, rating, review_count, completed_orders, response_time, 
               is_online, busy_status, social_links, work_images
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             RETURNING *`,
             [
-              freelancerData.walletAddress,
+              userId,
               freelancerData.name,
               freelancerData.title,
               freelancerData.bio,
@@ -258,8 +272,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const updateResult = await client.query(
             `UPDATE freelancer_profiles 
              SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-             WHERE wallet_address = $${paramIndex}
-             RETURNING *`,
+             FROM users u
+             WHERE freelancer_profiles.user_id = u.id AND u.wallet_address = $${paramIndex}
+             RETURNING freelancer_profiles.*`,
             updateValues
           );
 
