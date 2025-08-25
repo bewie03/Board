@@ -110,12 +110,15 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
 
       // Insert new packages using exact deployed schema
       for (const pkg of packages) {
-        // Convert features array to text if needed
+        // Convert features to simple text string
         const formatFeatures = (features: any) => {
           if (Array.isArray(features)) {
-            return features.join('\n');
+            return features.join(', ');
           }
-          return features || 'Service delivery';
+          if (typeof features === 'string') {
+            return features;
+          }
+          return 'Service delivery';
         };
 
         // Insert basic package
@@ -216,19 +219,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Handle packages endpoint: /api/freelancers?packages=true
-    if (req.query.packages === 'true') {
-      return await handlePackages(req, res);
-    }
-
     switch (req.method) {
       case 'GET':
-        if (req.query.walletAddress) {
-          // Get freelancer by wallet address
-          const freelancer = await getFreelancerByWallet(req.query.walletAddress as string);
-          return res.status(200).json(freelancer);
-        } else if (req.query.id && req.query.packages === 'true') {
-          // Get packages for freelancer by ID
+        // Handle packages endpoint: /api/freelancers?packages=true
+        if (req.query.packages === 'true' && req.query.id) {
           try {
             const client = await getPool().connect();
             try {
@@ -250,6 +244,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               details: error.message 
             });
           }
+        } else if (req.query.walletAddress) {
+          // Get freelancer by wallet address
+          const freelancer = await getFreelancerByWallet(req.query.walletAddress as string);
+          return res.status(200).json(freelancer);
         } else {
           // Get all freelancers
           const freelancers = await getAllFreelancers();
@@ -257,6 +255,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
       case 'POST':
+        // Handle packages saving: /api/freelancers?packages=true
+        if (req.query.packages === 'true') {
+          return await handlePackages(req, res);
+        }
+        
         // Create new freelancer
         const freelancerData = req.body;
         

@@ -43,33 +43,17 @@ CREATE TABLE freelancer_profiles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Service packages for freelancers
+-- Service packages for freelancers (matches deployed database structure)
 CREATE TABLE service_packages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     freelancer_id UUID REFERENCES freelancer_profiles(id) ON DELETE CASCADE,
-    service_title VARCHAR(200) NOT NULL,
-    service_description TEXT,
-    category VARCHAR(50),
-    -- Basic package
-    basic_price DECIMAL(10,2) NOT NULL DEFAULT 100,
-    basic_currency VARCHAR(10) DEFAULT 'ADA',
-    basic_delivery_days INTEGER DEFAULT 7,
-    basic_description TEXT,
-    basic_features TEXT[], -- Array of feature strings
-    -- Standard package
-    standard_price DECIMAL(10,2) NOT NULL DEFAULT 150,
-    standard_currency VARCHAR(10) DEFAULT 'ADA',
-    standard_delivery_days INTEGER DEFAULT 5,
-    standard_description TEXT,
-    standard_features TEXT[], -- Array of feature strings
-    -- Premium package
-    premium_price DECIMAL(10,2) NOT NULL DEFAULT 200,
-    premium_currency VARCHAR(10) DEFAULT 'ADA',
-    premium_delivery_days INTEGER DEFAULT 3,
-    premium_description TEXT,
-    premium_features TEXT[], -- Array of feature strings
-    -- Service metadata
-    hourly_rate DECIMAL(10,2), -- Add hourly rate field
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    features TEXT, -- Single text field, not array
+    price NUMERIC NOT NULL,
+    currency VARCHAR(10) DEFAULT 'ADA',
+    delivery_time VARCHAR(50),
+    package_type VARCHAR(20) NOT NULL CHECK (package_type IN ('basic', 'standard', 'premium')),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

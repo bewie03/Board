@@ -116,31 +116,81 @@ export const updateFreelancer = async (walletAddress: string, updates: any) => {
       throw new Error('Freelancer not found');
     }
 
-    const query = `
+    // Only include fields that are being updated to avoid payload size issues
+    const fieldsToUpdate = [];
+    const values = [walletAddress];
+    let paramIndex = 2;
+    
+    if (updates.name !== undefined) {
+      fieldsToUpdate.push(`name = $${paramIndex}`);
+      values.push(updates.name || currentFreelancer.name || 'Freelancer');
+      paramIndex++;
+    }
+    
+    if (updates.title !== undefined) {
+      fieldsToUpdate.push(`title = $${paramIndex}`);
+      values.push(updates.title || currentFreelancer.title || 'Professional');
+      paramIndex++;
+    }
+    
+    if (updates.bio !== undefined) {
+      fieldsToUpdate.push(`bio = $${paramIndex}`);
+      values.push(updates.bio || currentFreelancer.bio || '');
+      paramIndex++;
+    }
+    
+    if (updates.avatarUrl !== undefined || updates.avatar !== undefined) {
+      fieldsToUpdate.push(`avatar_url = $${paramIndex}`);
+      values.push(updates.avatarUrl || updates.avatar || currentFreelancer.avatar_url || '');
+      paramIndex++;
+    }
+    
+    if (updates.location !== undefined) {
+      fieldsToUpdate.push(`location = $${paramIndex}`);
+      values.push(updates.location || currentFreelancer.location || '');
+      paramIndex++;
+    }
+    
+    if (updates.languages !== undefined) {
+      fieldsToUpdate.push(`languages = $${paramIndex}`);
+      values.push(updates.languages || currentFreelancer.languages || []);
+      paramIndex++;
+    }
+    
+    if (updates.skills !== undefined) {
+      fieldsToUpdate.push(`skills = $${paramIndex}`);
+      values.push(updates.skills || currentFreelancer.skills || []);
+      paramIndex++;
+    }
+    
+    if (updates.busyStatus !== undefined) {
+      fieldsToUpdate.push(`busy_status = $${paramIndex}`);
+      values.push(updates.busyStatus || currentFreelancer.busy_status || 'available');
+      paramIndex++;
+    }
+    
+    if (updates.isOnline !== undefined) {
+      fieldsToUpdate.push(`is_online = $${paramIndex}`);
+      values.push(updates.isOnline);
+      paramIndex++;
+    }
+    
+    // Always add updated_at
+    fieldsToUpdate.push(`updated_at = NOW()`);
+    
+    if (fieldsToUpdate.length === 1) { // Only updated_at
+      return currentFreelancer; // No changes to make
+    }
+
+    const updateQuery = `
       UPDATE freelancer_profiles 
-      SET name = $2, title = $3, bio = $4, avatar_url = $5, location = $6,
-          languages = $7, skills = $8, busy_status = $9, social_links = $10,
-          work_images = $11, updated_at = NOW()
+      SET ${fieldsToUpdate.join(', ')}
       FROM users u
       WHERE freelancer_profiles.user_id = u.id AND u.wallet_address = $1
       RETURNING freelancer_profiles.*
     `;
     
-    const values = [
-      walletAddress,
-      updates.name || currentFreelancer.name || 'Freelancer', // Ensure name is never null
-      updates.title || currentFreelancer.title || 'Professional',
-      updates.bio || currentFreelancer.bio || '',
-      updates.avatarUrl || updates.avatar || currentFreelancer.avatar_url || '',
-      updates.location || currentFreelancer.location || '',
-      updates.languages || currentFreelancer.languages || [],
-      updates.skills || currentFreelancer.skills || [],
-      updates.busyStatus || currentFreelancer.busy_status || 'available',
-      JSON.stringify(updates.socialLinks || currentFreelancer.social_links || {}),
-      updates.workImages || currentFreelancer.work_images || []
-    ];
-    
-    const result = await getPool().query(query, values);
+    const result = await getPool().query(updateQuery, values);
     return result.rows[0];
   } catch (error) {
     console.error('Error updating freelancer:', error);
