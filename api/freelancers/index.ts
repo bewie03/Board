@@ -108,38 +108,59 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
         [freelancerId]
       );
 
-      // Insert new packages
+      // Insert new packages using actual deployed schema
       for (const pkg of packages) {
+        // Insert basic package
         await client.query(
           `INSERT INTO service_packages (
-            freelancer_id, service_title, service_description, category,
-            basic_price, basic_currency, basic_delivery_days, basic_description, basic_features,
-            standard_price, standard_currency, standard_delivery_days, standard_description, standard_features,
-            premium_price, premium_currency, premium_delivery_days, premium_description, premium_features,
-            hourly_rate, is_active
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+            freelancer_id, title, description, features, price, currency, delivery_time, package_type, is_active
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
           [
             freelancerId,
-            pkg.service_title,
-            pkg.service_description,
-            pkg.category,
-            pkg.basic_price,
-            pkg.basic_currency,
-            pkg.basic_delivery_days,
-            pkg.basic_description,
-            pkg.basic_features,
-            pkg.standard_price,
-            pkg.standard_currency,
-            pkg.standard_delivery_days,
-            pkg.standard_description,
-            pkg.standard_features,
-            pkg.premium_price,
-            pkg.premium_currency,
-            pkg.premium_delivery_days,
-            pkg.premium_description,
-            pkg.premium_features,
-            pkg.hourly_rate,
-            pkg.is_active
+            pkg.service_title || pkg.title || 'Service Package',
+            pkg.basic_description || pkg.service_description || 'Basic package',
+            pkg.basic_features || ['Basic service delivery'],
+            pkg.basic_price || 100,
+            pkg.basic_currency || 'ADA',
+            pkg.basic_delivery_days ? `${pkg.basic_delivery_days} days` : '7 days',
+            'basic',
+            pkg.is_active !== false
+          ]
+        );
+
+        // Insert standard package
+        await client.query(
+          `INSERT INTO service_packages (
+            freelancer_id, title, description, features, price, currency, delivery_time, package_type, is_active
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            freelancerId,
+            pkg.service_title || pkg.title || 'Service Package',
+            pkg.standard_description || `Enhanced ${pkg.service_title || 'Service'}`,
+            pkg.standard_features || [...(pkg.basic_features || ['Basic service delivery']), 'Priority support'],
+            pkg.standard_price || Math.ceil((pkg.basic_price || 100) * 1.5),
+            pkg.standard_currency || 'ADA',
+            pkg.standard_delivery_days ? `${pkg.standard_delivery_days} days` : '5 days',
+            'standard',
+            pkg.is_active !== false
+          ]
+        );
+
+        // Insert premium package
+        await client.query(
+          `INSERT INTO service_packages (
+            freelancer_id, title, description, features, price, currency, delivery_time, package_type, is_active
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            freelancerId,
+            pkg.service_title || pkg.title || 'Service Package',
+            pkg.premium_description || `Premium ${pkg.service_title || 'Service'}`,
+            pkg.premium_features || [...(pkg.basic_features || ['Basic service delivery']), 'Priority support', 'Unlimited revisions'],
+            pkg.premium_price || (pkg.basic_price || 100) * 2,
+            pkg.premium_currency || 'ADA',
+            pkg.premium_delivery_days ? `${pkg.premium_delivery_days} days` : '3 days',
+            'premium',
+            pkg.is_active !== false
           ]
         );
       }
