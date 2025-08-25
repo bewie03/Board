@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEdit, FaTimes, FaGlobe, FaTwitter, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaEdit, FaTimes, FaGlobe, FaTwitter, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
 import { useWallet } from '../../contexts/WalletContext';
 import { ProjectService, Project } from '../../services/projectService';
 import { JobService } from '../../services/jobService';
@@ -49,8 +49,8 @@ const MyProjects: React.FC = () => {
       website: project.website,
       category: project.category,
       logo: project.logo,
-      twitter: typeof project.twitter === 'string' ? project.twitter : project.twitterLink || '',
-      discord: typeof project.discord === 'string' ? project.discord : project.discordLink || ''
+      twitter: project.twitterLink || (typeof project.twitter === 'string' ? project.twitter : (typeof project.twitter === 'object' && project.twitter?.username ? project.twitter.username : '')),
+      discord: project.discordLink || (typeof project.discord === 'string' ? project.discord : (typeof project.discord === 'object' && project.discord?.inviteUrl ? project.discord.inviteUrl : ''))
     });
     setLogoPreview(project.logo || null);
   };
@@ -81,6 +81,27 @@ const MyProjects: React.FC = () => {
     setEditingProject(null);
     setEditFormData({});
     setLogoPreview(null);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const success = await ProjectService.deleteProject(projectId);
+      if (success) {
+        // Refresh projects list
+        const updatedProjects = await ProjectService.getProjectsByWallet(walletAddress!);
+        setProjects(updatedProjects);
+        toast.success('Project deleted successfully!');
+      } else {
+        toast.error('Failed to delete project');
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error('Failed to delete project');
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,16 +255,28 @@ const MyProjects: React.FC = () => {
                             {project.category}
                           </span>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditProject(project);
-                          }}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                          title="Edit project"
-                        >
-                          <FaEdit className="h-4 w-4" />
-                        </button>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditProject(project);
+                            }}
+                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Edit project"
+                          >
+                            <FaEdit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(project.id);
+                            }}
+                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                            title="Delete project"
+                          >
+                            <FaTrash className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                       
                       <p className="text-gray-600 text-sm mb-4 line-clamp-3">

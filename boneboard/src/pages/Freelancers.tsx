@@ -262,7 +262,7 @@ const Freelancers: React.FC = () => {
 
           {/* Create Profile CTA (if no profile) */}
           {!userProfile && isConnected && (
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 mb-8 text-center text-white">
+            <div className="bg-blue-600 rounded-lg p-8 mb-8 text-center text-white">
               <h2 className="text-2xl font-bold mb-4">Become a Freelancer</h2>
               <p className="text-lg mb-6">
                 Join the BoneBoard community and start offering your services to the Cardano ecosystem.

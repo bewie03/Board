@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaFilter, FaChevronDown } from 'react-icons/fa';
+import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch } from 'react-icons/fa';
 import { JobService } from '../services/jobService';
 import { ProjectService, Project as StoredProject } from '../services/projectService';
 import PageTransition from '../components/PageTransition';
@@ -113,91 +113,128 @@ const Projects: React.FC = () => {
           </div>
 
           {/* Search and Filters */}
-          <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="space-y-6">
-              {/* Search Bar */}
-              <div className="relative max-w-lg mx-auto">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaSearch className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search projects by name or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
+          <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+            <div className="px-6 py-8 sm:p-10">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Discover Projects</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Explore {createdProjects.length} projects in the Cardano ecosystem
+                </p>
               </div>
 
-              {/* Filters Row */}
-              <div className="flex flex-wrap gap-4 justify-center items-center">
-                {/* Category Filter */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                    className="flex items-center px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                  >
-                    <FaFilter className="h-4 w-4 mr-2 text-gray-500" />
-                    Categories {selectedCategories.length > 0 && (
-                      <span className="ml-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {selectedCategories.length}
-                      </span>
+              <div className="mt-6 space-y-6">
+                {/* Search Bar */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Search Projects</label>
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by project name or description..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Filters Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Category Filter */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Category</label>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer text-left"
+                        style={{
+                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
+                        }}
+                      >
+                        <span className="text-gray-700">
+                          {selectedCategories.length === 0 
+                            ? 'All Categories' 
+                            : selectedCategories.length === 1 
+                              ? selectedCategories[0]
+                              : `${selectedCategories.length} categories selected`
+                          }
+                        </span>
+                      </button>
+                      
+                      {showCategoryDropdown && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          <div className="py-2">
+                            {PROJECT_CATEGORIES.map((category) => (
+                              <label key={category} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedCategories.includes(category)}
+                                  onChange={() => toggleCategory(category)}
+                                  className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <span className="text-sm text-gray-700">{category}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Active Jobs Filter */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Job Status</label>
+                    <label className="flex items-center h-[42px] px-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={showActiveJobsOnly}
+                        onChange={(e) => setShowActiveJobsOnly(e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
+                      />
+                      <span className="text-sm text-gray-700">Projects with active jobs</span>
+                    </label>
+                  </div>
+
+                  {/* Clear Filters */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">&nbsp;</label>
+                    {(searchTerm || selectedCategories.length > 0 || showActiveJobsOnly) && (
+                      <button
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSelectedCategories([]);
+                          setShowActiveJobsOnly(false);
+                          setShowCategoryDropdown(false);
+                        }}
+                        className="w-full h-[42px] px-4 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors font-medium"
+                      >
+                        Clear all filters
+                      </button>
                     )}
-                    <FaChevronDown className={`h-4 w-4 ml-2 text-gray-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {showCategoryDropdown && (
-                    <div className="absolute z-20 mt-2 w-72 bg-white shadow-xl max-h-64 rounded-lg py-2 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none border border-gray-200">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
-                        Select Categories
-                      </div>
-                      {PROJECT_CATEGORIES.map((category) => (
-                        <label key={category} className="flex items-center px-4 py-2.5 hover:bg-blue-50 cursor-pointer transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={selectedCategories.includes(category)}
-                            onChange={() => toggleCategory(category)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
-                          />
-                          <span className="text-sm text-gray-900">{category}</span>
-                        </label>
+                  </div>
+                </div>
+
+                {/* Results count */}
+                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                  <span className="text-sm text-gray-600">
+                    Showing {filteredProjects.length} of {createdProjects.length} projects
+                  </span>
+                  {selectedCategories.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCategories.map(category => (
+                        <span key={category} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {category}
+                          <button
+                            onClick={() => toggleCategory(category)}
+                            className="ml-1 text-blue-600 hover:text-blue-800"
+                          >
+                            ×
+                          </button>
+                        </span>
                       ))}
                     </div>
                   )}
                 </div>
-
-                {/* Active Jobs Filter */}
-                <label className="flex items-center cursor-pointer bg-gray-50 px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={showActiveJobsOnly}
-                    onChange={(e) => setShowActiveJobsOnly(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
-                  />
-                  <span className="text-sm text-gray-700 font-medium">Projects with active jobs</span>
-                </label>
-
-                {/* Clear Filters */}
-                {(searchTerm || selectedCategories.length > 0 || showActiveJobsOnly) && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedCategories([]);
-                      setShowActiveJobsOnly(false);
-                      setShowCategoryDropdown(false);
-                    }}
-                    className="px-4 py-2.5 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors font-medium"
-                  >
-                    Clear all filters
-                  </button>
-                )}
-              </div>
-
-              {/* Results count */}
-              <div className="text-center">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                  {filteredProjects.length} of {createdProjects.length} projects
-                </span>
               </div>
             </div>
           </div>

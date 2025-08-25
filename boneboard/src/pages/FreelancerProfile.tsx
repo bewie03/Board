@@ -54,7 +54,7 @@ interface Review {
 const FreelancerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { walletAddress } = useWallet();
+  const { walletAddress, username } = useWallet();
   const [freelancer, setFreelancer] = useState<Freelancer | null>(null);
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<'basic' | 'standard' | 'premium'>('basic');
@@ -271,6 +271,12 @@ const FreelancerProfile: React.FC = () => {
 
   const handleContactFreelancer = async () => {
     if (!walletAddress || !freelancer?.walletAddress) return;
+    
+    // Check if user has set a username before allowing messaging
+    if (!username) {
+      alert('Please set a username in your account settings before using the messaging system.');
+      return;
+    }
     
     try {
       // Create or get conversation
