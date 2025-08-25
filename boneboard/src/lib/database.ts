@@ -62,21 +62,21 @@ export const createFreelancer = async (freelancerData: any) => {
     
     const values = [
       freelancerData.userId,
-      freelancerData.name,
-      freelancerData.title,
-      freelancerData.bio,
-      freelancerData.avatarUrl,
-      freelancerData.category,
+      freelancerData.name || 'Freelancer', // Ensure name is never null
+      freelancerData.title || 'Professional',
+      freelancerData.bio || '',
+      freelancerData.avatarUrl || freelancerData.avatar || '',
+      freelancerData.category || 'Other',
       freelancerData.skills || [], // PostgreSQL array
-      freelancerData.languages || [], // PostgreSQL array
-      freelancerData.location,
-      freelancerData.rating,
-      freelancerData.reviewCount,
-      freelancerData.completedOrders,
-      freelancerData.responseTime,
-      freelancerData.isOnline,
-      freelancerData.busyStatus,
-      JSON.stringify(freelancerData.socialLinks),
+      freelancerData.languages || ['English'], // PostgreSQL array
+      freelancerData.location || '',
+      freelancerData.rating || 0,
+      freelancerData.reviewCount || 0,
+      freelancerData.completedOrders || 0,
+      freelancerData.responseTime || '24 hours',
+      freelancerData.isOnline !== undefined ? freelancerData.isOnline : true,
+      freelancerData.busyStatus || 'available',
+      JSON.stringify(freelancerData.socialLinks || {}),
       freelancerData.workImages || [] // PostgreSQL array
     ];
     
@@ -110,6 +110,12 @@ export const getFreelancerByWallet = async (walletAddress: string) => {
 
 export const updateFreelancer = async (walletAddress: string, updates: any) => {
   try {
+    // First get the current freelancer data to preserve existing values
+    const currentFreelancer = await getFreelancerByWallet(walletAddress);
+    if (!currentFreelancer) {
+      throw new Error('Freelancer not found');
+    }
+
     const query = `
       UPDATE freelancer_profiles 
       SET name = $2, title = $3, bio = $4, avatar_url = $5, location = $6,
@@ -122,22 +128,23 @@ export const updateFreelancer = async (walletAddress: string, updates: any) => {
     
     const values = [
       walletAddress,
-      updates.name,
-      updates.title,
-      updates.bio,
-      updates.avatarUrl,
-      updates.location,
-      updates.languages,
-      updates.skills,
-      updates.busyStatus,
-      JSON.stringify(updates.socialLinks),
-      updates.workImages
+      updates.name || currentFreelancer.name || 'Freelancer', // Ensure name is never null
+      updates.title || currentFreelancer.title || 'Professional',
+      updates.bio || currentFreelancer.bio || '',
+      updates.avatarUrl || updates.avatar || currentFreelancer.avatar_url || '',
+      updates.location || currentFreelancer.location || '',
+      updates.languages || currentFreelancer.languages || [],
+      updates.skills || currentFreelancer.skills || [],
+      updates.busyStatus || currentFreelancer.busy_status || 'available',
+      JSON.stringify(updates.socialLinks || currentFreelancer.social_links || {}),
+      updates.workImages || currentFreelancer.work_images || []
     ];
     
     const result = await getPool().query(query, values);
     return result.rows[0];
   } catch (error) {
     console.error('Error updating freelancer:', error);
+    console.error('Update data:', updates);
     throw error;
   }
 };

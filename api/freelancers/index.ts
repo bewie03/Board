@@ -108,8 +108,16 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
         [freelancerId]
       );
 
-      // Insert new packages using actual deployed schema
+      // Insert new packages using exact deployed schema
       for (const pkg of packages) {
+        // Convert features array to text if needed
+        const formatFeatures = (features: any) => {
+          if (Array.isArray(features)) {
+            return features.join('\n');
+          }
+          return features || 'Service delivery';
+        };
+
         // Insert basic package
         await client.query(
           `INSERT INTO service_packages (
@@ -119,7 +127,7 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
             freelancerId,
             pkg.service_title || pkg.title || 'Service Package',
             pkg.basic_description || pkg.service_description || 'Basic package',
-            pkg.basic_features || ['Basic service delivery'],
+            formatFeatures(pkg.basic_features || ['Basic service delivery']),
             pkg.basic_price || 100,
             pkg.basic_currency || 'ADA',
             pkg.basic_delivery_days ? `${pkg.basic_delivery_days} days` : '7 days',
@@ -137,7 +145,7 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
             freelancerId,
             pkg.service_title || pkg.title || 'Service Package',
             pkg.standard_description || `Enhanced ${pkg.service_title || 'Service'}`,
-            pkg.standard_features || [...(pkg.basic_features || ['Basic service delivery']), 'Priority support'],
+            formatFeatures(pkg.standard_features || [...(pkg.basic_features || ['Basic service delivery']), 'Priority support']),
             pkg.standard_price || Math.ceil((pkg.basic_price || 100) * 1.5),
             pkg.standard_currency || 'ADA',
             pkg.standard_delivery_days ? `${pkg.standard_delivery_days} days` : '5 days',
@@ -155,7 +163,7 @@ async function handlePackages(req: VercelRequest, res: VercelResponse) {
             freelancerId,
             pkg.service_title || pkg.title || 'Service Package',
             pkg.premium_description || `Premium ${pkg.service_title || 'Service'}`,
-            pkg.premium_features || [...(pkg.basic_features || ['Basic service delivery']), 'Priority support', 'Unlimited revisions'],
+            formatFeatures(pkg.premium_features || [...(pkg.basic_features || ['Basic service delivery']), 'Priority support', 'Unlimited revisions']),
             pkg.premium_price || (pkg.basic_price || 100) * 2,
             pkg.premium_currency || 'ADA',
             pkg.premium_delivery_days ? `${pkg.premium_delivery_days} days` : '3 days',
@@ -261,22 +269,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Transform frontend data to match database schema
         const dbFreelancerData = {
           userId: user.id,
-          name: freelancerData.name,
-          title: freelancerData.title,
-          bio: freelancerData.bio,
-          avatarUrl: null, // No avatar in creation form
+          name: freelancerData.name || 'Freelancer', // Ensure name is never null
+          title: freelancerData.title || 'Professional',
+          bio: freelancerData.bio || '',
+          avatarUrl: freelancerData.avatar || freelancerData.avatarUrl || '',
           category: freelancerData.category || 'Other',
           skills: freelancerData.skills || [],
           languages: freelancerData.languages || ['English'],
           location: freelancerData.location || '',
-          rating: 0,
-          reviewCount: 0,
-          completedOrders: 0,
-          responseTime: '24 hours',
-          isOnline: false,
-          busyStatus: 'available',
-          socialLinks: {},
-          workImages: freelancerData.workExamples || []
+          rating: freelancerData.rating || 0,
+          reviewCount: freelancerData.reviewCount || 0,
+          completedOrders: freelancerData.completedOrders || 0,
+          responseTime: freelancerData.responseTime || '24 hours',
+          isOnline: freelancerData.isOnline !== undefined ? freelancerData.isOnline : true,
+          busyStatus: freelancerData.busyStatus || 'available',
+          socialLinks: freelancerData.socialLinks || {},
+          workImages: freelancerData.workImages || freelancerData.workExamples || []
         };
         
         const newFreelancer = await createFreelancer(dbFreelancerData);
