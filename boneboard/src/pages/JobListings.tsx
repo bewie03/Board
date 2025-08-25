@@ -292,7 +292,7 @@ const JobListings: React.FC = () => {
                       </button>
                       
                       {showCategoryDropdown && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                        <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                           <div className="py-2">
                             <label className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
                               <input
