@@ -121,6 +121,7 @@ const FreelancerProfile: React.FC = () => {
               const packagesResponse = await fetch(`/api/freelancers?id=${freelancerData.id}&packages=true`);
               if (packagesResponse.ok) {
                 const packagesData = await packagesResponse.json();
+                console.log('Loaded packages data:', packagesData);
                 
                 if (packagesData.packages && packagesData.packages.length > 0) {
                   // Group packages by service (assuming one service for now)
@@ -135,47 +136,53 @@ const FreelancerProfile: React.FC = () => {
                     return acc;
                   }, {});
                   
-                  // Create service with loaded packages
-                  freelancerWithServices.services = [{
-                    id: `${freelancerData.id}-service-0`,
-                    freelancerId: freelancerData.id,
-                    walletAddress: freelancerData.walletAddress,
-                    title: packagesData.packages[0]?.title || `${freelancerData.title} Service`,
-                    description: freelancerData.bio || 'Professional service',
-                    shortDescription: freelancerData.bio?.substring(0, 100) || 'Professional service',
-                    category: freelancerData.category,
-                    skills: freelancerData.skills,
-                    images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
-                    pricing: {
-                      basic: packagesByType.basic || {
-                        price: 100,
-                        currency: 'ADA',
-                        deliveryTime: '7 days',
-                        description: 'Basic Package',
-                        features: ['Basic service delivery']
+                  console.log('Packages by type:', packagesByType);
+                  
+                  // Only create service if we have at least one package type
+                  if (Object.keys(packagesByType).length > 0) {
+                    freelancerWithServices.services = [{
+                      id: `${freelancerData.id}-service-0`,
+                      freelancerId: freelancerData.id,
+                      walletAddress: freelancerData.walletAddress,
+                      title: packagesData.packages[0]?.title || `${freelancerData.title} Service`,
+                      description: freelancerData.bio || 'Professional service',
+                      shortDescription: freelancerData.bio?.substring(0, 100) || 'Professional service',
+                      category: freelancerData.category,
+                      skills: freelancerData.skills,
+                      images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
+                      pricing: {
+                        basic: packagesByType.basic || {
+                          price: 100,
+                          currency: 'ADA',
+                          deliveryTime: '7 days',
+                          description: 'Basic Package',
+                          features: ['Basic service delivery']
+                        },
+                        standard: packagesByType.standard || {
+                          price: 150,
+                          currency: 'ADA',
+                          deliveryTime: '5 days',
+                          description: 'Standard Package',
+                          features: ['Enhanced service delivery', 'Priority support']
+                        },
+                        premium: packagesByType.premium || {
+                          price: 200,
+                          currency: 'ADA',
+                          deliveryTime: '3 days',
+                          description: 'Premium Package',
+                          features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
+                        }
                       },
-                      standard: packagesByType.standard || {
-                        price: 150,
-                        currency: 'ADA',
-                        deliveryTime: '5 days',
-                        description: 'Standard Package',
-                        features: ['Enhanced service delivery', 'Priority support']
-                      },
-                      premium: packagesByType.premium || {
-                        price: 200,
-                        currency: 'ADA',
-                        deliveryTime: '3 days',
-                        description: 'Premium Package',
-                        features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
-                      }
-                    },
-                    rating: freelancerData.rating,
-                    reviewCount: freelancerData.reviewCount,
-                    completedOrders: freelancerData.completedOrders,
-                    responseTime: freelancerData.responseTime,
-                    isActive: true,
-                    createdAt: new Date().toISOString()
-                  }];
+                      rating: freelancerData.rating,
+                      reviewCount: freelancerData.reviewCount,
+                      completedOrders: freelancerData.completedOrders,
+                      responseTime: freelancerData.responseTime,
+                      isActive: true,
+                      createdAt: new Date().toISOString()
+                    }];
+                  }
+                } else {
+                  console.log('No packages found in response');
                 }
               }
             } catch (error) {
@@ -229,7 +236,11 @@ const FreelancerProfile: React.FC = () => {
             setFreelancer(freelancerWithServices);
             setEditedFreelancer(freelancerWithServices);
             setIsOwner(walletAddress === freelancerWithServices.walletAddress);
-            setSelectedService(freelancerWithServices.services[0]);
+            if (freelancerWithServices.services && freelancerWithServices.services.length > 0) {
+              setSelectedService(freelancerWithServices.services[0]);
+            }
+            
+            console.log('Loaded freelancer with services:', freelancerWithServices.services?.length || 0, 'services');
             
             // Load social links if they exist
             if ((freelancerData as any).socialLinks) {
