@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
-import { FreelancerService, Freelancer } from '../services/freelancerService';
+import FreelancerService from '../services/freelancerService';
+import { Freelancer } from '../types/freelancer';
 import PageTransition from '../components/PageTransition';
 import { FaStar, FaSearch, FaPlus, FaEdit, FaGlobe } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -9,14 +10,15 @@ import { motion } from 'framer-motion';
 const Freelancers: React.FC = () => {
   const navigate = useNavigate();
   const { walletAddress, isConnected } = useWallet();
-  const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
   const [filteredFreelancers, setFilteredFreelancers] = useState<Freelancer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
+  const [, setLoading] = useState(true);
+  const [userProfile] = useState<Freelancer | null>(null);
   const [sortBy, setSortBy] = useState('rating');
-  const [userProfile, setUserProfile] = useState<Freelancer | null>(null);
 
   const categories = [
     'all',
@@ -73,51 +75,35 @@ const Freelancers: React.FC = () => {
   useEffect(() => {
     const loadFreelancers = async () => {
       try {
-        const allFreelancers = await FreelancerService.getAllFreelancers();
-        console.log('Loading freelancers:', allFreelancers.map(f => ({ name: f.name, category: f.category, avatar: f.avatar })));
-        setFreelancers(allFreelancers);
-        
-        // Check if current user has a freelancer profile
-        if (walletAddress) {
-          const profile = await FreelancerService.getFreelancerByWallet(walletAddress);
-          setUserProfile(profile || null);
-        }
+        setLoading(true);
+        const freelancerData = await FreelancerService.getAllFreelancers();
+        console.log('Loaded freelancers from database:', freelancerData.length);
+        setFreelancers(freelancerData);
       } catch (error) {
         console.error('Error loading freelancers:', error);
+        setFreelancers([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadFreelancers();
-    
-    // Enhanced event listeners for comprehensive sync
-    const handleProfileUpdate = (event: any) => {
-      console.log('Profile update detected:', event.detail);
-      setTimeout(() => {
-        loadFreelancers();
-      }, 100);
-    };
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'freelancerProfiles' || e.key?.startsWith('freelancer_')) {
-        console.log('Storage change detected:', e.key);
-        setTimeout(() => {
-          loadFreelancers();
-        }, 100);
-      }
-    };
 
-    const handleServicePackagesUpdate = (event: any) => {
-      console.log('Service packages updated:', event.detail);
-      setTimeout(() => {
-        loadFreelancers();
-      }, 100);
+    // Listen for freelancer updates
+    const handleFreelancerUpdate = (event: any) => {
+      const { walletAddress, updatedData } = event.detail;
+      setFreelancers(prev => prev.map(f => 
+        f.walletAddress === walletAddress ? { ...f, ...updatedData } : f
+      ));
     };
 
     const handleFreelancerStatusUpdate = (event: any) => {
-      console.log('Freelancer status updated:', event.detail);
-      setTimeout(() => {
-        loadFreelancers();
-      }, 100);
+      const { walletAddress, status } = event.detail;
+      setFreelancers(prev => prev.map(f => 
+        f.walletAddress === walletAddress 
+          ? { ...f, isOnline: status === 'available', busyStatus: status }
+          : f
+      ));
     };
 
     // Close dropdown when clicking outside
@@ -129,19 +115,13 @@ const Freelancers: React.FC = () => {
     };
 
     // Add all event listeners
-    window.addEventListener('freelancerProfileUpdated', handleProfileUpdate);
-    window.addEventListener('servicePackagesUpdated', handleServicePackagesUpdate);
-    window.addEventListener('freelancerUpdated', handleProfileUpdate);
+    window.addEventListener('freelancerUpdated', handleFreelancerUpdate);
     window.addEventListener('freelancerStatusUpdated', handleFreelancerStatusUpdate);
-    window.addEventListener('storage', handleStorageChange);
     document.addEventListener('mousedown', handleClickOutside);
     
     return () => {
-      window.removeEventListener('freelancerProfileUpdated', handleProfileUpdate);
-      window.removeEventListener('servicePackagesUpdated', handleServicePackagesUpdate);
-      window.removeEventListener('freelancerUpdated', handleProfileUpdate);
+      window.removeEventListener('freelancerUpdated', handleFreelancerUpdate);
       window.removeEventListener('freelancerStatusUpdated', handleFreelancerStatusUpdate);
-      window.removeEventListener('storage', handleStorageChange);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [walletAddress]);
