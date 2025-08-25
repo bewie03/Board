@@ -497,18 +497,12 @@ const Freelancers: React.FC = () => {
                     <span>Response: {freelancer.responseTime}</span>
                   </div>
 
-                  {/* Hourly Rate */}
+                  {/* Starting Price */}
                   {freelancer.services.length > 0 && freelancer.services[0].pricing && (
                     <div className="mt-4 pt-4 border-t">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-gray-600">Hourly Rate</span>
-                        <span className="text-lg font-semibold text-green-600">
-                          {freelancer.services[0].pricing.basic.price} {freelancer.services[0].pricing.basic.currency}/hr
-                        </span>
-                      </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Starting at</span>
-                        <span className="text-lg font-semibold text-gray-900">
+                        <span className="text-lg font-semibold text-green-600">
                           {Math.min(...freelancer.services.map(s => s.pricing.basic.price))} {freelancer.services[0].pricing.basic.currency}
                         </span>
                       </div>

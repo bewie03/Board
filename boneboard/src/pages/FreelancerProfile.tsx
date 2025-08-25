@@ -452,6 +452,20 @@ const FreelancerProfile: React.FC = () => {
       busyStatus: newStatus
     });
     
+    // Also try to update via API for database persistence
+    try {
+      fetch(`/api/freelancers?walletAddress=${walletAddress}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isOnline: newStatus === 'available',
+          busyStatus: newStatus
+        })
+      }).catch(error => console.log('API status update failed (non-critical):', error));
+    } catch (error) {
+      console.log('API status update failed (non-critical):', error);
+    }
+    
     // Save to individual freelancer storage
     localStorage.setItem(`freelancer_${walletAddress}`, JSON.stringify(updatedFreelancer));
     
@@ -518,6 +532,39 @@ const FreelancerProfile: React.FC = () => {
         console.error('Error updating freelancer via API:', error);
         // Fallback to local service
         await FreelancerService.updateFreelancer(updatedFreelancer.walletAddress, updatedFreelancer);
+      }
+      
+      // Save service packages separately to ensure database persistence
+      if (updatedFreelancer.services && updatedFreelancer.services.length > 0) {
+        try {
+          const packages = updatedFreelancer.services.map(service => ({
+            name: service.title,
+            description: service.description,
+            category: service.category,
+            price: service.pricing.basic.price,
+            deliveryDays: parseInt(service.pricing.basic.deliveryTime.replace(/\D/g, '')) || 7,
+            features: service.pricing.basic.features,
+            // Include all package tiers
+            basicPrice: service.pricing.basic.price,
+            basicDeliveryTime: service.pricing.basic.deliveryTime,
+            basicFeatures: service.pricing.basic.features,
+            standardPrice: service.pricing.standard.price,
+            standardDeliveryTime: service.pricing.standard.deliveryTime,
+            standardFeatures: service.pricing.standard.features,
+            premiumPrice: service.pricing.premium.price,
+            premiumDeliveryTime: service.pricing.premium.deliveryTime,
+            premiumFeatures: service.pricing.premium.features
+          }));
+          
+          const success = await FreelancerService.saveServicePackages(updatedFreelancer.walletAddress, packages);
+          if (success) {
+            console.log('✅ Service packages saved successfully');
+          } else {
+            console.warn('⚠️ Service packages save failed');
+          }
+        } catch (packageError) {
+          console.error('❌ Error saving service packages:', packageError);
+        }
       }
       
       // Save to individual freelancer storage first

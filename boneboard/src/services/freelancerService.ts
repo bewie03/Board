@@ -355,32 +355,36 @@ class FreelancerServiceClass {
     try {
       console.log('Saving service packages for:', walletAddress, packages);
       
-      // 1. Save to database first (most important for persistence))
+      // 1. Save to database first (most important for persistence)
       try {
-        const response = await fetch('/api/freelancers?packages=true', {
+        // Use the correct API endpoint format that matches the database schema
+        const response = await fetch(`/api/freelancers/packages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             walletAddress,
-            packages: packages.map(pkg => ({
-              service_title: pkg.name,
-              service_description: pkg.description,
+            servicePackages: packages.map(pkg => ({
+              service_title: pkg.name || pkg.title || 'Service Package',
+              service_description: pkg.description || 'Professional service',
               category: pkg.category || 'Other',
-              basic_price: pkg.price || 100,
+              // Basic tier
+              basic_price: pkg.basicPrice || pkg.price || 100,
               basic_currency: 'ADA',
-              basic_delivery_days: pkg.deliveryDays || 7,
-              basic_description: pkg.name,
-              basic_features: pkg.features || ['Basic service'],
-              standard_price: Math.ceil((pkg.price || 100) * 1.5),
+              basic_delivery_days: pkg.basicDeliveryDays || pkg.deliveryDays || 7,
+              basic_description: pkg.basicDescription || pkg.name || 'Basic Package',
+              basic_features: pkg.basicFeatures || pkg.features || ['Basic service delivery', 'Standard support'],
+              // Standard tier
+              standard_price: pkg.standardPrice || Math.ceil((pkg.price || 100) * 1.5),
               standard_currency: 'ADA',
-              standard_delivery_days: Math.ceil((pkg.deliveryDays || 7) * 1.2),
-              standard_description: `Enhanced ${pkg.name}`,
-              standard_features: [...(pkg.features || ['Basic service']), 'Priority support'],
-              premium_price: (pkg.price || 100) * 2,
+              standard_delivery_days: pkg.standardDeliveryDays || Math.ceil((pkg.deliveryDays || 7) * 0.8),
+              standard_description: pkg.standardDescription || `Enhanced ${pkg.name || 'Service'}`,
+              standard_features: pkg.standardFeatures || [...(pkg.features || ['Basic service delivery']), 'Priority support', '3 revisions'],
+              // Premium tier
+              premium_price: pkg.premiumPrice || (pkg.price || 100) * 2,
               premium_currency: 'ADA',
-              premium_delivery_days: Math.ceil((pkg.deliveryDays || 7) * 1.5),
-              premium_description: `Premium ${pkg.name}`,
-              premium_features: [...(pkg.features || ['Basic service']), 'Priority support', '24/7 availability'],
+              premium_delivery_days: pkg.premiumDeliveryDays || Math.ceil((pkg.deliveryDays || 7) * 0.6),
+              premium_description: pkg.premiumDescription || `Premium ${pkg.name || 'Service'}`,
+              premium_features: pkg.premiumFeatures || [...(pkg.features || ['Basic service delivery']), 'Priority support', 'Unlimited revisions', 'Express delivery'],
               hourly_rate: pkg.hourlyRate || null,
               is_active: true
             }))
@@ -390,7 +394,8 @@ class FreelancerServiceClass {
         if (response.ok) {
           console.log('✅ Packages saved to database successfully');
         } else {
-          console.warn('⚠️ Database save failed, continuing with local storage');
+          const errorText = await response.text();
+          console.warn('⚠️ Database save failed:', response.status, errorText, 'continuing with local storage');
         }
       } catch (dbError) {
         console.warn('⚠️ Database save failed:', dbError, 'continuing with local storage');
