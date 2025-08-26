@@ -31,13 +31,17 @@ export const useContract = (): UseContractReturn => {
       const pendingKey = `pendingTx_${walletAddress}`;
       const pendingTxData = localStorage.getItem(pendingKey);
       
+      console.log('Checking for pending transactions...', { pendingKey, hasPendingData: !!pendingTxData });
+      
       if (pendingTxData) {
         try {
           const pendingTx: PendingTransaction = JSON.parse(pendingTxData);
+          console.log('Found pending transaction:', { txHash: pendingTx.txHash, timestamp: pendingTx.timestamp });
           
           // Check if transaction is older than 2 minutes (timeout)
           const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
           if (pendingTx.timestamp < twoMinutesAgo) {
+            console.log('Transaction timeout reached, removing from localStorage');
             localStorage.removeItem(pendingKey);
             if (checkInterval) {
               clearInterval(checkInterval);
@@ -47,10 +51,13 @@ export const useContract = (): UseContractReturn => {
             return;
           }
           
+          console.log('Checking transaction status for:', pendingTx.txHash);
           // Check transaction status
           const status = await contractService.checkTransactionStatus(pendingTx.txHash);
+          console.log('Transaction status:', status);
           
           if (status === 'confirmed') {
+            console.log('Transaction confirmed, saving job to database');
             // Save job to database
             await saveJobToDatabase(pendingTx.jobData, pendingTx.txHash);
             localStorage.removeItem(pendingKey);
@@ -60,12 +67,15 @@ export const useContract = (): UseContractReturn => {
             }
             toast.success(`Your job posting has been confirmed! Transaction: ${pendingTx.txHash.substring(0, 8)}...`);
           } else if (status === 'failed') {
+            console.log('Transaction failed, removing from localStorage');
             localStorage.removeItem(pendingKey);
             if (checkInterval) {
               clearInterval(checkInterval);
               checkInterval = null;
             }
             toast.error('Your job posting transaction failed. Please try posting again.');
+          } else {
+            console.log('Transaction still pending, will check again');
           }
           // If still pending, continue checking
         } catch (error) {
@@ -76,17 +86,24 @@ export const useContract = (): UseContractReturn => {
             checkInterval = null;
           }
         }
+      } else {
+        console.log('No pending transactions found');
       }
     };
     
-    // Initial check
-    checkPendingTransactions();
+    // Initial check and setup interval
+    const setupChecking = async () => {
+      await checkPendingTransactions();
+      
+      // Set up interval to check every 10 seconds if there's still a pending transaction
+      const pendingKey = `pendingTx_${walletAddress}`;
+      if (localStorage.getItem(pendingKey)) {
+        console.log('Setting up interval checking for pending transaction');
+        checkInterval = setInterval(checkPendingTransactions, 10000); // Check every 10 seconds
+      }
+    };
     
-    // Set up interval to check every 10 seconds if there's a pending transaction
-    const pendingKey = `pendingTx_${walletAddress}`;
-    if (localStorage.getItem(pendingKey)) {
-      checkInterval = setInterval(checkPendingTransactions, 10000); // Check every 10 seconds
-    }
+    setupChecking();
     
     // Cleanup interval on unmount
     return () => {
