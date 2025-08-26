@@ -106,7 +106,8 @@ class TransactionMonitor {
         // Save job to database
         try {
           await this.saveJobToDatabase(pendingTx.jobData, pendingTx.txHash);
-          toast.success(`Your job posting has been confirmed! Transaction: ${pendingTx.txHash.substring(0, 8)}...`);
+          toast.success(`Job posted successfully! Transaction confirmed: ${pendingTx.txHash.substring(0, 8)}...`);
+          return;
         } catch (error) {
           console.error('Error saving job to database:', error);
           toast.error('Transaction confirmed but failed to save job. Please contact support.');

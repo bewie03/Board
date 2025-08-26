@@ -851,10 +851,10 @@ const JobListings: React.FC = () => {
                         </div>
                       </div>
                       <div className="ml-3 flex-shrink-0">
-                        <div className="h-12 w-12 rounded-xl border border-gray-200 flex items-center justify-center bg-white">
+                        <div className="h-16 w-16 rounded-full border border-gray-200 flex items-center justify-center bg-white">
                           {selectedJob.logo ? (
                             <img 
-                              className="h-full w-full rounded-xl object-cover" 
+                              className="h-full w-full rounded-full object-cover" 
                               src={selectedJob.logo!} 
                               alt={`${selectedJob.company} logo`}
                               onError={(e) => {
