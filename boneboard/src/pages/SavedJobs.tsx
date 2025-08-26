@@ -490,7 +490,7 @@ const SavedJobs: React.FC = () => {
                               key={index}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
                             >
-                              {skill.replace(/[{}"\s]+/g, ' ').trim()}
+                              {skill.replace(/[{}"\\/\s]+/g, ' ').trim()}
                             </span>
                           ))}
                         </div>
@@ -505,7 +505,7 @@ const SavedJobs: React.FC = () => {
                           <p className="whitespace-pre-line leading-relaxed">
                             {selectedJob.additionalInfo
                               .filter(info => info && info.trim() !== '')
-                              .map(info => info.replace(/[{}"\s]+/g, ' ').trim())
+                              .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
                               .join('\n')
                             }
                           </p>

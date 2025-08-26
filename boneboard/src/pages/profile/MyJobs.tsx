@@ -143,7 +143,14 @@ const MyJobs: React.FC = () => {
     try {
       const success = await JobService.updateJob(editingJob.id, editFormData);
       if (success) {
-        setJobs(jobs.map(j => j.id === editingJob.id ? { ...j, ...editFormData } : j));
+        const updatedJob = { ...editingJob, ...editFormData };
+        setJobs(jobs.map(j => j.id === editingJob.id ? updatedJob : j));
+        
+        // Update selectedJob if it's the same job being edited
+        if (selectedJob && selectedJob.id === editingJob.id) {
+          setSelectedJob(updatedJob);
+        }
+        
         setEditingJob(null);
         setEditFormData({});
         toast.success('Job updated successfully!');
@@ -687,7 +694,7 @@ const MyJobs: React.FC = () => {
                               key={index}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
                             >
-                              {skill.replace(/[{}"\s]+/g, ' ').trim()}
+                              {skill.replace(/[{}"\\/\s]+/g, ' ').trim()}
                             </span>
                           ))}
                         </div>
@@ -702,7 +709,7 @@ const MyJobs: React.FC = () => {
                           <p className="whitespace-pre-line leading-relaxed">
                             {selectedJob.additionalInfo
                               .filter(info => info && info.trim() !== '')
-                              .map(info => info.replace(/[{}"\s]+/g, ' ').trim())
+                              .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
                               .join('\n')
                             }
                           </p>
