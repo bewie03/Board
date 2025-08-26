@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
 """
 BoneBoard Database Manager
-Simple tool for clearing test data from the database
+Comprehensive tool for clearing ALL test data from the database
+Clears: Jobs, Projects, Freelancer Profiles, Messages, and all related data
 """
 
 import psycopg2
 import sys
 
 # Database connection URL
-DATABASE_URL = "postgres://u94m20d9lk1e7b:p73a59938021d84383fb460ad5c478003087a16d6038c9e19d6470d2400f1401e@c3v5n5ajfopshl.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d6nclr86s438p6"
+DATABASE_URL = ""
 
 def connect_to_database():
     """Connect to the PostgreSQL database"""
     try:
+        print("🔌 Attempting to connect to database...")
         conn = psycopg2.connect(DATABASE_URL)
         print("✅ Connected to BoneBoard database successfully")
         return conn
+    except ImportError as e:
+        print(f"❌ psycopg2 not installed: {e}")
+        print("💡 Try: pip install psycopg2-binary")
+        return None
     except Exception as e:
         print(f"❌ Error connecting to database: {e}")
+        print(f"🔍 Error type: {type(e).__name__}")
         return None
 
 def clear_test_data(conn):
@@ -25,12 +32,22 @@ def clear_test_data(conn):
     try:
         cursor = conn.cursor()
         
-        # Get counts before deletion
-        cursor.execute("SELECT COUNT(*) FROM job_listings;")
-        job_count = cursor.fetchone()[0]
+        print("📊 Getting current data counts...")
         
-        cursor.execute("SELECT COUNT(*) FROM projects;")
-        project_count = cursor.fetchone()[0]
+        # Get counts before deletion - handle missing tables gracefully
+        try:
+            cursor.execute("SELECT COUNT(*) FROM job_listings;")
+            job_count = cursor.fetchone()[0]
+        except Exception:
+            job_count = 0
+            print("   ⚠️ job_listings table not found")
+        
+        try:
+            cursor.execute("SELECT COUNT(*) FROM projects;")
+            project_count = cursor.fetchone()[0]
+        except Exception:
+            project_count = 0
+            print("   ⚠️ projects table not found")
         
         # Check if freelancer_profiles table exists
         cursor.execute("""
@@ -70,76 +87,192 @@ def clear_test_data(conn):
         print(f"   Conversations: {conversation_count}")
         print(f"   Messages: {message_count}")
         
-        # Clear messaging data first (due to foreign key constraints)
-        if conversations_exist:
-            cursor.execute("DELETE FROM message_attachments;")
-            cursor.execute("DELETE FROM freelancer_response_times;")
-            cursor.execute("DELETE FROM messages;")
-            cursor.execute("DELETE FROM conversations;")
+        # Clear all related data in proper order (respecting foreign key constraints)
+        print("🧹 Starting comprehensive data cleanup...")
         
-        # Clear job applications
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_name = 'job_applications'
-            );
-        """)
-        if cursor.fetchone()[0]:
-            cursor.execute("DELETE FROM job_applications;")
+        cleared_count = 0
         
-        # Clear service packages
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_name = 'service_packages'
-            );
-        """)
-        if cursor.fetchone()[0]:
-            cursor.execute("DELETE FROM service_packages;")
+        # 1. Clear messaging data first (due to foreign key constraints)
+        tables_to_clear = [
+            'message_attachments',
+            'freelancer_response_times', 
+            'messages',
+            'conversations'
+        ]
         
-        # Clear the main data
-        cursor.execute("DELETE FROM job_listings;")
-        cursor.execute("DELETE FROM projects;")
+        for table in tables_to_clear:
+            try:
+                cursor.execute(f"""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = '{table}'
+                    );
+                """)
+                if cursor.fetchone()[0]:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table};")
+                    count = cursor.fetchone()[0]
+                    if count > 0:
+                        cursor.execute(f"DELETE FROM {table};")
+                        print(f"   ✅ Cleared {count} records from {table}")
+                        cleared_count += count
+                    else:
+                        print(f"   ℹ️ {table} already empty")
+                else:
+                    print(f"   ⚠️ {table} does not exist")
+            except Exception as e:
+                print(f"   ❌ Error clearing {table}: {e}")
         
-        if freelancer_table_exists:
-            cursor.execute("DELETE FROM freelancer_profiles;")
+        # 2. Clear job-related data
+        job_related_tables = [
+            'saved_jobs',  # User bookmarks (updated table name)
+            'job_views',
+            'job_listings'
+        ]
         
-        # Also clear related tables if they exist
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_name = 'project_votes'
-            );
-        """)
-        if cursor.fetchone()[0]:
-            cursor.execute("DELETE FROM project_votes;")
+        for table in job_related_tables:
+            try:
+                cursor.execute(f"""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = '{table}'
+                    );
+                """)
+                if cursor.fetchone()[0]:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table};")
+                    count = cursor.fetchone()[0]
+                    if count > 0:
+                        cursor.execute(f"DELETE FROM {table};")
+                        print(f"   ✅ Cleared {count} records from {table}")
+                        cleared_count += count
+                    else:
+                        print(f"   ℹ️ {table} already empty")
+                else:
+                    print(f"   ⚠️ {table} does not exist")
+            except Exception as e:
+                print(f"   ❌ Error clearing {table}: {e}")
         
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_name = 'project_fundings'
-            );
-        """)
-        if cursor.fetchone()[0]:
-            cursor.execute("DELETE FROM project_fundings;")
+        # 3. Clear project-related data
+        project_related_tables = [
+            'project_votes',
+            'project_fundings',
+            'project_comments',
+            'project_updates',
+            'projects'
+        ]
+        
+        for table in project_related_tables:
+            try:
+                cursor.execute(f"""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = '{table}'
+                    );
+                """)
+                if cursor.fetchone()[0]:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table};")
+                    count = cursor.fetchone()[0]
+                    if count > 0:
+                        cursor.execute(f"DELETE FROM {table};")
+                        print(f"   ✅ Cleared {count} records from {table}")
+                        cleared_count += count
+                    else:
+                        print(f"   ℹ️ {table} already empty")
+                else:
+                    print(f"   ⚠️ {table} does not exist")
+            except Exception as e:
+                print(f"   ❌ Error clearing {table}: {e}")
+        
+        # 4. Clear freelancer-related data (including work examples, portfolios, reviews)
+        freelancer_related_tables = [
+            'job_applications',  # Applications by freelancers
+            'reviews',  # Reviews for freelancers (has freelancer_id, reviewer_id, job_id)
+            'service_packages',  # Freelancer service offerings
+            'freelancer_response_times',  # Response time tracking (has freelancer_wallet, conversation_id)
+            'freelancer_portfolios',  # Work examples and portfolios
+            'freelancer_skills',  # Skills listings
+            'freelancer_profiles'  # Main freelancer profiles (has user_id, work_images, etc.)
+        ]
+        
+        for table in freelancer_related_tables:
+            try:
+                cursor.execute(f"""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = '{table}'
+                    );
+                """)
+                if cursor.fetchone()[0]:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table};")
+                    count = cursor.fetchone()[0]
+                    if count > 0:
+                        cursor.execute(f"DELETE FROM {table};")
+                        print(f"   ✅ Cleared {count} records from {table}")
+                        cleared_count += count
+                    else:
+                        print(f"   ℹ️ {table} already empty")
+                else:
+                    print(f"   ⚠️ {table} does not exist")
+            except Exception as e:
+                print(f"   ❌ Error clearing {table}: {e}")
+        
+        # 5. Clear user-generated content and transaction data
+        other_tables = [
+            'notifications',  # User notifications
+            'scam_report_votes',  # Scam report voting
+            'scam_reports',  # Scam reports
+            'funding_contributions',  # Project funding contributions
+            'project_funding',  # Project funding records
+            'bone_transactions',  # BONE token transactions
+            'ada_transactions',  # ADA transactions
+            'wallet_connections',  # Wallet connection records
+            'users'  # User accounts (clears all user data)
+        ]
+        
+        for table in other_tables:
+            try:
+                cursor.execute(f"""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = '{table}'
+                    );
+                """)
+                if cursor.fetchone()[0]:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table};")
+                    count = cursor.fetchone()[0]
+                    if count > 0:
+                        cursor.execute(f"DELETE FROM {table};")
+                        print(f"   ✅ Cleared {count} records from {table}")
+                        cleared_count += count
+                    else:
+                        print(f"   ℹ️ {table} already empty")
+                else:
+                    print(f"   ⚠️ {table} does not exist")
+            except Exception as e:
+                print(f"   ❌ Error clearing {table}: {e}")
         
         conn.commit()
         cursor.close()
         
-        print("✅ Successfully cleared all test data:")
-        print(f"   Deleted {job_count} job listings")
-        print(f"   Deleted {project_count} projects")
+        print(f"\n✅ Successfully cleared all test data:")
+        print(f"   🗑️ Total records cleared: {cleared_count}")
+        print(f"   🗑️ Jobs before cleanup: {job_count}")
+        print(f"   🗑️ Projects before cleanup: {project_count}")
         if freelancer_table_exists:
-            print(f"   Deleted {freelancer_count} freelancer profiles")
+            print(f"   🗑️ Freelancers before cleanup: {freelancer_count}")
         if conversations_exist:
-            print(f"   Deleted {conversation_count} conversations")
-            print(f"   Deleted {message_count} messages")
-        print("   Cleared related voting, funding, and messaging records")
+            print(f"   🗑️ Conversations before cleanup: {conversation_count}")
+            print(f"   🗑️ Messages before cleanup: {message_count}")
+        
+        if cleared_count > 0:
+            print("\n🎉 Database cleanup completed! Ready for fresh test data!")
+        else:
+            print("\nℹ️ Database was already clean - no records to clear.")
         
         return True
         
     except Exception as e:
         print(f"❌ Error clearing test data: {e}")
+        print(f"🔍 Error details: {type(e).__name__}")
         conn.rollback()
         return False
 
@@ -180,109 +313,26 @@ def show_database_stats(conn):
     except Exception as e:
         print(f"❌ Error getting database stats: {e}")
 
-def drop_new_tables(conn):
-    """Drop new tables for schema updates"""
-    try:
-        cursor = conn.cursor()
-        
-        # List of new tables to drop (in reverse dependency order)
-        tables_to_drop = [
-            'message_attachments',
-            'messages', 
-            'conversations',
-            'response_time_tracking',
-            'service_packages'
-        ]
-        
-        print("🗑️ Dropping new tables for schema update...")
-        
-        for table in tables_to_drop:
-            try:
-                cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE;")
-                print(f"   ✅ Dropped table: {table}")
-            except Exception as e:
-                print(f"   ⚠️ Could not drop {table}: {e}")
-        
-        conn.commit()
-        print("✅ New tables dropped successfully")
-        
-        print("   Ready for schema update - run your schema.sql to recreate tables")
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error dropping tables: {e}")
-        conn.rollback()
-        return False
 
-def update_schema(conn):
-    """Update database schema with new tables and fields"""
-    try:
-        print("🔄 Updating database schema...")
-        
-        # Read and execute the schema file
-        with open('boneboard/database/schema.sql', 'r', encoding='utf-8') as f:
-            schema_sql = f.read()
-        
-        # Split into individual statements and execute
-        statements = [stmt.strip() for stmt in schema_sql.split(';') if stmt.strip()]
-        
-        success_count = 0
-        skip_count = 0
-        error_count = 0
-        
-        for i, statement in enumerate(statements):
-            # Use individual transactions for each statement
-            cursor = conn.cursor()
-            try:
-                if statement.upper().startswith('CREATE TABLE'):
-                    # Extract table name for better logging
-                    table_name = statement.split('(')[0].split()[-1]
-                    cursor.execute(statement + ';')
-                    conn.commit()
-                    print(f"   ✅ Created/updated table: {table_name}")
-                    success_count += 1
-                elif statement.upper().startswith('CREATE'):
-                    cursor.execute(statement + ';')
-                    conn.commit()
-                    print(f"   ✅ Executed CREATE statement {i+1}")
-                    success_count += 1
-                else:
-                    cursor.execute(statement + ';')
-                    conn.commit()
-                    success_count += 1
-                    
-            except Exception as e:
-                conn.rollback()  # Rollback failed transaction
-                if "already exists" in str(e).lower():
-                    print(f"   ℹ️ Statement {i+1} - Object already exists (skipping)")
-                    skip_count += 1
-                else:
-                    print(f"   ⚠️ Error in statement {i+1}: {e}")
-                    error_count += 1
-            finally:
-                cursor.close()
-        
-        print(f"✅ Schema update completed: {success_count} successful, {skip_count} skipped, {error_count} errors")
-        
-    except Exception as e:
-        print(f"❌ Error updating schema: {e}")
 
 def main():
     """Main function to handle command line operations"""
+    print("🚀 BoneBoard Database Manager Starting...")
+    
     if len(sys.argv) < 2:
-        print("Usage:")
+        print("\nUsage:")
         print("  python database_manager.py clear          - Clear all test data")
         print("  python database_manager.py stats          - Show database statistics")
-        print("  python database_manager.py drop           - Drop new tables for schema update")
-        print("  python database_manager.py update         - Update database schema")
+        print("\n💡 Example: python database_manager.py stats")
         return
     
     command = sys.argv[1].lower()
+    print(f"📋 Command: {command}")
     
     # Connect to database
     conn = connect_to_database()
     if not conn:
+        print("❌ Failed to connect to database. Exiting.")
         return
     
     try:
@@ -292,15 +342,9 @@ def main():
         elif command == "stats":
             show_database_stats(conn)
             
-        elif command == "drop":
-            drop_new_tables(conn)
-            
-        elif command == "update":
-            update_schema(conn)
-            
         else:
             print(f"❌ Unknown command: {command}")
-            print("Available commands: clear, stats, drop, update")
+            print("Available commands: clear, stats")
             
     finally:
         conn.close()
