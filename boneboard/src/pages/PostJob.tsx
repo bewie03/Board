@@ -113,6 +113,31 @@ const PostJob: React.FC = () => {
     };
     loadPricing();
   }, []);
+
+  // Check for pending transactions on load and resume to payment step
+  useEffect(() => {
+    if (isConnected && walletAddress) {
+      const pendingKey = `pendingTx_${walletAddress}`;
+      const pendingTxData = localStorage.getItem(pendingKey);
+      
+      if (pendingTxData) {
+        try {
+          const pendingTx = JSON.parse(pendingTxData);
+          console.log('Found pending transaction, resuming to payment step');
+          
+          // Restore form data from pending transaction
+          setFormData(pendingTx.jobData);
+          setCurrentStep(2);
+          setPaymentStatus('processing');
+          
+          toast.info('Resuming payment process. Your transaction is being monitored.');
+        } catch (error) {
+          console.error('Error parsing pending transaction:', error);
+          localStorage.removeItem(pendingKey);
+        }
+      }
+    }
+  }, [isConnected, walletAddress]);
   
   // Calculate total price based on admin settings
   const calculateTotal = () => {
