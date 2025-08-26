@@ -106,6 +106,12 @@ class TransactionMonitor {
         // Save job to database
         try {
           await this.saveJobToDatabase(pendingTx.jobData, pendingTx.txHash);
+          
+          // Dispatch custom event for UI to handle success state
+          window.dispatchEvent(new CustomEvent('jobPostedSuccessfully', {
+            detail: { txHash: pendingTx.txHash }
+          }));
+          
           toast.success(`Job posted successfully! Transaction confirmed: ${pendingTx.txHash.substring(0, 8)}...`);
           return;
         } catch (error) {

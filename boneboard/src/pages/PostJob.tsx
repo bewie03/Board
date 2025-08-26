@@ -145,29 +145,24 @@ const PostJob: React.FC = () => {
     }
   }, [isConnected, walletAddress]);
 
-  // Listen for transaction completion and update UI
+  // Listen for successful job posting from transaction monitor
   useEffect(() => {
-    if (!isConnected || !walletAddress || currentStep !== 2) return;
-
-    const checkTransactionCompletion = () => {
-      const pendingKey = `pendingTx_${walletAddress}`;
-      const pendingTxData = localStorage.getItem(pendingKey);
-      
-      // If no pending transaction exists and we're on payment step, transaction completed
-      if (!pendingTxData && paymentStatus === 'processing') {
+    const handleJobPosted = () => {
+      if (currentStep === 2 && paymentStatus === 'processing') {
         setPaymentStatus('success');
-        toast.success('Job posted successfully! Redirecting to My Jobs...');
         setTimeout(() => {
           navigate('/my-jobs');
         }, 2000);
       }
     };
 
-    // Check every 2 seconds for transaction completion
-    const interval = setInterval(checkTransactionCompletion, 2000);
+    // Listen for the custom event from transaction monitor
+    window.addEventListener('jobPostedSuccessfully', handleJobPosted);
     
-    return () => clearInterval(interval);
-  }, [isConnected, walletAddress, currentStep, paymentStatus, navigate]);
+    return () => {
+      window.removeEventListener('jobPostedSuccessfully', handleJobPosted);
+    };
+  }, [currentStep, paymentStatus, navigate]);
   
   // Calculate total price based on admin settings
   const calculateTotal = () => {
