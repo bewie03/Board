@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaBone, FaWallet, FaRegBookmark, FaBell } from 'react-icons/fa';
+import { FaUserCircle, FaBone, FaWallet, FaRegBookmark } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { useWallet } from '../contexts/WalletContext';
-import { FreelancerService } from '../services/freelancerService';
-import { MessageService } from '../services/messageService';
+// Freelancer and messaging services removed
 import WalletSelector from './WalletSelector';
 import { motion } from 'framer-motion';
 
@@ -26,12 +25,7 @@ const Header: React.FC = () => {
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [isFreelancer, setIsFreelancer] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(0);
-  const [messageCount, setMessageCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const notificationRef = useRef<HTMLDivElement>(null);
 
   const handleConnectWallet = async (walletId: string) => {
     try {
@@ -44,33 +38,11 @@ const Header: React.FC = () => {
     }
   };
 
-  // Check if user is a freelancer and close profile dropdown when clicking outside
+  // Close profile dropdown when clicking outside
   useEffect(() => {
-    if (walletAddress) {
-      const checkFreelancerProfile = async () => {
-        try {
-          const freelancerProfile = await FreelancerService.getFreelancerByWallet(walletAddress);
-          setIsFreelancer(!!freelancerProfile);
-          
-          if (freelancerProfile) {
-            // Update counts with real data
-            setNotificationCount(MessageService.getNotificationCount(walletAddress));
-            setMessageCount(MessageService.getUnreadMessageCount(walletAddress));
-          }
-        } catch (error) {
-          console.error('Error checking freelancer profile:', error);
-        }
-      };
-      
-      checkFreelancerProfile();
-    }
-    
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setShowProfile(false);
-      }
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
       }
     }
 
@@ -82,7 +54,6 @@ const Header: React.FC = () => {
 
   const navItems = [
     { path: '/jobs', label: 'Job Search' },
-    { path: '/freelancers', label: 'Freelancers' },
     { path: '/projects', label: 'Projects' },
     { path: '/post-job', label: 'Post Job' },
   ];
@@ -128,45 +99,7 @@ const Header: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Freelancer Notifications */}
-              {isConnected && isFreelancer && (
-                <div className="flex items-center space-x-3">
-                  {/* Notifications */}
-                  <div className="relative" ref={notificationRef}>
-                    <button 
-                      onClick={() => setShowNotifications(!showNotifications)}
-                      className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      <FaBell className="text-lg" />
-                      {notificationCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {notificationCount}
-                        </span>
-                      )}
-                    </button>
-                    
-                    {/* Notifications Dropdown */}
-                    {showNotifications && (
-                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                        <div className="p-4 border-b border-gray-100">
-                          <h3 className="font-semibold text-gray-900">Notifications</h3>
-                        </div>
-                        <div className="max-h-64 overflow-y-auto">
-                          <div className="p-8 text-center text-gray-500">
-                            <FaBell className="mx-auto text-4xl mb-3 opacity-50" />
-                            <p className="text-sm">No notifications yet</p>
-                            <p className="text-xs mt-1">You'll see notifications here when you receive orders, messages, or reviews</p>
-                          </div>
-                        </div>
-                        <div className="p-3 border-t border-gray-100">
-                          <button className="text-sm text-blue-600 hover:text-blue-800">View all notifications</button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                </div>
-              )}
+              {/* Notifications - Hidden for now */}
               
               <div className="relative" ref={profileRef}>
                 {isConnected && walletAddress && connectedWallet ? (
@@ -245,50 +178,7 @@ const Header: React.FC = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        {isFreelancer && (
-                          <button
-                            onClick={async () => {
-                              setShowProfile(false);
-                              try {
-                                const freelancerProfile = await FreelancerService.getFreelancerByWallet(walletAddress!);
-                                if (freelancerProfile) {
-                                  navigate(`/freelancers/${freelancerProfile.id}`);
-                                }
-                              } catch (error) {
-                                console.error('Error getting freelancer profile:', error);
-                              }
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200 flex items-center"
-                          >
-                            <svg className="w-4 h-4 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            My Freelancer Profile
-                          </button>
-                        )}
-                        
-                        {isFreelancer && (
-                          <button
-                            onClick={async () => {
-                              setShowProfile(false);
-                              try {
-                                const freelancerProfile = await FreelancerService.getFreelancerByWallet(walletAddress!);
-                                if (freelancerProfile) {
-                                  navigate(`/freelancers/${freelancerProfile.id}`);
-                                  // This will trigger the messaging modal from the profile page
-                                }
-                              } catch (error) {
-                                console.error('Error getting freelancer profile:', error);
-                              }
-                            }}
-                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200 flex items-center"
-                          >
-                            <svg className="w-4 h-4 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            Messages {messageCount > 0 && `(${messageCount})`}
-                          </button>
-                        )}
+                        {/* Freelancer profile options removed */}
                         
                         <button
                           onClick={() => {
