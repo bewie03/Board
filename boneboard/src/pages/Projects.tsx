@@ -171,7 +171,7 @@ const Projects: React.FC = () => {
                 {/* Filters Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Category Filter */}
-                  <div className="space-y-2" style={{ position: 'relative', zIndex: 1000 }}>
+                  <div className="space-y-2" style={{ position: 'relative', zIndex: 10 }}>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
                     <div className="relative">
                       <button
