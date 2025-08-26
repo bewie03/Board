@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCheck, FaInfoCircle, FaUpload } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
 import { useContract } from '../hooks/useContract';
@@ -11,7 +11,7 @@ import PageTransition from '../components/PageTransition';
 
 const PostJob: React.FC = () => {
   const navigate = useNavigate();
-  const { isConnected, walletAddress } = useWallet();
+  const { isConnected, walletAddress, formatAddress } = useWallet();
   const { isLoading: contractLoading, postJob } = useContract();
   const [currentStep, setCurrentStep] = useState(1);
   // Job categories for Cardano ecosystem
@@ -121,7 +121,11 @@ const PostJob: React.FC = () => {
       return {
         amount: 25,
         displayText: '25 ADA (Loading...)',
-        currency: 'ADA'
+        currency: 'ADA',
+        baseAmount: 25,
+        durationDiscount: 0,
+        projectDiscount: 0,
+        featuredCost: 0
       };
     }
 
@@ -132,24 +136,23 @@ const PostJob: React.FC = () => {
     
     const currency = formData.paymentMethod;
     
-    // Apply duration discounts (1 month = base price)
+    // Calculate duration pricing
     const durationMultiplier = getDurationMultiplier(formData.listingDuration);
-    let finalPrice = basePrice * durationMultiplier;
+    let priceAfterDuration = basePrice * durationMultiplier;
+    const durationDiscount = basePrice * formData.listingDuration - priceAfterDuration;
     
-    // Apply featured job cost (+50%)
-    if (formData.featured) {
-      finalPrice = finalPrice * 1.5;
-    }
+    // Calculate featured cost (+50% of base after duration)
+    const featuredCost = formData.featured ? priceAfterDuration * 0.5 : 0;
+    let priceAfterFeatured = priceAfterDuration + featuredCost;
     
-    // Apply 20% project discount if project selected
-    if (selectedProject) {
-      finalPrice = finalPrice * 0.8;
-    }
+    // Calculate project discount (20% off final price)
+    const projectDiscount = selectedProject ? priceAfterFeatured * 0.2 : 0;
+    const finalPrice = priceAfterFeatured - projectDiscount;
     
     // Round to reasonable precision
-    finalPrice = Math.round(finalPrice * 100) / 100;
+    const roundedPrice = Math.round(finalPrice * 100) / 100;
     
-    let displayText = `${finalPrice} ${currency}`;
+    let displayText = `${roundedPrice} ${currency}`;
     
     // Add discount indicators
     if (selectedProject && formData.listingDuration > 1) {
@@ -161,9 +164,13 @@ const PostJob: React.FC = () => {
     }
     
     return {
-      amount: finalPrice,
+      amount: roundedPrice,
       displayText,
-      currency: currency
+      currency: currency,
+      baseAmount: Math.round((basePrice * formData.listingDuration) * 100) / 100,
+      durationDiscount: Math.round(durationDiscount * 100) / 100,
+      projectDiscount: Math.round(projectDiscount * 100) / 100,
+      featuredCost: Math.round(featuredCost * 100) / 100
     };
   };
   
@@ -886,11 +893,11 @@ const PostJob: React.FC = () => {
                         }}
                         required
                       >
-                        <option value="BONE">Pay with $BONE (Recommended)</option>
-                        <option value="ADA">Pay with ADA</option>
+                        <option value="BONE">🦴 Pay with BONE (Recommended)</option>
+                        <option value="ADA">₳ Pay with ADA</option>
                       </select>
                       <p className="mt-1 text-xs text-gray-500">
-                        You'll need to connect your Cardano wallet to pay with {formData.paymentMethod === 'ADA' ? 'ADA' : '$BONE tokens'}
+                        You'll need to connect your Cardano wallet to pay with {formData.paymentMethod === 'ADA' ? 'ADA' : 'BONE tokens'}
                       </p>
                     </div>
                   </div>
@@ -984,7 +991,7 @@ const PostJob: React.FC = () => {
                           Processing...
                         </>
                       ) : (
-                        'Submit & Pay'
+                        'Continue to Payment'
                       )}
                     </button>
                   </div>
@@ -996,53 +1003,148 @@ const PostJob: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {paymentStatus === 'idle' && (
                   <>
-                    <div className="text-center">
-                      <h3 className="text-lg font-medium text-gray-900">Payment</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Complete your payment to publish the job listing
-                      </p>
+                    {/* Job Summary */}
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Job Summary</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Job Title:</span>
+                          <span className="font-medium">{formData.title}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Category:</span>
+                          <span className="font-medium">{formData.category}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Duration:</span>
+                          <span className="font-medium">{formData.listingDuration} {formData.listingDuration === 1 ? 'Month' : 'Months'}</span>
+                        </div>
+                        {formData.featured && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Featured:</span>
+                            <span className="font-medium text-blue-600">★ Yes</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-
-                    <div className="bg-gray-50 p-6 rounded-lg">
+                    
+                    {/* Payment Method */}
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                        <FaWallet className="mr-2" />
+                        Payment Method
+                      </h3>
+                  
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              Job Posting ({formData.listingDuration} {formData.listingDuration === 1 ? 'Month' : 'Months'})
-                            </p>
-                            <p className="mt-1 text-sm text-gray-500">
-                              {formData.listingDuration === 1
-                                ? 'Your job will be featured on BoneBoard for 1 month'
-                                : `Your job will be featured on BoneBoard for ${formData.listingDuration} months`
-                              }
-                            </p>
-                          </div>
-                          <p className="text-lg font-medium text-gray-900">
-                            {totalCost.amount} {totalCost.currency}
-                          </p>
-                        </div>
-                        
-                        <div className="bg-blue-50 p-3 rounded-md">
-                          <p className="text-sm text-blue-800">
-                            <span className="font-medium">Platform Fee:</span> {totalCost.amount} {totalCost.currency} for job posting.
-                          </p>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-gray-200">
-                          <div className="flex items-center text-sm text-gray-500">
-                            <FaInfoCircle className="flex-shrink-0 mr-2 h-5 w-5 text-blue-500" />
-                            <p>
-                              {formData.paymentMethod === 'BONE' 
-                                ? 'Payment is processed in $BONE tokens on the Cardano blockchain' 
-                                : 'Payment is processed in ADA on the Cardano blockchain'}
-                            </p>
-                          </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <label className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            formData.paymentMethod === 'BONE' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="BONE"
+                              checked={formData.paymentMethod === 'BONE'}
+                              onChange={handleChange}
+                              className="sr-only"
+                            />
+                            <div className="flex items-center">
+                              <span className="text-lg mr-3">🦴</span>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">BONE Token</div>
+                                <div className="text-xs text-gray-500">Recommended</div>
+                              </div>
+                            </div>
+                            {formData.paymentMethod === 'BONE' && (
+                              <FaCheck className="absolute top-2 right-2 h-4 w-4 text-blue-500" />
+                            )}
+                          </label>
                           
-                          <div className="mt-2 text-xs text-gray-500">
-                            <p>Platform fee: {totalCost.amount} {totalCost.currency}</p>
-                            <p>Network fee: ~0.2-0.5 ADA (paid separately)</p>
+                          <label className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            formData.paymentMethod === 'ADA' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="ADA"
+                              checked={formData.paymentMethod === 'ADA'}
+                              onChange={handleChange}
+                              className="sr-only"
+                            />
+                            <div className="flex items-center">
+                              <span className="text-lg mr-3">₳</span>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">ADA</div>
+                                <div className="text-xs text-gray-500">Cardano</div>
+                              </div>
+                            </div>
+                            {formData.paymentMethod === 'ADA' && (
+                              <FaCheck className="absolute top-2 right-2 h-4 w-4 text-blue-500" />
+                            )}
+                          </label>
+                        </div>
+                        
+                        {/* Cost Breakdown */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3">Cost Breakdown</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Base Job Listing Fee</span>
+                              <span>{totalCost.baseAmount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                            </div>
+                            {totalCost.durationDiscount > 0 && (
+                              <div className="flex justify-between text-green-600">
+                                <span>Duration Discount ({formData.listingDuration} months)</span>
+                                <span>-{totalCost.durationDiscount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                              </div>
+                            )}
+                            {totalCost.projectDiscount > 0 && (
+                              <div className="flex justify-between text-green-600">
+                                <span>Project Discount</span>
+                                <span>-{totalCost.projectDiscount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                              </div>
+                            )}
+                            {totalCost.featuredCost > 0 && (
+                              <div className="flex justify-between text-blue-600">
+                                <span>Featured Listing (+50%)</span>
+                                <span>+{totalCost.featuredCost} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                              </div>
+                            )}
+                            <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">
+                              <span>Total</span>
+                              <span>{totalCost.amount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                            </div>
                           </div>
                         </div>
+                        
+                        {/* Wallet Connection */}
+                        {isConnected && walletAddress ? (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
+                              <div className="flex items-center">
+                                <FaCheck className="h-5 w-5 text-green-600 mr-2" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  Connected: {formatAddress(walletAddress)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                              <div className="flex items-center">
+                                <FaTimes className="h-5 w-5 text-yellow-600 mr-2" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  Wallet not connected
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1058,8 +1160,9 @@ const PostJob: React.FC = () => {
                         <button
                           type="submit"
                           className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          disabled={!isConnected}
                         >
-                          Pay with Wallet
+                          Submit & Pay
                         </button>
                       </div>
                     </div>

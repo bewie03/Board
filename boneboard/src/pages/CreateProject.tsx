@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaUpload, FaTwitter, FaDiscord, FaWallet, FaCoins, FaDollarSign, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaUpload, FaTwitter, FaDiscord, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import { useWallet } from '../contexts/WalletContext';
 import { initiateTwitterOAuth, initiateDiscordOAuth } from '../utils/auth';
@@ -764,7 +764,7 @@ const CreateProject: React.FC = () => {
                               className="sr-only"
                             />
                             <div className="flex items-center">
-                              <FaCoins className="h-5 w-5 text-orange-500 mr-3" />
+                              <span className="text-lg mr-3">🦴</span>
                               <div>
                                 <div className="text-sm font-medium text-gray-900">BONE Token</div>
                                 <div className="text-xs text-gray-500">Recommended</div>
@@ -789,7 +789,7 @@ const CreateProject: React.FC = () => {
                               className="sr-only"
                             />
                             <div className="flex items-center">
-                              <FaDollarSign className="h-5 w-5 text-blue-500 mr-3" />
+                              <span className="text-lg mr-3">₳</span>
                               <div>
                                 <div className="text-sm font-medium text-gray-900">ADA</div>
                                 <div className="text-xs text-gray-500">Cardano</div>
@@ -807,11 +807,11 @@ const CreateProject: React.FC = () => {
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Project Creation Fee</span>
-                              <span>{totalCost.amount} {totalCost.currency}</span>
+                              <span>{totalCost.amount} {totalCost.currency === 'ADA' ? '₳' : '🦴'}</span>
                             </div>
                             <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">
                               <span>Total</span>
-                              <span>{totalCost.amount} {totalCost.currency}</span>
+                              <span>{totalCost.amount} {totalCost.currency === 'ADA' ? '₳' : '🦴'}</span>
                             </div>
                           </div>
                         </div>
