@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { contractService, JobPostingData } from '../services/contractService';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
@@ -67,97 +67,9 @@ const forceCleanupLocalStorage = () => {
 export const useContract = (): UseContractReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const { walletAddress, isConnected } = useWallet();
-  let checkInterval: NodeJS.Timeout | null = null;
 
-  // Check for pending transactions on component mount and set up periodic checking
-  useEffect(() => {
-    
-    const checkPendingTransactions = async () => {
-      const pendingKey = `pendingTx_${walletAddress}`;
-      const pendingTxData = localStorage.getItem(pendingKey);
-      
-      console.log('Checking for pending transactions...', { pendingKey, hasPendingData: !!pendingTxData });
-      
-      if (pendingTxData) {
-        try {
-          const pendingTx: PendingTransaction = JSON.parse(pendingTxData);
-          console.log('Found pending transaction:', { txHash: pendingTx.txHash, timestamp: pendingTx.timestamp });
-          
-          // Check if transaction is older than 2 minutes (timeout)
-          const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
-          if (pendingTx.timestamp < twoMinutesAgo) {
-            console.log('Transaction timeout reached, removing from localStorage');
-            localStorage.removeItem(pendingKey);
-            if (checkInterval) {
-              clearInterval(checkInterval);
-              checkInterval = null;
-            }
-            toast.error('Transaction confirmation timeout. Your payment may still be processing on the blockchain. Please check your wallet and try posting again if needed.');
-            return;
-          }
-
-          // Initialize Lucid before checking transaction status
-          try {
-            const walletApi = await getWalletApi();
-            if (walletApi) {
-              await contractService.initializeLucid(walletApi);
-            }
-          } catch (error) {
-            console.log('Could not initialize Lucid for status check, will retry later');
-          }
-          
-          console.log('Checking transaction status for:', pendingTx.txHash);
-          // Check transaction status
-          const status = await contractService.checkTransactionStatus(pendingTx.txHash);
-          console.log('Transaction status:', status);
-          
-          if (status === 'confirmed') {
-            console.log('Transaction confirmed, saving job to database');
-            // Save job to database
-            await saveJobToDatabase(pendingTx.jobData, pendingTx.txHash);
-            localStorage.removeItem(pendingKey);
-            if (checkInterval) {
-              clearInterval(checkInterval);
-              checkInterval = null;
-            }
-            toast.success(`Your job posting has been confirmed! Transaction: ${pendingTx.txHash.substring(0, 8)}...`);
-          } else {
-            // For both 'failed' and 'pending', we continue checking until timeout
-            // Only remove on timeout, not on individual failed checks
-            console.log('Transaction still being processed, will check again');
-          }
-          // If still pending, continue checking
-        } catch (error) {
-          console.error('Error checking pending transaction:', error);
-          // Don't remove on error - could be temporary network issue
-          console.log('Will retry checking transaction status');
-        }
-      } else {
-        console.log('No pending transactions found');
-      }
-    };
-    
-    // Initial check and setup interval
-    const setupChecking = async () => {
-      await checkPendingTransactions();
-      
-      // Set up interval to check every 10 seconds if there's still a pending transaction
-      const pendingKey = `pendingTx_${walletAddress}`;
-      if (localStorage.getItem(pendingKey)) {
-        console.log('Setting up interval checking for pending transaction');
-        checkInterval = setInterval(checkPendingTransactions, 10000); // Check every 10 seconds
-      }
-    };
-    
-    setupChecking();
-    
-    // Cleanup interval on unmount
-    return () => {
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
-    };
-  }, [walletAddress]);
+  // Transaction monitoring is now handled globally by transactionMonitor service
+  // This useEffect is no longer needed as monitoring starts when wallet connects
 
   const postJob = useCallback(async (jobData: Omit<JobPostingData, 'walletAddress' | 'timestamp'>): Promise<boolean> => {
     if (!walletAddress || !isConnected) {
@@ -242,12 +154,12 @@ export const useContract = (): UseContractReturn => {
             return true;
           } else {
             // Transaction is pending - inform user it will be processed in background
-            toast.success(`Payment submitted successfully! Your job will be posted once the transaction is confirmed on the blockchain. Transaction: ${result.txHash.substring(0, 8)}...`);
+            toast.success(`Payment submitted successfully! Your job will be posted once the transaction is confirmed on the blockchain. Please avoid refreshing the page. Transaction: ${result.txHash.substring(0, 8)}...`);
             return true;
           }
         } catch (error) {
           console.error('Error checking immediate transaction status:', error);
-          toast.success(`Payment submitted! Your job will be posted once confirmed. Transaction: ${result.txHash.substring(0, 8)}...`);
+          toast.success(`Payment submitted! Your job will be posted once confirmed. Please avoid refreshing the page. Transaction: ${result.txHash.substring(0, 8)}...`);
           return true;
         }
       } else {

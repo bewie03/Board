@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { transactionMonitor } from '../services/transactionMonitor';
 
 // Define the wallet interface
 export interface CardanoWallet {
@@ -290,6 +291,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         localStorage.setItem('isConnected', 'true');
       }
 
+      // Start monitoring for pending transactions
+      transactionMonitor.startMonitoring(currentAddress);
+
       console.log(`Successfully connected to ${walletId} wallet`);
 
     } catch (error) {
@@ -317,6 +321,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     // Clear profile data when disconnecting
     setUsernameState(null);
     setProfilePhotoState(null);
+
+    // Stop transaction monitoring
+    transactionMonitor.stopMonitoring();
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('walletAddress');
@@ -410,6 +417,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             
             // Load wallet-specific profile data
             loadWalletProfile(formattedAddress);
+            
+            // Start monitoring for pending transactions on reconnect
+            transactionMonitor.startMonitoring(formattedAddress);
             
             console.log(`Successfully reconnected to ${savedWallet} wallet`);
           }
