@@ -290,7 +290,18 @@ const PostJob: React.FC = () => {
       }
       
       // Get current wallet address from the specific connected wallet extension
-      const currentAddress = currentAddresses[0];
+      let currentAddress = currentAddresses[0];
+      
+      // Convert hex address to bech32 if needed
+      if (currentAddress && currentAddress.length > 50 && !currentAddress.startsWith('addr')) {
+        try {
+          const { Address } = await import('@emurgo/cardano-serialization-lib-browser');
+          const addr = Address.from_bytes(Buffer.from(currentAddress, 'hex'));
+          currentAddress = addr.to_bech32();
+        } catch (error) {
+          console.warn('Failed to convert hex address to bech32:', error);
+        }
+      }
       
       // Add debug logging
       console.log('Wallet validation debug:', {
