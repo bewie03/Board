@@ -91,8 +91,6 @@ const JobListings: React.FC = () => {
   const [emailCopied, setEmailCopied] = useState(false);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
-
   // Load saved jobs for the connected wallet
   useEffect(() => {
     if (isConnected && walletAddress) {
@@ -107,16 +105,21 @@ const JobListings: React.FC = () => {
     }
   }, [isConnected, walletAddress]);
 
-  // Update dropdown position when it opens
+  // Close dropdown when clicking outside
   useEffect(() => {
-    if (showCategoryDropdown && categoryButtonRef.current) {
-      const rect = categoryButtonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
-        width: rect.width
-      });
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryButtonRef.current && !categoryButtonRef.current.contains(event.target as Node)) {
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    if (showCategoryDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [showCategoryDropdown]);
 
   useEffect(() => {
@@ -319,12 +322,8 @@ const JobListings: React.FC = () => {
                       </button>
                       
                       {showCategoryDropdown && (
-                        <div className="fixed z-[10000] bg-white border border-gray-300 rounded-lg shadow-2xl max-h-64 overflow-y-auto" 
-                             style={{
-                               top: dropdownPosition.top + 'px',
-                               left: dropdownPosition.left + 'px',
-                               width: dropdownPosition.width + 'px'
-                             }}>
+                        <div className="absolute z-40 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto mt-1 w-full" 
+                             style={{ position: 'absolute', top: '100%', left: 0 }}>
                           <div className="py-2">
                             <label className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
                               <input
