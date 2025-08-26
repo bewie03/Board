@@ -571,8 +571,11 @@ const FreelancerProfile: React.FC = () => {
     toast.success(`Status updated to ${statusText}`);
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleEditToggle = async () => {
     if (isEditing && editedFreelancer) {
+      setIsSaving(true);
       // Save changes
       const updatedFreelancer = { 
         ...editedFreelancer, 
@@ -735,6 +738,7 @@ const FreelancerProfile: React.FC = () => {
       }));
       
       toast.success('Profile updated successfully!');
+      setIsSaving(false);
     } else if (!isEditing && freelancer) {
       // Entering edit mode - sync editedFreelancer with current freelancer state
       setEditedFreelancer({
@@ -978,7 +982,7 @@ const FreelancerProfile: React.FC = () => {
                               className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                               <FaEdit className="mr-2" />
-                              {isEditing ? 'Save' : 'Edit'}
+                              {isSaving ? 'Saving...' : (isEditing ? 'Save' : 'Edit')}
                             </button>
                             <button 
                               onClick={toggleBusyStatus}
@@ -1628,20 +1632,33 @@ const FreelancerProfile: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              if (editedFreelancer?.services[0]) {
+                              if (editedFreelancer?.services[0] && editedFreelancer.services[0].pricing[selectedPackage].features.length < 5) {
                                 setEditedFreelancer(prev => {
                                   if (!prev) return null;
-                                  const updated = { ...prev };
-                                  updated.services[0].pricing[selectedPackage].features = 
-                                    [...updated.services[0].pricing[selectedPackage].features, ''];
-                                  return updated;
+                                  const updatedServices = [...prev.services];
+                                  updatedServices[0] = {
+                                    ...updatedServices[0],
+                                    pricing: {
+                                      ...updatedServices[0].pricing,
+                                      [selectedPackage]: {
+                                        ...updatedServices[0].pricing[selectedPackage],
+                                        features: [...updatedServices[0].pricing[selectedPackage].features, '']
+                                      }
+                                    }
+                                  };
+                                  return { ...prev, services: updatedServices };
                                 });
                               }
                             }}
-                            className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            className={`flex items-center text-sm font-medium ${
+                              (editedFreelancer?.services?.[0]?.pricing?.[selectedPackage]?.features?.length || 0) >= 5
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-blue-600 hover:text-blue-800'
+                            }`}
+                            disabled={(editedFreelancer?.services?.[0]?.pricing?.[selectedPackage]?.features?.length || 0) >= 5}
                           >
                             <FaCheckCircle className="mr-2" />
-                            Add feature
+                            Add feature {(editedFreelancer?.services?.[0]?.pricing?.[selectedPackage]?.features?.length || 0) >= 5 && '(Max 5)'}
                           </button>
                         </div>
                       </div>

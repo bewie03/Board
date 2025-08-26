@@ -181,6 +181,18 @@ export const updateFreelancer = async (walletAddress: string, updates: any) => {
       paramIndex++;
     }
     
+    if (updates.socialLinks !== undefined) {
+      fieldsToUpdate.push(`social_links = $${paramIndex}`);
+      values.push(JSON.stringify(updates.socialLinks || currentFreelancer.social_links || {}));
+      paramIndex++;
+    }
+    
+    if (updates.workImages !== undefined) {
+      fieldsToUpdate.push(`work_images = $${paramIndex}`);
+      values.push(updates.workImages || currentFreelancer.work_images || []);
+      paramIndex++;
+    }
+    
     // Always add updated_at
     fieldsToUpdate.push(`updated_at = NOW()`);
     
