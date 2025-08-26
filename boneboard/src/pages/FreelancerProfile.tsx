@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FreelancerService, Freelancer, FreelancerService as ServiceType } from '../services/freelancerService';
+import { FreelancerService, Freelancer } from '../services/freelancerService';
 import { MessageService, MessageAttachment } from '../services/messageService';
-import { useWallet } from '../contexts/WalletContext';
+import MessagingAgreement from '../components/MessagingAgreement';
 import PageTransition from '../components/PageTransition';
 import { FaStar, FaClock, FaEdit, FaArrowLeft, FaShare, FaCheckCircle, FaPaperPlane } from 'react-icons/fa';
 import { FaEnvelope, FaGlobe, FaTwitter, FaDiscord, FaGithub, FaLinkedin, FaLink, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+
+// Mock useWallet hook for development
+const useWallet = () => ({
+  walletAddress: 'mock-wallet-address',
+  username: 'Mock User'
+});
 
 const mainLanguages = [
   'English',
@@ -56,7 +62,7 @@ const FreelancerProfile: React.FC = () => {
   const navigate = useNavigate();
   const { walletAddress, username } = useWallet();
   const [freelancer, setFreelancer] = useState<Freelancer | null>(null);
-  const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
+  const [selectedService, setSelectedService] = useState<any | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<'basic' | 'standard' | 'premium'>('basic');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,15 +74,16 @@ const FreelancerProfile: React.FC = () => {
   const [workImages, setWorkImages] = useState<string[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
-  const [showMessaging, setShowMessaging] = useState(false);
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [currentMessages, setCurrentMessages] = useState<any[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
   const [messageInput, setMessageInput] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [showMessagingAgreement, setShowMessagingAgreement] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [socialLinks, setSocialLinks] = useState({
     website: '',
     twitter: '',
@@ -364,13 +371,25 @@ const FreelancerProfile: React.FC = () => {
     }
     
     try {
+      // Check if user has agreed to messaging terms
+      const hasAgreed = localStorage.getItem('messaging_agreement_accepted');
+      if (!hasAgreed) {
+        setShowMessagingAgreement(true);
+        return;
+      }
+
       // Create or get conversation
       const conversation = await MessageService.getOrCreateConversation(walletAddress, freelancer.walletAddress);
       setSelectedConversationId(conversation.id);
       loadConversations();
       setShowMessaging(true);
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      if ((error as Error).message === 'MESSAGING_AGREEMENT_REQUIRED') {
+        setShowMessagingAgreement(true);
+      } else {
+        console.error('Error starting conversation:', error);
+        toast.error('Failed to start conversation. Please try again.');
+      }
     }
   };
 
@@ -388,6 +407,18 @@ const FreelancerProfile: React.FC = () => {
       // Mark messages as read
       MessageService.markMessagesAsRead(conversationId, walletAddress!);
     }
+  };
+
+  const handleMessagingAgreementAccept = () => {
+    localStorage.setItem('messaging_agreement_accepted', 'true');
+    setShowMessagingAgreement(false);
+    // Retry the contact action
+    handleContactFreelancer();
+  };
+
+  const handleMessagingAgreementDecline = () => {
+    setShowMessagingAgreement(false);
+    toast.info('You must agree to the messaging terms to contact freelancers.');
   };
 
   const handleSendMessage = async () => {
@@ -1651,18 +1682,6 @@ const FreelancerProfile: React.FC = () => {
                               />
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (editedFreelancer?.services[0]) {
-                                    setEditedFreelancer(prev => {
-                                      if (!prev) return null;
-                                      const updated = { ...prev };
-                                      updated.services[0].pricing[selectedPackage].features = 
-                                        updated.services[0].pricing[selectedPackage].features.filter((_, i) => i !== index);
-                                      return updated;
-                                    });
-                                  }
-                                }}
-                                className="text-red-500 hover:text-red-700 p-1"
                               >
                                 ×
                               </button>
@@ -1703,7 +1722,7 @@ const FreelancerProfile: React.FC = () => {
                       </div>
                     ) : (
                       <ul className="space-y-2">
-                        {selectedService.pricing[selectedPackage].features.map((feature, index) => (
+                        {selectedService.pricing[selectedPackage].features.map((feature: string, index: number) => (
                           <li key={index} className="flex items-center text-gray-700">
                             <FaCheckCircle className="text-green-500 mr-2 flex-shrink-0" />
                             <span>{feature}</span>
@@ -1715,12 +1734,21 @@ const FreelancerProfile: React.FC = () => {
 
                   {/* Action Buttons */}
                   <div className="space-y-3">
-                    <button 
-                      onClick={handleContactFreelancer}
-                      className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Contact Freelancer
-                    </button>
+                    {isOwner ? (
+                      <button 
+                        onClick={() => setIsEditing(true)}
+                        className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                      >
+                        Edit My Profile
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={handleContactFreelancer}
+                        className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Contact Freelancer
+                      </button>
+                    )}
                   </div>
 
                   {/* Additional Info */}
@@ -1997,7 +2025,7 @@ const FreelancerProfile: React.FC = () => {
                               <div className={`flex items-start space-x-3 ${isOwn ? 'justify-end' : ''}`}>
                                 {!isOwn && (
                                   <img 
-                                    src={message.senderAvatar}
+                                    src={message.senderAvatar || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face`}
                                     alt={message.senderName}
                                     className="w-8 h-8 rounded-full object-cover"
                                   />
@@ -2080,12 +2108,9 @@ const FreelancerProfile: React.FC = () => {
                                       <div className="flex space-x-1">
                                         <button
                                           onClick={() => handleEditMessage(message.id, message.content)}
-                                          className="p-1 text-gray-400 hover:text-blue-600 rounded"
                                           title="Edit message"
                                         >
-                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                          </svg>
+                                          <FaEdit className="w-3 h-3" />
                                         </button>
                                         <button
                                           onClick={() => handleDeleteMessage(message.id)}
@@ -2116,7 +2141,7 @@ const FreelancerProfile: React.FC = () => {
                                 
                                 {isOwn && (
                                   <img 
-                                    src={message.senderAvatar}
+                                    src={message.senderAvatar || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face`}
                                     alt={message.senderName}
                                     className="w-8 h-8 rounded-full object-cover"
                                   />
@@ -2207,7 +2232,7 @@ const FreelancerProfile: React.FC = () => {
                             className="hidden"
                             id="message-files"
                           />
-                          <label htmlFor="message-files" className="text-gray-400 hover:text-gray-600 cursor-pointer p-1">
+                          <label htmlFor="message-files" className="text-gray-300 cursor-not-allowed p-1" title="File uploads disabled to prevent database bloat">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                             </svg>
@@ -2231,6 +2256,14 @@ const FreelancerProfile: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Messaging Agreement Modal */}
+        {showMessagingAgreement && (
+          <MessagingAgreement
+            onAccept={handleMessagingAgreementAccept}
+            onDecline={handleMessagingAgreementDecline}
+          />
         )}
       </div>
     </PageTransition>

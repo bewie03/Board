@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 // Database connection pool - create pool inside functions to avoid cold start issues
 let pool: any = null;
 
-function getPool() {
+export function getPool() {
   if (!pool) {
     const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     

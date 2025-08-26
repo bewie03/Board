@@ -1,27 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { Pool } from 'pg';
-
-// Database connection - create pool inside handler to avoid cold start issues
-let pool: any = null;
-
-function getPool() {
-  if (!pool) {
-    const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-    
-    if (!DATABASE_URL) {
-      throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
-    }
-    
-    pool = new Pool({
-      connectionString: DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 1, // Vercel functions are stateless
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    });
-  }
-  return pool;
-}
+import { getPool } from '../../boneboard/src/lib/database';
 
 // Enable CORS
 const corsHeaders = {
@@ -61,72 +39,124 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handleGet(req: VercelRequest, res: VercelResponse) {
-  const { wallet, conversation, unread } = req.query;
+  const { wallet, conversation, conversations } = req.query;
 
   if (!wallet) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  let query = `
-    SELECT * FROM messages 
-    WHERE to_wallet_address = $1 OR from_wallet_address = $1
-  `;
-  const params: any[] = [wallet];
+  // Get conversations for a user
+  if (conversations === 'true') {
+    const query = `
+      SELECT DISTINCT 
+        c.id,
+        c.participant_1_wallet,
+        c.participant_2_wallet,
+        c.participant_1_name,
+        c.participant_1_avatar,
+        c.participant_2_name,
+        c.participant_2_avatar,
+        c.last_message_at,
+        (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
+        (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND receiver_wallet = $1 AND is_read = false) as unread_count
+      FROM conversations c
+      WHERE (c.participant_1_wallet = $1 OR c.participant_2_wallet = $1) 
+        AND c.is_deleted = false
+      ORDER BY c.last_message_at DESC
+    `;
+    
+    const result = await getPool().query(query, [wallet]);
+    return res.status(200).json(result.rows);
+  }
 
+  // Get messages for a specific conversation
   if (conversation) {
-    query += ` AND (
-      (from_wallet_address = $1 AND to_wallet_address = $2) OR 
-      (from_wallet_address = $2 AND to_wallet_address = $1)
-    )`;
-    params.push(conversation);
+    const query = `
+      SELECT m.*, 
+        CASE 
+          WHEN m.sender_wallet = $1 THEN 'sent'
+          ELSE 'received'
+        END as message_type
+      FROM messages m
+      WHERE m.conversation_id = $2 AND m.is_deleted = false
+      ORDER BY m.created_at ASC
+    `;
+    
+    const result = await getPool().query(query, [wallet, conversation]);
+    return res.status(200).json(result.rows);
   }
 
-  if (unread === 'true') {
-    query += ` AND to_wallet_address = $1 AND is_read = false`;
-  }
-
-  query += ` ORDER BY created_at DESC`;
-
-  const result = await getPool().query(query, params);
-  
-  const messages = result.rows.map((row: any) => ({
-    id: row.id,
-    fromWalletAddress: row.from_wallet_address,
-    toWalletAddress: row.to_wallet_address,
-    content: row.content,
-    isRead: row.is_read,
-    createdAt: row.created_at
-  }));
-
-  return res.status(200).json(messages);
+  return res.status(400).json({ error: 'Either conversation ID or conversations=true is required' });
 }
 
 async function handlePost(req: VercelRequest, res: VercelResponse) {
-  const { fromWalletAddress, toWalletAddress, content } = req.body;
+  const { senderWallet, receiverWallet, content, senderName, senderAvatar, receiverName, receiverAvatar } = req.body;
 
-  if (!fromWalletAddress || !toWalletAddress || !content) {
-    return res.status(400).json({ error: 'From wallet, to wallet, and content are required' });
+  if (!senderWallet || !receiverWallet || !content) {
+    return res.status(400).json({ error: 'Sender wallet, receiver wallet, and content are required' });
   }
 
-  const query = `
-    INSERT INTO messages (from_wallet_address, to_wallet_address, content)
-    VALUES ($1, $2, $3)
-    RETURNING *
-  `;
+  const client = await getPool().connect();
+  
+  try {
+    await client.query('BEGIN');
 
-  const result = await getPool().query(query, [fromWalletAddress, toWalletAddress, content]);
-  const message = result.rows[0];
+    // Get or create conversation
+    let conversationResult = await client.query(`
+      SELECT id FROM conversations 
+      WHERE (participant_1_wallet = $1 AND participant_2_wallet = $2) 
+         OR (participant_1_wallet = $2 AND participant_2_wallet = $1)
+    `, [senderWallet, receiverWallet]);
 
-  const transformedMessage = {
-    id: message.id,
-    fromWalletAddress: message.from_wallet_address,
-    toWalletAddress: message.to_wallet_address,
-    content: message.content,
-    isRead: message.is_read,
-    createdAt: message.created_at
-  };
+    let conversationId;
+    
+    if (conversationResult.rows.length === 0) {
+      // Create new conversation
+      const newConvResult = await client.query(`
+        INSERT INTO conversations (
+          participant_1_wallet, participant_2_wallet, 
+          participant_1_name, participant_1_avatar,
+          participant_2_name, participant_2_avatar,
+          last_message_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        RETURNING id
+      `, [senderWallet, receiverWallet, senderName, senderAvatar, receiverName, receiverAvatar]);
+      
+      conversationId = newConvResult.rows[0].id;
+    } else {
+      conversationId = conversationResult.rows[0].id;
+      
+      // Update last message time
+      await client.query(`
+        UPDATE conversations 
+        SET last_message_at = NOW() 
+        WHERE id = $1
+      `, [conversationId]);
+    }
 
-  return res.status(201).json(transformedMessage);
+    // Insert message
+    const messageResult = await client.query(`
+      INSERT INTO messages (
+        conversation_id, sender_wallet, sender_name, sender_avatar,
+        receiver_wallet, content, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      RETURNING *
+    `, [conversationId, senderWallet, senderName, senderAvatar, receiverWallet, content]);
+
+    await client.query('COMMIT');
+    
+    return res.status(201).json({
+      success: true,
+      message: messageResult.rows[0],
+      conversationId
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 async function handlePut(req: VercelRequest, res: VercelResponse) {

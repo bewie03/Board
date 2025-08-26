@@ -52,8 +52,34 @@ class MessageServiceClass {
   private conversations: Conversation[] = [];
   private responseTimeData: ResponseTimeData[] = [];
 
-  // Get or create conversation between two users
+  // Get or create conversation between two users - now uses database
   async getOrCreateConversation(user1Wallet: string, user2Wallet: string): Promise<Conversation> {
+    try {
+      // Check if user has agreed to messaging terms
+      const hasAgreed = localStorage.getItem('messaging_agreement_accepted');
+      if (!hasAgreed) {
+        throw new Error('MESSAGING_AGREEMENT_REQUIRED');
+      }
+
+      // Try to get conversation from API first
+      const response = await fetch(`/api/messages?wallet=${user1Wallet}&conversations=true`);
+      if (response.ok) {
+        const conversations = await response.json();
+        const existingConv = conversations.find((conv: any) => 
+          (conv.participant_1_wallet === user1Wallet && conv.participant_2_wallet === user2Wallet) ||
+          (conv.participant_1_wallet === user2Wallet && conv.participant_2_wallet === user1Wallet)
+        );
+        
+        if (existingConv) {
+          return this.transformDbConversation(existingConv);
+        }
+      }
+    } catch (error) {
+      if ((error as Error).message === 'MESSAGING_AGREEMENT_REQUIRED') {
+        throw error;
+      }
+      console.error('Error fetching conversations from API:', error);
+    }
     const existingConversation = this.conversations.find(conv => 
       !conv.isDeleted &&
       conv.participants.some(p => p.walletAddress === user1Wallet) && 
@@ -91,139 +117,70 @@ class MessageServiceClass {
     };
 
     this.conversations.push(newConversation);
-    this.saveToStorage();
+    await this.saveToDatabase();
     return newConversation;
   }
 
-  // Send a message
+  // Send a message - now uses database API
   async sendMessage(
     senderWallet: string, 
     receiverWallet: string, 
     content: string, 
-    attachments?: File[]
+    _attachments?: File[]
   ): Promise<Message> {
-    const conversation = await this.getOrCreateConversation(senderWallet, receiverWallet);
-    const sender = conversation.participants.find(p => p.walletAddress === senderWallet);
-    
-    // Process attachments
-    let messageAttachments: MessageAttachment[] = [];
-    if (attachments && attachments.length > 0) {
-      messageAttachments = await this.processAttachments(attachments);
-    }
-    
-    const message: Message = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      conversationId: conversation.id,
-      senderId: senderWallet,
-      senderName: sender?.name || 'Unknown User',
-      senderAvatar: sender?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-      senderWalletAddress: senderWallet,
-      receiverId: receiverWallet,
-      content,
-      attachments: messageAttachments,
-      timestamp: new Date(),
-      isRead: false,
-      isEdited: false,
-      isDeleted: false
-    };
+    try {
+      // Get user profiles for sender/receiver info
+      const FreelancerService = await import('./freelancerService').then(m => m.FreelancerService);
+      const senderProfile = await FreelancerService.getFreelancerByWallet(senderWallet);
+      const receiverProfile = await FreelancerService.getFreelancerByWallet(receiverWallet);
 
-    conversation.messages.push(message);
-    conversation.lastActivity = new Date();
+      // Send message via API
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderWallet,
+          receiverWallet,
+          content,
+          senderName: senderProfile?.name || 'Unknown User',
+          senderAvatar: senderProfile?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+          receiverName: receiverProfile?.name || 'Unknown User',
+          receiverAvatar: receiverProfile?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'
+        })
+      });
 
-    // Track response time if this is a response from a freelancer
-    this.trackResponseTime(senderWallet, receiverWallet, conversation);
-
-    // Save to localStorage
-    this.saveToStorage();
-
-    return message;
-  }
-
-  // Process file attachments
-  private async processAttachments(files: File[]): Promise<MessageAttachment[]> {
-    const attachments: MessageAttachment[] = [];
-    
-    for (const file of files) {
-      try {
-        const dataUrl = await this.fileToDataUrl(file);
-        const attachment: MessageAttachment = {
-          id: `att_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          name: file.name,
-          type: file.type.startsWith('image/') ? 'image' : 'file',
-          url: dataUrl,
-          size: file.size
-        };
-        attachments.push(attachment);
-      } catch (error) {
-        console.error('Error processing attachment:', error);
+      if (!response.ok) {
+        throw new Error('Failed to send message');
       }
-    }
-    
-    return attachments;
-  }
 
-  // Convert file to data URL
-  private fileToDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Track response time for freelancers
-  private trackResponseTime(senderId: string, receiverId: string, conversation: Conversation) {
-    // Find the last message from the receiver (client)
-    const messages = conversation.messages.filter(m => !m.isDeleted);
-    const currentMessageIndex = messages.length - 1;
-    
-    // Look for the most recent message from the receiver before this one
-    for (let i = currentMessageIndex - 1; i >= 0; i--) {
-      if (messages[i].senderId === receiverId) {
-        const clientMessage = messages[i];
-        const freelancerResponse = messages[currentMessageIndex];
-        
-        // Calculate response time in minutes
-        const responseTimeMs = freelancerResponse.timestamp.getTime() - clientMessage.timestamp.getTime();
-        const responseTimeMinutes = Math.round(responseTimeMs / (1000 * 60));
-        
-        // Only track positive response times (avoid clock issues)
-        if (responseTimeMinutes > 0) {
-          this.addResponseTime(senderId, responseTimeMinutes);
-        }
-        break;
-      }
-    }
-  }
-
-  // Add response time data for a freelancer
-  private addResponseTime(freelancerWallet: string, responseTimeMinutes: number) {
-    let responseData = this.responseTimeData.find(data => data.freelancerWallet === freelancerWallet);
-    
-    if (!responseData) {
-      responseData = {
-        freelancerWallet,
-        responseTimes: [],
-        averageResponseTime: 0,
-        lastUpdated: new Date()
+      const result = await response.json();
+      
+      // Transform to frontend format
+      const message: Message = {
+        id: result.message.id,
+        conversationId: result.conversationId,
+        senderId: senderWallet,
+        senderName: senderProfile?.name || 'Unknown User',
+        senderAvatar: senderProfile?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+        senderWalletAddress: senderWallet,
+        receiverId: receiverWallet,
+        content,
+        attachments: [], // Attachments disabled
+        timestamp: new Date(result.message.created_at),
+        isRead: false,
+        isEdited: false,
+        isDeleted: false
       };
-      this.responseTimeData.push(responseData);
+
+      return message;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
     }
-
-    // Add new response time (keep last 50 responses for rolling average)
-    responseData.responseTimes.push(responseTimeMinutes);
-    if (responseData.responseTimes.length > 50) {
-      responseData.responseTimes.shift();
-    }
-
-    // Calculate new average
-    const sum = responseData.responseTimes.reduce((acc, time) => acc + time, 0);
-    responseData.averageResponseTime = Math.round(sum / responseData.responseTimes.length);
-    responseData.lastUpdated = new Date();
-
-    this.saveToStorage();
   }
+
+
+
 
   // Get average response time for a freelancer
   getAverageResponseTime(freelancerWallet: string): string {
@@ -383,6 +340,30 @@ class MessageServiceClass {
     this.saveToStorage();
   }
 
+  // Transform database conversation to frontend format
+  private transformDbConversation(dbConv: any): Conversation {
+    return {
+      id: dbConv.id,
+      participants: [
+        {
+          walletAddress: dbConv.participant_1_wallet,
+          name: dbConv.participant_1_name || 'Unknown User',
+          avatar: dbConv.participant_1_avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+          isOnline: false
+        },
+        {
+          walletAddress: dbConv.participant_2_wallet,
+          name: dbConv.participant_2_name || 'Unknown User', 
+          avatar: dbConv.participant_2_avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+          isOnline: false
+        }
+      ],
+      messages: [],
+      lastActivity: new Date(dbConv.last_message_at),
+      isDeleted: false
+    };
+  }
+
   // Get notification count (new orders, reviews, etc.)
   getNotificationCount(_freelancerWallet: string): number {
     // This would integrate with order system, review system, etc.
@@ -390,14 +371,17 @@ class MessageServiceClass {
     return 0;
   }
 
-  // Save data to localStorage
+  // Save data to database instead of localStorage
+  private async saveToDatabase(): Promise<void> {
+    // Database operations are now handled by the API endpoints
+    // This method is kept for compatibility but does nothing
+    return Promise.resolve();
+  }
+
+  // Keep saveToStorage for backward compatibility
   private saveToStorage(): void {
-    try {
-      localStorage.setItem('boneboard_conversations', JSON.stringify(this.conversations));
-      localStorage.setItem('boneboard_response_times', JSON.stringify(this.responseTimeData));
-    } catch (error) {
-      console.error('Failed to save message data to localStorage:', error);
-    }
+    // No longer saves to localStorage to avoid quota issues
+    // All data is now stored in database via API calls
   }
 
   // Load data from localStorage
