@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaRegBookmark, FaBookmark, FaTimes, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck, FaBuilding } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
@@ -90,6 +90,8 @@ const JobListings: React.FC = () => {
   const [selectedWorkArrangement, setSelectedWorkArrangement] = useState<WorkArrangement>('all');
   const [emailCopied, setEmailCopied] = useState(false);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
+  const categoryButtonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
   // Load saved jobs for the connected wallet
   useEffect(() => {
@@ -104,6 +106,18 @@ const JobListings: React.FC = () => {
       setSavedJobs([]);
     }
   }, [isConnected, walletAddress]);
+
+  // Update dropdown position when it opens
+  useEffect(() => {
+    if (showCategoryDropdown && categoryButtonRef.current) {
+      const rect = categoryButtonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  }, [showCategoryDropdown]);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -240,19 +254,20 @@ const JobListings: React.FC = () => {
           </div>
 
           {/* Search and Filters - Full Width */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="bg-white shadow rounded-lg overflow-hidden mb-6"
-            >
-              <div className="px-6 py-8 sm:p-10">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Find Your Perfect Role</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Search through {jobs.length} available positions
-                  </p>
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="bg-white shadow rounded-lg mb-6"
+            style={{ overflow: 'visible' }}
+          >
+            <div className="px-6 py-8 sm:p-10">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Find Your Perfect Role</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Search through {jobs.length} available positions
+                </p>
+              </div>
 
                 <div className="mt-6 space-y-6">
                   {/* Search Bar */}
@@ -275,6 +290,7 @@ const JobListings: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">Categories</label>
                     <div className="relative">
                       <button
+                        ref={categoryButtonRef}
                         onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                         className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer text-left"
                         style={{
@@ -292,7 +308,12 @@ const JobListings: React.FC = () => {
                       </button>
                       
                       {showCategoryDropdown && (
-                        <div className="absolute z-[10000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-2xl max-h-64 overflow-y-auto left-0 top-full">
+                        <div className="fixed z-[10000] bg-white border border-gray-300 rounded-lg shadow-2xl max-h-64 overflow-y-auto" 
+                             style={{
+                               top: dropdownPosition.top + 'px',
+                               left: dropdownPosition.left + 'px',
+                               width: dropdownPosition.width + 'px'
+                             }}>
                           <div className="py-2">
                             <label className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
                               <input
