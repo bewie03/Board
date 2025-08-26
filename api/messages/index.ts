@@ -146,7 +146,14 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     const { senderWallet, receiverWallet, content, senderName, senderAvatar, receiverName, receiverAvatar } = req.body;
 
     if (!senderWallet || !receiverWallet || !content) {
+      console.log('Missing required fields:', { senderWallet, receiverWallet, content: !!content });
       return res.status(400).json({ error: 'Sender wallet, receiver wallet, and content are required' });
+    }
+
+    // Validate that sender and receiver are different
+    if (senderWallet === receiverWallet) {
+      console.log('Cannot send message to self');
+      return res.status(400).json({ error: 'Cannot send message to yourself' });
     }
 
     console.log('Attempting to connect to database...');

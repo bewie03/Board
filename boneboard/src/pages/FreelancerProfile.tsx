@@ -205,9 +205,8 @@ const FreelancerProfile: React.FC = () => {
               freelancerWallet: freelancerWithServices.walletAddress,
               isMatch: walletAddress === freelancerWithServices.walletAddress 
             });
-            // Force isOwner to true for testing if wallet addresses match or if it's the mock wallet
-            const ownerCheck = walletAddress === freelancerWithServices.walletAddress || 
-                              (walletAddress === 'mock-wallet-address' && freelancerWithServices.walletAddress === 'mock-wallet-address');
+            // Check if current user owns this profile
+            const ownerCheck = walletAddress === freelancerWithServices.walletAddress;
             console.log('Setting isOwner to:', ownerCheck);
             setIsOwner(ownerCheck);
             if (freelancerWithServices.services && freelancerWithServices.services.length > 0) {
@@ -372,6 +371,12 @@ const FreelancerProfile: React.FC = () => {
 
   const handleContactFreelancer = async () => {
     if (!walletAddress || !freelancer?.walletAddress) return;
+    
+    // Prevent messaging yourself
+    if (walletAddress === freelancer.walletAddress) {
+      toast.error('You cannot message yourself.');
+      return;
+    }
     
     // Check if user has set a username before allowing messaging
     if (!username) {
