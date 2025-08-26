@@ -304,14 +304,29 @@ const CreateProject: React.FC = () => {
         discord: formData.discord.serverName
       };
 
-      // Get wallet API
+      // Validate wallet address matches current extension wallet
       const cardano = (window as any).cardano;
       const connectedWallet = localStorage.getItem('connectedWallet');
+      
       if (!cardano || !connectedWallet || !cardano[connectedWallet]) {
-        throw new Error('Wallet not connected');
+        throw new Error('Wallet not connected. Please reconnect your wallet.');
       }
       
       const walletApi = await cardano[connectedWallet].enable();
+      const currentAddresses = await walletApi.getUsedAddresses();
+      
+      if (currentAddresses.length === 0) {
+        throw new Error('No addresses found in wallet. Please check your wallet connection.');
+      }
+      
+      // Get current wallet address from extension
+      const currentAddress = currentAddresses[0];
+      
+      // Compare with stored wallet address
+      if (currentAddress !== walletAddress) {
+        throw new Error('Wallet address mismatch detected. Please reconnect your wallet or switch back to the original address in your wallet extension.');
+      }
+      
       await contractService.initializeLucid(walletApi);
       
       // Process payment through contract service
