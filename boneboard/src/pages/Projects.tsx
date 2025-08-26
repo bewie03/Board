@@ -13,6 +13,7 @@ type Project = {
   logo: string | null;
   description: string;
   category: string;
+  status?: string; // Add status field for verification
   jobsAvailable: number;
   socials: {
     website?: string;

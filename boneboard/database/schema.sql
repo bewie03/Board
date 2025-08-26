@@ -76,13 +76,15 @@ CREATE TABLE projects (
     payment_currency VARCHAR(10) DEFAULT 'BONE',
     tx_hash VARCHAR(128),
     expires_at TIMESTAMP WITH TIME ZONE,
-    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'paused', 'cancelled')),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'verified', 'completed', 'paused', 'cancelled')),
     website VARCHAR(255),
     logo_url TEXT,
     twitter_username VARCHAR(100),
     discord_invite VARCHAR(255),
     github_repo VARCHAR(255),
     is_verified BOOLEAN DEFAULT false,
+    verified_by VARCHAR(255), -- Admin wallet address who verified the project
+    verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -390,6 +392,41 @@ CREATE INDEX idx_ada_transactions_tx_hash ON ada_transactions(tx_hash);
 CREATE INDEX idx_ada_transactions_type ON ada_transactions(transaction_type);
 CREATE INDEX idx_wallet_connections_user_id ON wallet_connections(user_id);
 
+-- Platform settings for admin management
+CREATE TABLE platform_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_listing_fee DECIMAL(10,2) DEFAULT 50.00,
+    job_listing_fee DECIMAL(10,2) DEFAULT 25.00,
+    project_listing_currency VARCHAR(10) DEFAULT 'BONE' CHECK (project_listing_currency IN ('ADA', 'BONE')),
+    job_listing_currency VARCHAR(10) DEFAULT 'ADA' CHECK (job_listing_currency IN ('ADA', 'BONE')),
+    updated_by VARCHAR(255) NOT NULL, -- Admin wallet address
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insert default platform settings
+INSERT INTO platform_settings (project_listing_fee, job_listing_fee, project_listing_currency, job_listing_currency, updated_by)
+VALUES (50.00, 25.00, 'BONE', 'ADA', 'system');
+
+-- Admin activity log
+CREATE TABLE admin_activity_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    admin_wallet VARCHAR(255) NOT NULL,
+    action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50) NOT NULL, -- 'project', 'job', 'settings', etc.
+    target_id UUID,
+    details JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Additional indexes for admin features
+CREATE INDEX idx_projects_status ON projects(status);
+CREATE INDEX idx_projects_verified_by ON projects(verified_by);
+CREATE INDEX idx_admin_activity_log_admin_wallet ON admin_activity_log(admin_wallet);
+CREATE INDEX idx_admin_activity_log_action ON admin_activity_log(action);
+CREATE INDEX idx_admin_activity_log_created_at ON admin_activity_log(created_at DESC);
+
 -- Additional triggers
 CREATE TRIGGER update_scam_reports_updated_at BEFORE UPDATE ON scam_reports FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_project_funding_updated_at BEFORE UPDATE ON project_funding FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_platform_settings_updated_at BEFORE UPDATE ON platform_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

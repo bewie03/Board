@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaBone, FaWallet, FaRegBookmark } from 'react-icons/fa';
+import { FaUserCircle, FaBone, FaWallet, FaRegBookmark, FaShieldAlt } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { useWallet } from '../contexts/WalletContext';
+import { isAdminWallet } from '../utils/adminAuth';
+import { AdminPanel } from './AdminPanel';
 // Freelancer and messaging services removed
 import WalletSelector from './WalletSelector';
 import { motion } from 'framer-motion';
@@ -25,6 +27,7 @@ const Header: React.FC = () => {
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const handleConnectWallet = async (walletId: string) => {
@@ -217,6 +220,20 @@ const Header: React.FC = () => {
                           My Projects
                         </button>
                         
+                        {/* Admin Panel Button - Only show for admin wallet */}
+                        {isAdminWallet(walletAddress) && (
+                          <button
+                            onClick={() => {
+                              setShowProfile(false);
+                              setShowAdminPanel(true);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors duration-200 flex items-center"
+                          >
+                            <FaShieldAlt className="w-4 h-4 mr-3 text-red-600" />
+                            Admin Panel
+                          </button>
+                        )}
+                        
                         <button 
                           onClick={() => {
                             navigate('/profile');
@@ -299,6 +316,11 @@ const Header: React.FC = () => {
           )}
         </div>
       </header>
+      
+      {/* Admin Panel Modal */}
+      {showAdminPanel && (
+        <AdminPanel onClose={() => setShowAdminPanel(false)} />
+      )}
     </>
   )
 }

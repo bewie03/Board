@@ -9,7 +9,7 @@ import psycopg2
 import sys
 
 # Database connection URL
-DATABASE_URL = ""
+DATABASE_URL = "postgres://u94m20d9lk1e7b:p73a59938021d84383fb460ad5c478003087a16d6038c9e19d6470d2400f1401e@c3v5n5ajfopshl.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d6nclr86s438p6"
 
 def connect_to_database():
     """Connect to the PostgreSQL database"""
