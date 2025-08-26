@@ -21,9 +21,11 @@ export const useContract = (): UseContractReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const { walletAddress, isConnected } = useWallet();
 
-  // Check for pending transactions on component mount
+  // Check for pending transactions on component mount and set up periodic checking
   useEffect(() => {
     if (!walletAddress) return;
+    
+    let checkInterval: NodeJS.Timeout | null = null;
     
     const checkPendingTransactions = async () => {
       const pendingKey = `pendingTx_${walletAddress}`;
@@ -33,10 +35,15 @@ export const useContract = (): UseContractReturn => {
         try {
           const pendingTx: PendingTransaction = JSON.parse(pendingTxData);
           
-          // Check if transaction is older than 30 minutes (likely failed)
-          const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
-          if (pendingTx.timestamp < thirtyMinutesAgo) {
+          // Check if transaction is older than 2 minutes (timeout)
+          const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+          if (pendingTx.timestamp < twoMinutesAgo) {
             localStorage.removeItem(pendingKey);
+            if (checkInterval) {
+              clearInterval(checkInterval);
+              checkInterval = null;
+            }
+            toast.error('Transaction confirmation timeout. Your payment may still be processing on the blockchain. Please check your wallet and try posting again if needed.');
             return;
           }
           
@@ -47,20 +54,46 @@ export const useContract = (): UseContractReturn => {
             // Save job to database
             await saveJobToDatabase(pendingTx.jobData, pendingTx.txHash);
             localStorage.removeItem(pendingKey);
+            if (checkInterval) {
+              clearInterval(checkInterval);
+              checkInterval = null;
+            }
             toast.success(`Your job posting has been confirmed! Transaction: ${pendingTx.txHash.substring(0, 8)}...`);
           } else if (status === 'failed') {
             localStorage.removeItem(pendingKey);
-            toast.error('Your previous job posting transaction failed. Please try posting again.');
+            if (checkInterval) {
+              clearInterval(checkInterval);
+              checkInterval = null;
+            }
+            toast.error('Your job posting transaction failed. Please try posting again.');
           }
-          // If still pending, leave it in localStorage for next check
+          // If still pending, continue checking
         } catch (error) {
           console.error('Error checking pending transaction:', error);
           localStorage.removeItem(pendingKey);
+          if (checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = null;
+          }
         }
       }
     };
     
+    // Initial check
     checkPendingTransactions();
+    
+    // Set up interval to check every 10 seconds if there's a pending transaction
+    const pendingKey = `pendingTx_${walletAddress}`;
+    if (localStorage.getItem(pendingKey)) {
+      checkInterval = setInterval(checkPendingTransactions, 10000); // Check every 10 seconds
+    }
+    
+    // Cleanup interval on unmount
+    return () => {
+      if (checkInterval) {
+        clearInterval(checkInterval);
+      }
+    };
   }, [walletAddress]);
 
   const postJob = useCallback(async (jobData: Omit<JobPostingData, 'walletAddress' | 'timestamp'>): Promise<boolean> => {

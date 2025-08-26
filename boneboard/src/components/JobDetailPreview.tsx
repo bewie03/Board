@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTwitter, FaDiscord, FaEnvelope, FaLink } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCog } from 'react-icons/fa';
 
 export interface JobDetailPreviewProps {
   title: string;
@@ -118,10 +118,10 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
             <span className="flex items-center">
               {salaryType === 'ADA' ? (
                 <FaCoins className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              ) : salaryType === 'fiat' ? (
-                <FaDollarSign className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+              ) : salaryType === 'custom' ? (
+                <FaCog className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
               ) : (
-                <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                <FaDollarSign className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
               )}
               {salaryType === 'ADA' ? 'Paid in ADA' : salaryType === 'fiat' ? 'Paid in Fiat' : `Paid in ${customPaymentType || 'Custom'}`}
             </span>
