@@ -1,5 +1,27 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { getPool } from '../../boneboard/src/lib/database';
+import { Pool } from 'pg';
+
+// Database connection for messages functionality
+let pool: any = null;
+
+function getPool() {
+  if (!pool) {
+    const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    
+    if (!DATABASE_URL) {
+      throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
+    }
+    
+    pool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 1,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+  }
+  return pool;
+}
 
 // Enable CORS
 const corsHeaders = {
@@ -33,8 +55,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error: any) {
-    console.error('API Error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Messages API Error:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      code: error?.code
+    });
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error?.message || 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
   }
 }
 
@@ -47,27 +79,38 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 
   // Get conversations for user
   if (conversations === 'true') {
-    const query = `
-      SELECT c.*, 
-             CASE 
-               WHEN c.participant_1_wallet = $1 THEN c.participant_2_name
-               ELSE c.participant_1_name
-             END as other_participant_name,
-             CASE 
-               WHEN c.participant_1_wallet = $1 THEN c.participant_2_avatar
-               ELSE c.participant_1_avatar
-             END as other_participant_avatar,
-             CASE 
-               WHEN c.participant_1_wallet = $1 THEN c.participant_2_wallet
-               ELSE c.participant_1_wallet
-             END as other_participant_wallet
-      FROM conversations c
-      WHERE c.participant_1_wallet = $1 OR c.participant_2_wallet = $1
-      ORDER BY c.last_message_at DESC
-    `;
-    
-    const result = await getPool().query(query, [wallet]);
-    return res.status(200).json(result.rows);
+    try {
+      const query = `
+        SELECT c.*, 
+               CASE 
+                 WHEN c.participant_1_wallet = $1 THEN c.participant_2_name
+                 ELSE c.participant_1_name
+               END as other_participant_name,
+               CASE 
+                 WHEN c.participant_1_wallet = $1 THEN c.participant_2_avatar
+                 ELSE c.participant_1_avatar
+               END as other_participant_avatar,
+               CASE 
+                 WHEN c.participant_1_wallet = $1 THEN c.participant_2_wallet
+                 ELSE c.participant_1_wallet
+               END as other_participant_wallet
+        FROM conversations c
+        WHERE c.participant_1_wallet = $1 OR c.participant_2_wallet = $1
+        ORDER BY c.last_message_at DESC
+      `;
+      
+      console.log('Executing conversations query for wallet:', wallet);
+      const result = await getPool().query(query, [wallet]);
+      console.log('Conversations query result:', result.rows.length, 'rows');
+      return res.status(200).json(result.rows);
+    } catch (error: any) {
+      console.error('Error fetching conversations:', error);
+      return res.status(500).json({ 
+        error: 'Failed to fetch conversations',
+        details: error.message,
+        wallet: wallet
+      });
+    }
   }
 
   // Get messages for specific conversation
