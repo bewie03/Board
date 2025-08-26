@@ -479,16 +479,18 @@ const SavedJobs: React.FC = () => {
                     </div>
 
                     {/* Required Skills */}
-                    {selectedJob.requiredSkills && selectedJob.requiredSkills.length > 0 && (
+                    {selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 && (
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
                         <div className="flex flex-wrap gap-2">
-                          {selectedJob.requiredSkills.map((skill, index) => (
+                          {selectedJob.requiredSkills
+                            .filter(skill => skill && skill.trim() !== '')
+                            .map((skill, index) => (
                             <span
                               key={index}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
                             >
-                              {skill}
+                              {skill.replace(/[{}"\s]+/g, ' ').trim()}
                             </span>
                           ))}
                         </div>
@@ -499,12 +501,14 @@ const SavedJobs: React.FC = () => {
                     {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
-                        <div className="text-sm text-gray-700">
-                          {selectedJob.additionalInfo.map((info, index) => (
-                            <p key={index} className="mb-2 leading-relaxed">
-                              {info}
-                            </p>
-                          ))}
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                          <p className="whitespace-pre-line leading-relaxed">
+                            {selectedJob.additionalInfo
+                              .filter(info => info && info.trim() !== '')
+                              .map(info => info.replace(/[{}"\s]+/g, ' ').trim())
+                              .join('\n')
+                            }
+                          </p>
                         </div>
                       </div>
                     )}
@@ -512,8 +516,10 @@ const SavedJobs: React.FC = () => {
                     {/* How to Apply */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <p className="text-sm text-gray-700 leading-relaxed">{selectedJob.howToApply}</p>
+                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                          <p className="leading-relaxed">{selectedJob.howToApply}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
