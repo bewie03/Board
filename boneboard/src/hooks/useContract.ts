@@ -95,6 +95,16 @@ export const useContract = (): UseContractReturn => {
             toast.error('Transaction confirmation timeout. Your payment may still be processing on the blockchain. Please check your wallet and try posting again if needed.');
             return;
           }
+
+          // Initialize Lucid before checking transaction status
+          try {
+            const walletApi = await getWalletApi();
+            if (walletApi) {
+              await contractService.initializeLucid(walletApi);
+            }
+          } catch (error) {
+            console.log('Could not initialize Lucid for status check, will retry later');
+          }
           
           console.log('Checking transaction status for:', pendingTx.txHash);
           // Check transaction status
@@ -111,25 +121,16 @@ export const useContract = (): UseContractReturn => {
               checkInterval = null;
             }
             toast.success(`Your job posting has been confirmed! Transaction: ${pendingTx.txHash.substring(0, 8)}...`);
-          } else if (status === 'failed') {
-            console.log('Transaction failed, removing from localStorage');
-            localStorage.removeItem(pendingKey);
-            if (checkInterval) {
-              clearInterval(checkInterval);
-              checkInterval = null;
-            }
-            toast.error('Your job posting transaction failed. Please try posting again.');
           } else {
-            console.log('Transaction still pending, will check again');
+            // For both 'failed' and 'pending', we continue checking until timeout
+            // Only remove on timeout, not on individual failed checks
+            console.log('Transaction still being processed, will check again');
           }
           // If still pending, continue checking
         } catch (error) {
           console.error('Error checking pending transaction:', error);
-          localStorage.removeItem(pendingKey);
-          if (checkInterval) {
-            clearInterval(checkInterval);
-            checkInterval = null;
-          }
+          // Don't remove on error - could be temporary network issue
+          console.log('Will retry checking transaction status');
         }
       } else {
         console.log('No pending transactions found');
