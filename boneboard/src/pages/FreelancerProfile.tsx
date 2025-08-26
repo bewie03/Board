@@ -2,17 +2,70 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FreelancerService, Freelancer } from '../services/freelancerService';
 import { MessageService, MessageAttachment } from '../services/messageService';
+// userService import removed as it's not used in this component
 import MessagingAgreement from '../components/MessagingAgreement';
 import PageTransition from '../components/PageTransition';
+import UserSwitcher from '../components/UserSwitcher';
 import { FaStar, FaClock, FaEdit, FaArrowLeft, FaShare, FaCheckCircle, FaPaperPlane } from 'react-icons/fa';
 import { FaEnvelope, FaGlobe, FaTwitter, FaDiscord, FaGithub, FaLinkedin, FaLink, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-// Mock useWallet hook for development
-const useWallet = () => ({
-  walletAddress: 'mock-wallet-address',
-  username: 'Mock User'
-});
+// Enhanced useWallet hook with proper user authentication
+const useWallet = () => {
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  useEffect(() => {
+    const initializeUser = async () => {
+      // Get user data from localStorage first
+      let userData = localStorage.getItem('currentUser');
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+        return;
+      }
+      
+      // Fallback: try to get from freelancer profiles if user is a freelancer
+      const freelancerProfiles = localStorage.getItem('freelancerProfiles');
+      if (freelancerProfiles) {
+        const profiles = JSON.parse(freelancerProfiles);
+        if (profiles.length > 0) {
+          // Use the first profile as the current user
+          const user = {
+            walletAddress: profiles[0].walletAddress,
+            name: profiles[0].name,
+            avatar: profiles[0].avatar,
+            isFreelancer: true
+          };
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          setCurrentUser(user);
+          return;
+        }
+      }
+      
+      // Generate a unique wallet address for new users
+      const newWalletAddress = `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newUser = {
+        walletAddress: newWalletAddress,
+        name: 'Demo User',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+        isFreelancer: false
+      };
+      
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+      setCurrentUser(newUser);
+    };
+    
+    initializeUser();
+  }, []);
+  
+  return {
+    walletAddress: currentUser?.walletAddress || null,
+    username: currentUser?.name || currentUser?.username || 'User',
+    avatar: currentUser?.avatar,
+    isFreelancer: currentUser?.isFreelancer || false
+  };
+};
 
 const mainLanguages = [
   'English',
@@ -206,8 +259,8 @@ const FreelancerProfile: React.FC = () => {
               isMatch: walletAddress === freelancerWithServices.walletAddress 
             });
             // Check if current user owns this profile
-            const ownerCheck = walletAddress === freelancerWithServices.walletAddress;
-            console.log('Setting isOwner to:', ownerCheck);
+            const ownerCheck = walletAddress && walletAddress === freelancerWithServices.walletAddress;
+            console.log('Setting isOwner to:', ownerCheck, 'Current wallet:', walletAddress, 'Freelancer wallet:', freelancerWithServices.walletAddress);
             setIsOwner(ownerCheck);
             if (freelancerWithServices.services && freelancerWithServices.services.length > 0) {
               setSelectedService(freelancerWithServices.services[0]);
@@ -914,6 +967,7 @@ const FreelancerProfile: React.FC = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-gray-50">
+        <UserSwitcher />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back Button */}
           <button
