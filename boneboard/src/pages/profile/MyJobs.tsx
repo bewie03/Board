@@ -305,45 +305,17 @@ const MyJobs: React.FC = () => {
                               <p className="text-sm text-gray-600 mb-2">
                                 {job.company}
                               </p>
-                              {/* Job Details with Icons */}
+                              {/* Job Details - Simple text only */}
                               <div className="flex items-center gap-x-3 text-xs text-gray-600 mt-2 overflow-hidden">
-                                <div className="flex items-center flex-shrink-0">
-                                  <FaMapMarkerAlt className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  <span className="whitespace-nowrap">{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
-                                </div>
-                                <div className="flex items-center flex-shrink-0">
-                                  <FaClock className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  <span className="whitespace-nowrap">{job.type}</span>
-                                </div>
-                                <div className="flex items-center flex-shrink-0">
-                                  {job.salaryType === 'ADA' ? (
-                                    <FaCoins className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  ) : (
-                                    <FaDollarSign className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  )}
-                                  <span className="whitespace-nowrap">{job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
-                                </div>
-                                <div className="flex items-center flex-shrink-0">
-                                  <FaMoneyBillWave className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  <span className="whitespace-nowrap truncate">{job.salary}</span>
-                                </div>
+                                <span className="whitespace-nowrap">{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
+                                <span className="whitespace-nowrap">{job.type}</span>
+                                <span className="whitespace-nowrap">
+                                  {job.salaryType === 'ADA' ? 'Paid in ADA' : 
+                                   job.salaryType === 'CUSTOM' ? `Paid in ${job.customSalaryType || 'Custom'}` : 
+                                   'Paid in Fiat'}
+                                </span>
+                                <span className="whitespace-nowrap truncate">{job.salary}</span>
                               </div>
-                              {job.featured && (
-                                <div className="flex items-center mb-2">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                    <span className="text-blue-600 mr-1 text-sm">★</span>
-                                    Featured
-                                  </span>
-                                </div>
-                              )}
-                              {new Date(job.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
-                                <div className="mt-2">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
-                                    <FaClock className="h-3 w-3 mr-1" />
-                                    Expires Soon
-                                  </span>
-                                </div>
-                              )}
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
@@ -617,7 +589,18 @@ const MyJobs: React.FC = () => {
                               >
                                 <option value="FIAT">Paid in Fiat</option>
                                 <option value="ADA">Paid in ADA</option>
+                                <option value="CUSTOM">Custom</option>
                               </select>
+                              {editFormData.salaryType === 'CUSTOM' && (
+                                <input
+                                  type="text"
+                                  value={editFormData.customSalaryType || ''}
+                                  onChange={(e) => setEditFormData(prev => ({ ...prev, customSalaryType: e.target.value.slice(0, 10) }))}
+                                  maxLength={10}
+                                  placeholder="Custom type"
+                                  className="ml-2 text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-24"
+                                />
+                              )}
                             </>
                           ) : (
                             <>
@@ -626,7 +609,11 @@ const MyJobs: React.FC = () => {
                               ) : (
                                 <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                               )}
-                              <span>{selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
+                              <span>
+                                {selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 
+                                 selectedJob.salaryType === 'CUSTOM' ? `Paid in ${selectedJob.customSalaryType || 'Custom'}` : 
+                                 'Paid in Fiat'}
+                              </span>
                             </>
                           )}
                         </div>
