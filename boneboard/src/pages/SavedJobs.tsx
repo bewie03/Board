@@ -1,9 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaRegBookmark, FaBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import PageTransition from '../components/PageTransition';
+// Job categories constant
+const JOB_CATEGORIES = [
+  { id: 'development', name: 'Development' },
+  { id: 'design', name: 'Design & Creative' },
+  { id: 'marketing', name: 'Marketing' },
+  { id: 'community', name: 'Community & Social' },
+  { id: 'business', name: 'Business Development' },
+  { id: 'content', name: 'Content Creation' },
+  { id: 'defi', name: 'DeFi & Finance' },
+  { id: 'nft', name: 'NFT & Digital Assets' },
+  { id: 'security', name: 'Security & Auditing' },
+  { id: 'research', name: 'Research & Analysis' },
+];
+
+// Helper function to get relative time
+const getTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInMinutes < 60) {
+    return diffInMinutes <= 1 ? '1 minute ago' : `${diffInMinutes} minutes ago`;
+  } else if (diffInHours < 24) {
+    return diffInHours === 1 ? '1 hour ago' : `${diffInHours} hours ago`;
+  } else if (diffInDays < 7) {
+    return diffInDays === 1 ? '1 day ago' : `${diffInDays} days ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+};
 
 interface Job {
   id: string;
@@ -34,19 +67,6 @@ interface Job {
   txHash?: string;
 }
 
-const JOB_CATEGORIES = [
-  { id: 'all', name: 'All Categories' },
-  { id: 'development', name: 'Development' },
-  { id: 'design', name: 'Design & Creative' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'community', name: 'Community & Social' },
-  { id: 'business', name: 'Business Development' },
-  { id: 'content', name: 'Content Creation' },
-  { id: 'defi', name: 'DeFi & Finance' },
-  { id: 'nft', name: 'NFT & Digital Assets' },
-  { id: 'security', name: 'Security & Auditing' },
-  { id: 'research', name: 'Research & Analysis' },
-];
 
 const SavedJobs: React.FC = () => {
   const navigate = useNavigate();
@@ -81,7 +101,7 @@ const SavedJobs: React.FC = () => {
         const fetchedJobs = activeJobs.map(job => ({
           ...job,
           logo: job.companyLogo || null,
-          posted: new Date(job.timestamp).toLocaleDateString(),
+          posted: new Date(job.timestamp).toISOString(),
           requiredSkills: (() => {
             if (Array.isArray(job.requiredSkills)) return job.requiredSkills;
             if (typeof job.requiredSkills === 'string' && job.requiredSkills) {
@@ -331,30 +351,10 @@ const SavedJobs: React.FC = () => {
                   <div className="px-6 py-4">
                     <p className="text-sm text-gray-700 line-clamp-3">{job.description}</p>
                     
-                    {job.requiredSkills && job.requiredSkills.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">REQUIRED SKILLS</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {job.requiredSkills.slice(0, 4).map((skill, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                          {job.requiredSkills.length > 4 && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              +{job.requiredSkills.length - 4} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
                     
                     <div className="mt-4 pt-3 border-t border-gray-100">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Posted {job.posted}</span>
+                        <span className="text-xs text-gray-500">Posted {getTimeAgo(job.posted)}</span>
                         <span className="text-xs text-blue-600 font-medium">Click to view details →</span>
                       </div>
                     </div>
@@ -375,7 +375,7 @@ const SavedJobs: React.FC = () => {
             />
             
             {/* Slide-out Panel */}
-            <div className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out" style={{ top: '64px' }}>
+            <div className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out" style={{ top: '64px' }}>
               <div className="flex flex-col h-full">
                 {/* Header */}
                 <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
