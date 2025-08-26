@@ -24,7 +24,7 @@ export class AdminService {
   // Platform Settings Management
   async getPlatformSettings(): Promise<PlatformSettings> {
     try {
-      const response = await fetch(`${this.baseUrl}/settings`);
+      const response = await fetch(`${this.baseUrl}?type=settings`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -50,7 +50,7 @@ export class AdminService {
     requireAdminAuth(walletAddress);
 
     try {
-      const response = await fetch(`${this.baseUrl}/settings`, {
+      const response = await fetch(`${this.baseUrl}?type=settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

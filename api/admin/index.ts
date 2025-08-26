@@ -68,10 +68,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { method } = req;
     const pool = getPool();
 
+    // Check if this is a settings request based on query parameter
+    const isSettingsRequest = req.query?.type === 'settings' || req.url?.includes('settings');
+    
     switch (method) {
       case 'GET':
         // Get platform settings
-        if (req.url?.includes('/settings')) {
+        if (isSettingsRequest) {
           const result = await pool.query(
             'SELECT * FROM platform_settings ORDER BY created_at DESC LIMIT 1'
           );
@@ -127,7 +130,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'PUT':
         // Update platform settings
-        if (req.url?.includes('/settings')) {
+        if (isSettingsRequest) {
           const adminWallet = requireAdmin(req);
           const { projectListingFee, jobListingFee, projectListingCurrency, jobListingCurrency } = req.body;
 
