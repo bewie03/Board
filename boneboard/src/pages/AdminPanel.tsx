@@ -44,10 +44,15 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleUpdateSettings = async (newSettings: Partial<PlatformSettings>) => {
+    if (!walletAddress) {
+      setError('Wallet not connected');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError(null);
-      await adminService.updatePlatformSettings(newSettings);
+      await adminService.updatePlatformSettings(walletAddress, newSettings);
       await loadSettings(); // Reload to get updated data
     } catch (err: any) {
       setError(err.message || 'Failed to update settings');
