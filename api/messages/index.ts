@@ -60,12 +60,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: error?.message,
       stack: error?.stack,
       name: error?.name,
-      code: error?.code
+      code: error?.code,
+      method: req.method,
+      url: req.url,
+      query: req.query,
+      body: req.body
     });
     return res.status(500).json({ 
       error: 'Internal server error',
       details: error?.message || 'Unknown error',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      endpoint: req.url
     });
   }
 }
@@ -134,16 +140,21 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handlePost(req: VercelRequest, res: VercelResponse) {
-  const { senderWallet, receiverWallet, content, senderName, senderAvatar, receiverName, receiverAvatar } = req.body;
-
-  if (!senderWallet || !receiverWallet || !content) {
-    return res.status(400).json({ error: 'Sender wallet, receiver wallet, and content are required' });
-  }
-
-  const client = await getPool().connect();
-  
   try {
-    await client.query('BEGIN');
+    console.log('POST /api/messages - Request body:', req.body);
+    
+    const { senderWallet, receiverWallet, content, senderName, senderAvatar, receiverName, receiverAvatar } = req.body;
+
+    if (!senderWallet || !receiverWallet || !content) {
+      return res.status(400).json({ error: 'Sender wallet, receiver wallet, and content are required' });
+    }
+
+    console.log('Attempting to connect to database...');
+    const client = await getPool().connect();
+    console.log('Database connection successful');
+    
+    try {
+      await client.query('BEGIN');
 
     // Get or create conversation
     let conversationResult = await client.query(`
@@ -195,15 +206,22 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       conversationId
     });
 
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Database error in handlePost:', error);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Database error in handlePost:', error);
+      return res.status(500).json({ 
+        error: 'Failed to send message', 
+        details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error: any) {
+    console.error('Connection error in handlePost:', error);
     return res.status(500).json({ 
-      error: 'Failed to send message', 
-      details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
+      error: 'Database connection failed', 
+      details: error.message 
     });
-  } finally {
-    client.release();
   }
 }
 
