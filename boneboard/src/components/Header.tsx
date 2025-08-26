@@ -63,7 +63,7 @@ const Header: React.FC = () => {
   return (
     <>
       {/* Main Header */}
-      <header className="bg-slate-50 shadow-sm sticky top-0 z-50">
+      <header className="bg-slate-50 shadow-sm sticky top-0 z-[100]">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <NavLink to="/" className="flex items-center space-x-3">
@@ -166,7 +166,7 @@ const Header: React.FC = () => {
                 />
                 
                 {showProfile && isConnected && walletAddress && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-[110] border border-gray-200">
                     {/* Profile Content */}
                     <div className="p-4">
                       <div className="flex items-center space-x-3 mb-4">
