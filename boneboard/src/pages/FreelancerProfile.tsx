@@ -189,49 +189,7 @@ const FreelancerProfile: React.FC = () => {
               console.error('Error loading service packages:', error);
             }
             
-            // Fallback to default service if no packages loaded
-            if (freelancerWithServices.services.length === 0) {
-              freelancerWithServices.services = [{
-                id: `${freelancerData.id}-service-0`,
-                freelancerId: freelancerData.id,
-                walletAddress: freelancerData.walletAddress,
-                title: `${freelancerData.title} Service`,
-                description: freelancerData.bio || 'Professional service',
-                shortDescription: freelancerData.bio?.substring(0, 100) || 'Professional service',
-                category: freelancerData.category,
-                skills: freelancerData.skills,
-                images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
-                pricing: {
-                  basic: {
-                    price: 100,
-                    currency: 'ADA',
-                    deliveryTime: '7 days',
-                    description: 'Basic Package',
-                    features: ['Basic service delivery']
-                  },
-                  standard: {
-                    price: 150,
-                    currency: 'ADA',
-                    deliveryTime: '5 days',
-                    description: 'Standard Package',
-                    features: ['Enhanced service delivery', 'Priority support']
-                  },
-                  premium: {
-                    price: 200,
-                    currency: 'ADA',
-                    deliveryTime: '3 days',
-                    description: 'Premium Package',
-                    features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
-                  }
-                },
-                rating: freelancerData.rating,
-                reviewCount: freelancerData.reviewCount,
-                completedOrders: freelancerData.completedOrders,
-                responseTime: freelancerData.responseTime,
-                isActive: true,
-                createdAt: new Date().toISOString()
-              }];
-            }
+            // No fallback - let services remain empty if no packages exist
             
             setFreelancer(freelancerWithServices);
             setEditedFreelancer(freelancerWithServices);
@@ -685,8 +643,85 @@ const FreelancerProfile: React.FC = () => {
       try {
         const reloadedData = await FreelancerService.getFreelancerById(updatedFreelancer.id);
         if (reloadedData) {
-          setFreelancer(reloadedData);
-          setEditedFreelancer(reloadedData);
+          // Load service packages from database after save
+          let freelancerWithServices: Freelancer = { ...reloadedData, services: [] };
+          
+          try {
+            // Fetch service packages from database
+            const packagesResponse = await fetch(`/api/freelancers?id=${reloadedData.id}&packages=true`);
+            if (packagesResponse.ok) {
+              const packagesData = await packagesResponse.json();
+              console.log('Reloaded packages data:', packagesData);
+              
+              if (packagesData.packages && packagesData.packages.length > 0) {
+                // Group packages by service (assuming one service for now)
+                const packagesByType = packagesData.packages.reduce((acc: any, pkg: any) => {
+                  acc[pkg.package_type] = {
+                    price: pkg.price,
+                    currency: pkg.currency,
+                    deliveryTime: pkg.delivery_time,
+                    description: pkg.description,
+                    features: Array.isArray(pkg.features) ? pkg.features : ['Service delivery']
+                  };
+                  return acc;
+                }, {});
+                
+                console.log('Reloaded packages by type:', packagesByType);
+                
+                // Only create service if we have at least one package type
+                if (Object.keys(packagesByType).length > 0) {
+                  freelancerWithServices.services = [{
+                    id: `${reloadedData.id}-service-0`,
+                    freelancerId: reloadedData.id,
+                    walletAddress: reloadedData.walletAddress,
+                    title: packagesData.packages[0]?.title || `${reloadedData.title} Service`,
+                    description: reloadedData.bio || 'Professional service',
+                    shortDescription: reloadedData.bio?.substring(0, 100) || 'Professional service',
+                    category: reloadedData.category,
+                    skills: reloadedData.skills,
+                    images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
+                    pricing: {
+                      basic: packagesByType.basic || {
+                        price: 100,
+                        currency: 'ADA',
+                        deliveryTime: '7 days',
+                        description: 'Basic Package',
+                        features: ['Basic service delivery']
+                      },
+                      standard: packagesByType.standard || {
+                        price: 150,
+                        currency: 'ADA',
+                        deliveryTime: '5 days',
+                        description: 'Standard Package',
+                        features: ['Enhanced service delivery', 'Priority support']
+                      },
+                      premium: packagesByType.premium || {
+                        price: 200,
+                        currency: 'ADA',
+                        deliveryTime: '3 days',
+                        description: 'Premium Package',
+                        features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
+                      }
+                    },
+                    rating: reloadedData.rating,
+                    reviewCount: reloadedData.reviewCount,
+                    completedOrders: reloadedData.completedOrders,
+                    responseTime: reloadedData.responseTime,
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                  }];
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error loading service packages after save:', error);
+          }
+          
+          setFreelancer(freelancerWithServices);
+          setEditedFreelancer(freelancerWithServices);
+          if (freelancerWithServices.services && freelancerWithServices.services.length > 0) {
+            setSelectedService(freelancerWithServices.services[0]);
+          }
         }
       } catch (error) {
         console.error('Error reloading freelancer data:', error);

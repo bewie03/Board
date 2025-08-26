@@ -151,6 +151,12 @@ export const updateFreelancer = async (walletAddress: string, updates: any) => {
       paramIndex++;
     }
     
+    if (updates.category !== undefined) {
+      fieldsToUpdate.push(`category = $${paramIndex}`);
+      values.push(updates.category || currentFreelancer.category || '');
+      paramIndex++;
+    }
+    
     if (updates.languages !== undefined) {
       fieldsToUpdate.push(`languages = $${paramIndex}`);
       values.push(updates.languages || currentFreelancer.languages || []);
