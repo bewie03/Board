@@ -807,11 +807,11 @@ const CreateProject: React.FC = () => {
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Project Creation Fee</span>
-                              <span>{totalCost.amount} {totalCost.currency === 'ADA' ? '₳' : '🦴'}</span>
+                              <span>{totalCost.amount} {totalCost.currency === 'ADA' ? '₳' : 'BONE'}</span>
                             </div>
                             <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">
                               <span>Total</span>
-                              <span>{totalCost.amount} {totalCost.currency === 'ADA' ? '₳' : '🦴'}</span>
+                              <span>{totalCost.amount} {totalCost.currency === 'ADA' ? '₳' : 'BONE'}</span>
                             </div>
                           </div>
                         </div>

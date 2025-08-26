@@ -366,7 +366,7 @@ const PostJob: React.FC = () => {
                 <option value="">-- Select a project --</option>
                 {userProjects.map((project) => (
                   <option key={project.id} value={project.id}>
-                    {project.name} ({project.category})
+                    {project.name}
                   </option>
                 ))}
               </select>
@@ -893,8 +893,8 @@ const PostJob: React.FC = () => {
                         }}
                         required
                       >
-                        <option value="BONE">🦴 Pay with BONE (Recommended)</option>
-                        <option value="ADA">₳ Pay with ADA</option>
+                        <option value="BONE">Pay with BONE</option>
+                        <option value="ADA">Pay with ADA</option>
                       </select>
                       <p className="mt-1 text-xs text-gray-500">
                         You'll need to connect your Cardano wallet to pay with {formData.paymentMethod === 'ADA' ? 'ADA' : 'BONE tokens'}
@@ -1094,29 +1094,29 @@ const PostJob: React.FC = () => {
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Base Job Listing Fee</span>
-                              <span>{totalCost.baseAmount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                              <span>{totalCost.baseAmount} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
                             </div>
                             {totalCost.durationDiscount > 0 && (
                               <div className="flex justify-between text-green-600">
                                 <span>Duration Discount ({formData.listingDuration} months)</span>
-                                <span>-{totalCost.durationDiscount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                                <span>-{totalCost.durationDiscount} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
                               </div>
                             )}
                             {totalCost.projectDiscount > 0 && (
                               <div className="flex justify-between text-green-600">
                                 <span>Project Discount</span>
-                                <span>-{totalCost.projectDiscount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                                <span>-{totalCost.projectDiscount} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
                               </div>
                             )}
                             {totalCost.featuredCost > 0 && (
                               <div className="flex justify-between text-blue-600">
                                 <span>Featured Listing (+50%)</span>
-                                <span>+{totalCost.featuredCost} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                                <span>+{totalCost.featuredCost} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
                               </div>
                             )}
                             <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">
                               <span>Total</span>
-                              <span>{totalCost.amount} {formData.paymentMethod === 'ADA' ? '₳' : '🦴'}</span>
+                              <span>{totalCost.amount} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
                             </div>
                           </div>
                         </div>
