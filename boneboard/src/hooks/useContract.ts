@@ -17,15 +17,60 @@ interface PendingTransaction {
   timestamp: number;
 }
 
+// Cleanup functions for localStorage management
+const cleanupOldTransactions = () => {
+  const oneHourAgo = Date.now() - (60 * 60 * 1000); // 1 hour ago
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('pendingTx_')) {
+      try {
+        const data = localStorage.getItem(key);
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.timestamp && parsed.timestamp < oneHourAgo) {
+            console.log('Removing old transaction:', key);
+            localStorage.removeItem(key);
+            i--; // Adjust index since we removed an item
+          }
+        }
+      } catch (error) {
+        console.warn('Error parsing transaction data, removing:', key);
+        localStorage.removeItem(key);
+        i--; // Adjust index since we removed an item
+      }
+    }
+  }
+};
+
+const forceCleanupLocalStorage = () => {
+  console.log('Force cleaning localStorage...');
+  const keysToRemove: string[] = [];
+  
+  // Collect all pendingTx keys
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('pendingTx_')) {
+      keysToRemove.push(key);
+    }
+  }
+  
+  // Remove all pending transaction data
+  keysToRemove.forEach(key => {
+    console.log('Force removing:', key);
+    localStorage.removeItem(key);
+  });
+  
+  console.log(`Removed ${keysToRemove.length} pending transaction entries`);
+};
+
 export const useContract = (): UseContractReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const { walletAddress, isConnected } = useWallet();
+  let checkInterval: NodeJS.Timeout | null = null;
 
   // Check for pending transactions on component mount and set up periodic checking
   useEffect(() => {
-    if (!walletAddress) return;
-    
-    let checkInterval: NodeJS.Timeout | null = null;
     
     const checkPendingTransactions = async () => {
       const pendingKey = `pendingTx_${walletAddress}`;
@@ -114,7 +159,7 @@ export const useContract = (): UseContractReturn => {
   }, [walletAddress]);
 
   const postJob = useCallback(async (jobData: Omit<JobPostingData, 'walletAddress' | 'timestamp'>): Promise<boolean> => {
-    if (!isConnected || !walletAddress) {
+    if (!walletAddress || !isConnected) {
       toast.error('Please connect your wallet first');
       return false;
     }
@@ -162,7 +207,27 @@ export const useContract = (): UseContractReturn => {
         };
         
         const pendingKey = `pendingTx_${walletAddress}`;
-        localStorage.setItem(pendingKey, JSON.stringify(pendingTx));
+        
+        // Clean up old localStorage data before storing new transaction
+        try {
+          cleanupOldTransactions();
+          localStorage.setItem(pendingKey, JSON.stringify(pendingTx));
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+            console.warn('localStorage quota exceeded, attempting cleanup and retry');
+            // Force cleanup of all old transactions
+            forceCleanupLocalStorage();
+            try {
+              localStorage.setItem(pendingKey, JSON.stringify(pendingTx));
+            } catch (retryError) {
+              console.error('Failed to store transaction even after cleanup:', retryError);
+              toast.error('Unable to store transaction data. Please try again.');
+              return false;
+            }
+          } else {
+            throw error;
+          }
+        }
         
         // Try immediate confirmation check
         try {
