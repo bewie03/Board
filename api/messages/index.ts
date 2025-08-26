@@ -45,23 +45,24 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // Get conversations for a user
+  // Get conversations for user
   if (conversations === 'true') {
     const query = `
-      SELECT DISTINCT 
-        c.id,
-        c.participant_1_wallet,
-        c.participant_2_wallet,
-        c.participant_1_name,
-        c.participant_1_avatar,
-        c.participant_2_name,
-        c.participant_2_avatar,
-        c.last_message_at,
-        (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
-        (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND receiver_wallet = $1 AND is_read = false) as unread_count
+      SELECT c.*, 
+             CASE 
+               WHEN c.participant_1_wallet = $1 THEN c.participant_2_name
+               ELSE c.participant_1_name
+             END as other_participant_name,
+             CASE 
+               WHEN c.participant_1_wallet = $1 THEN c.participant_2_avatar
+               ELSE c.participant_1_avatar
+             END as other_participant_avatar,
+             CASE 
+               WHEN c.participant_1_wallet = $1 THEN c.participant_2_wallet
+               ELSE c.participant_1_wallet
+             END as other_participant_wallet
       FROM conversations c
-      WHERE (c.participant_1_wallet = $1 OR c.participant_2_wallet = $1) 
-        AND c.is_deleted = false
+      WHERE c.participant_1_wallet = $1 OR c.participant_2_wallet = $1
       ORDER BY c.last_message_at DESC
     `;
     
@@ -69,16 +70,16 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(result.rows);
   }
 
-  // Get messages for a specific conversation
+  // Get messages for specific conversation
   if (conversation) {
     const query = `
       SELECT m.*, 
-        CASE 
-          WHEN m.sender_wallet = $1 THEN 'sent'
-          ELSE 'received'
-        END as message_type
+             CASE 
+               WHEN m.sender_wallet = $1 THEN true
+               ELSE false
+             END as is_own_message
       FROM messages m
-      WHERE m.conversation_id = $2 AND m.is_deleted = false
+      WHERE m.conversation_id = $2
       ORDER BY m.created_at ASC
     `;
     
@@ -134,12 +135,12 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       `, [conversationId]);
     }
 
-    // Insert message
+    // Insert message (matching your actual database schema)
     const messageResult = await client.query(`
       INSERT INTO messages (
         conversation_id, sender_wallet, sender_name, sender_avatar,
-        receiver_wallet, content, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        receiver_wallet, content
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `, [conversationId, senderWallet, senderName, senderAvatar, receiverWallet, content]);
 
