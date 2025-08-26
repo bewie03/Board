@@ -82,7 +82,30 @@ const SavedJobs: React.FC = () => {
           ...job,
           logo: job.companyLogo || null,
           posted: new Date(job.timestamp).toLocaleDateString(),
-          requiredSkills: job.requiredSkills || [],
+          requiredSkills: (() => {
+            if (Array.isArray(job.requiredSkills)) return job.requiredSkills;
+            if (typeof job.requiredSkills === 'string' && job.requiredSkills) {
+              const skillsString = job.requiredSkills as string;
+              try {
+                return skillsString.startsWith('[') ? JSON.parse(skillsString) : [skillsString];
+              } catch {
+                return [skillsString];
+              }
+            }
+            return [];
+          })(),
+          additionalInfo: (() => {
+            if (Array.isArray(job.additionalInfo)) return job.additionalInfo;
+            if (typeof job.additionalInfo === 'string' && job.additionalInfo) {
+              const infoString = job.additionalInfo as string;
+              try {
+                return infoString.startsWith('[') ? JSON.parse(infoString) : [infoString];
+              } catch {
+                return [infoString];
+              }
+            }
+            return [];
+          })(),
           workArrangement: job.workArrangement || 'remote'
         }));
         setJobs(fetchedJobs);
