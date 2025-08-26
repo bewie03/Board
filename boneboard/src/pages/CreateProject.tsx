@@ -323,12 +323,18 @@ const CreateProject: React.FC = () => {
       // Get current wallet address from the specific connected wallet extension
       let currentAddress = currentAddresses[0];
       
-      // Convert hex address to bech32 if needed
-      if (currentAddress && currentAddress.length > 50 && !currentAddress.startsWith('addr')) {
+      // Convert hex address to bech32 using the same logic as WalletContext
+      if (currentAddress && (currentAddress.startsWith('0x') || /^[0-9a-fA-F]+$/.test(currentAddress)) && !currentAddress.startsWith('addr')) {
         try {
-          const { Address } = await import('@emurgo/cardano-serialization-lib-browser');
-          const addr = Address.from_bytes(Buffer.from(currentAddress, 'hex'));
+          const CML = await import('@dcspark/cardano-multiplatform-lib-browser');
+          const cleanHex = currentAddress.startsWith('0x') ? currentAddress.slice(2) : currentAddress;
+          const bytes = new Uint8Array(Math.ceil(cleanHex.length / 2));
+          for (let i = 0; i < cleanHex.length; i += 2) {
+            bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+          }
+          const addr = CML.Address.from_bytes(bytes);
           currentAddress = addr.to_bech32();
+          addr.free();
         } catch (error) {
           console.warn('Failed to convert hex address to bech32:', error);
         }
