@@ -105,17 +105,6 @@ const Header: React.FC = () => {
               >
                 Projects
               </NavLink>
-              <NavLink 
-                to="/freelancers" 
-                className={({ isActive }) => 
-                  `text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive ? 'text-blue-600 bg-blue-50' : ''
-                  }`
-                }
-              >
-                Freelancers
-              </NavLink>
-              {/* Admin Mode Indicator */}
               {isConnected && walletAddress && isAdminWallet(walletAddress) && (
                 <div className="flex items-center px-3 py-1 bg-blue-100 rounded-full">
                   <FaShieldAlt className="h-4 w-4 text-blue-600 mr-2" />
@@ -250,8 +239,9 @@ const Header: React.FC = () => {
                               navigate('/admin');
                               setShowProfile(false);
                             }}
+                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200 flex items-center"
                           >
-                            <FaShieldAlt className="inline mr-2" />
+                            <FaShieldAlt className="h-4 w-4 text-blue-600 mr-3" />
                             Admin Panel
                           </button>
                         )}

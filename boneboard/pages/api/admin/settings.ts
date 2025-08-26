@@ -10,7 +10,25 @@ interface ApiResponse {
   json: (data: any) => void;
   setHeader: (name: string, value: string) => void;
 }
-import { getPool } from '../../../src/lib/database';
+import { Pool } from 'pg';
+
+// Database connection pool
+let pool: Pool | null = null;
+
+function getPool() {
+  if (!pool) {
+    const DATABASE_URL = "postgres://u94m20d9lk1e7b:p73a59938021d84383fb460ad5c478003087a16d6038c9e19d6470d2400f1401e@c3v5n5ajfopshl.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d6nclr86s438p6";
+    
+    pool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 1,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+  }
+  return pool;
+}
 
 const ADMIN_WALLET_ADDRESS = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
 
@@ -58,17 +76,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         if (result.rows.length === 0) {
           // Create default settings if none exist
           const defaultSettings = await pool.query(
-            `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, fee_currency, updated_by) 
-             VALUES ($1, $2, $3, $4) RETURNING *`,
-            [5.0, 10.0, 'ADA', '']
+            `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, project_listing_currency, job_listing_currency, updated_by) 
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [50.0, 25.0, 'BONE', 'ADA', 'system']
           );
           const settings = defaultSettings.rows[0];
           return res.status(200).json({
             projectListingFee: parseFloat(settings.project_listing_fee),
             jobListingFee: parseFloat(settings.job_listing_fee),
-            projectListingCurrency: settings.fee_currency,
-            jobListingCurrency: settings.fee_currency,
-            lastUpdated: settings.updated_at,
+            projectListingCurrency: settings.project_listing_currency,
+            jobListingCurrency: settings.job_listing_currency,
+            lastUpdated: settings.created_at,
             updatedBy: settings.updated_by
           });
         }
@@ -77,8 +95,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         return res.status(200).json({
           projectListingFee: parseFloat(settings.project_listing_fee),
           jobListingFee: parseFloat(settings.job_listing_fee),
-          projectListingCurrency: settings.project_listing_currency || settings.fee_currency,
-          jobListingCurrency: settings.job_listing_currency || settings.fee_currency,
+          projectListingCurrency: settings.project_listing_currency,
+          jobListingCurrency: settings.job_listing_currency,
           lastUpdated: settings.updated_at,
           updatedBy: settings.updated_by
         });
