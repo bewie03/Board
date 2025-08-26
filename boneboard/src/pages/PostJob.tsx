@@ -464,22 +464,19 @@ const PostJob: React.FC = () => {
                     <label htmlFor="project" className="block text-sm font-medium text-gray-700">
                       Select Your Project (Optional)
                     </label>
-                    <p className="text-xs text-gray-500">
-                      Select one of your projects to apply a 20% discount
-                    </p>
                   </div>
                   <div className="mt-2">
                     <select
                       id="project"
                       name="project"
-                      className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer transition-colors"
+                      className="w-full h-[48px] pl-5 pr-12 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_1rem_center] bg-[length:1.25em_1.25em] appearance-none cursor-pointer transition-all duration-200 hover:border-gray-400 hover:shadow-md"
                       style={{
                         backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
                       }}
                       value={selectedProject || ''}
                       onChange={handleProjectSelect}
                     >
-                      <option value="">-- Select a project --</option>
+                      <option value="">Select a project</option>
                       {userProjects.map((project) => (
                         <option key={project.id} value={project.id}>
                           {project.name || project.title}

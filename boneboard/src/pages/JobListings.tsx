@@ -637,7 +637,7 @@ const JobListings: React.FC = () => {
                               </span>
                             </div>
                           </div>
-                          <div className="ml-3 flex-shrink-0 h-12 w-12 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                          <div className="ml-3 flex-shrink-0 h-14 w-14 rounded-full border border-gray-200 flex items-center justify-center bg-white">
                             {job.logo ? (
                               <img 
                                 className="h-full w-full rounded-full object-cover" 
@@ -851,7 +851,7 @@ const JobListings: React.FC = () => {
                         </div>
                       </div>
                       <div className="ml-3 flex-shrink-0">
-                        <div className="h-16 w-16 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                        <div className="h-20 w-20 rounded-full border border-gray-200 flex items-center justify-center bg-white">
                           {selectedJob.logo ? (
                             <img 
                               className="h-full w-full rounded-full object-cover" 
