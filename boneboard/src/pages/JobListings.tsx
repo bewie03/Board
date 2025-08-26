@@ -246,11 +246,22 @@ const JobListings: React.FC = () => {
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header - Full Width */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-extrabold text-gray-900">Job Opportunities</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Discover exciting career opportunities in the Cardano ecosystem
-            </p>
+          <div className="mb-8 flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900">Job Opportunities</h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Discover exciting career opportunities in the Cardano ecosystem
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/post-job')}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Post a Job
+            </button>
           </div>
 
           {/* Search and Filters - Full Width */}
