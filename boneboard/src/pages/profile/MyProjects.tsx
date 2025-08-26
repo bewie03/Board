@@ -6,7 +6,46 @@ import { ProjectService, Project } from '../../services/projectService';
 import { JobService } from '../../services/jobService';
 import { toast } from 'react-toastify';
 import PageTransition from '../../components/PageTransition';
+import CustomSelect from '../../components/CustomSelect';
 import { Link } from 'react-router-dom';
+
+// Project categories to match CreateProject
+const PROJECT_CATEGORIES = [
+  'AI',
+  'Alpha Group',
+  'Book Publishing',
+  'Bridge',
+  'CEX',
+  'Cloud Services',
+  'Compute',
+  'Currency',
+  'DAO',
+  'DeFi',
+  'DePIN',
+  'Derivatives',
+  'DEX',
+  'DEX Aggregator',
+  'Education',
+  'Gaming',
+  'Index Funds',
+  'Infrastructure',
+  'Launchpad',
+  'Lending',
+  'Marketplace',
+  'Meme',
+  'Metaverse',
+  'NFT',
+  'Oracle',
+  'Privacy',
+  'RWA',
+  'Social',
+  'Stablecoin',
+  'Staking',
+  'Tools',
+  'Wallet',
+  'Yield Farming',
+  'Other'
+];
 
 const MyProjects: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();
@@ -325,160 +364,204 @@ const MyProjects: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Project Modal */}
-      {editingProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Edit Project</h2>
-                <button
-                  onClick={handleCancelEdit}
-                  className="p-2 text-gray-400 hover:text-gray-600"
-                >
-                  <FaTimes className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
+      {/* Edit Project Side Panel */}
+      <AnimatePresence>
+        {editingProject && (
+          <>
+            {/* Overlay */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={handleCancelEdit}
+            />
+            
+            {/* Side Panel */}
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+              className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-50 overflow-y-auto" 
+              style={{ top: '64px' }}
+            >
+              <div className="flex flex-col h-full">
+                {/* Header */}
+                <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="h-12 w-12 rounded-xl border border-gray-200 flex items-center justify-center bg-white">
+                        {logoPreview || editingProject.logo ? (
+                          <img 
+                            className="h-full w-full rounded-xl object-cover" 
+                            src={logoPreview || editingProject.logo || ''} 
+                            alt={`${editingProject.name || editingProject.title} logo`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const parent = (e.target as HTMLImageElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="text-blue-600 text-xl"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <FaBuilding className="text-blue-600 text-xl" />
+                        )}
+                      </div>
+                      <div className="ml-4">
+                        <input
+                          type="text"
+                          value={editFormData.name || ''}
+                          onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                          className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-200 focus:border-blue-500 outline-none w-full"
+                          placeholder="Project Name"
+                        />
+                        <div className="mt-2">
+                          <CustomSelect
+                            options={[
+                              { value: '', label: 'Select a category' },
+                              ...PROJECT_CATEGORIES.map(category => ({
+                                value: category,
+                                label: category
+                              }))
+                            ]}
+                            value={editFormData.category || ''}
+                            onChange={(value) => setEditFormData(prev => ({ ...prev, category: value }))}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 focus:border-blue-500 outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <FaTimes className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
 
-            <div className="p-6 space-y-6">
-              {/* Project Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Project Name *
-                </label>
-                <input
-                  type="text"
-                  value={editFormData.name || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter project name"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={editFormData.description || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe your project"
-                />
-              </div>
-
-              {/* Website */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={editFormData.website || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://your-project.com"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
-                </label>
-                <select
-                  value={editFormData.category || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a category</option>
-                  <option value="DeFi">DeFi</option>
-                  <option value="NFT">NFT</option>
-                  <option value="Gaming">Gaming</option>
-                  <option value="Infrastructure">Infrastructure</option>
-                  <option value="Tools">Tools</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              {/* Logo Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Project Logo
-                </label>
-                <div className="flex items-center space-x-4">
-                  {logoPreview && (
-                    <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      className="w-16 h-16 rounded-full object-cover"
+                {/* Content */}
+                <div className="flex-1 px-6 py-6 space-y-8">
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Project Description *
+                    </label>
+                    <textarea
+                      value={editFormData.description || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                      rows={6}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Describe your project in detail..."
                     />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
+                  </div>
+
+                  {/* Website */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Website URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editFormData.website || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="https://your-project.com"
+                    />
+                  </div>
+
+                  {/* Logo Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Project Logo
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      {logoPreview && (
+                        <img
+                          src={logoPreview}
+                          alt="Logo preview"
+                          className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Links */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <FaTwitter className="inline h-4 w-4 mr-2 text-blue-400" />
+                          Twitter Username
+                        </label>
+                        <input
+                          type="text"
+                          value={typeof editFormData.twitter === 'object' ? editFormData.twitter?.username || '' : editFormData.twitter || ''}
+                          onChange={(e) => setEditFormData(prev => ({ 
+                            ...prev, 
+                            twitter: e.target.value
+                          }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="username (without @)"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <FaDiscord className="inline h-4 w-4 mr-2 text-indigo-500" />
+                          Discord Server Invite
+                        </label>
+                        <input
+                          type="text"
+                          value={typeof editFormData.discord === 'object' ? editFormData.discord?.inviteUrl || '' : editFormData.discord || ''}
+                          onChange={(e) => setEditFormData(prev => ({ 
+                            ...prev, 
+                            discord: e.target.value
+                          }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="https://discord.gg/invite-code"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                    >
+                      <FaTimes className="h-4 w-4 mr-2 inline" />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center transition-colors"
+                    >
+                      <FaSave className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              {/* Social Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Twitter Username
-                  </label>
-                  <input
-                    type="text"
-                    value={typeof editFormData.twitter === 'object' ? editFormData.twitter?.username || '' : editFormData.twitter || ''}
-                    onChange={(e) => setEditFormData(prev => ({ 
-                      ...prev, 
-                      twitter: e.target.value
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="username (without @)"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Discord Server Invite
-                  </label>
-                  <input
-                    type="text"
-                    value={typeof editFormData.discord === 'object' ? editFormData.discord?.inviteUrl || '' : editFormData.discord || ''}
-                    onChange={(e) => setEditFormData(prev => ({ 
-                      ...prev, 
-                      discord: e.target.value
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://discord.gg/invite-code"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={handleCancelEdit}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
-              >
-                <FaSave className="h-4 w-4 mr-2" />
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Project Detail Modal */}
       <AnimatePresence>
