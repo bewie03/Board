@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding } from 'react-icons/fa';
+import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus } from 'react-icons/fa';
 
 // Category mapping to match JobListings
 const JOB_CATEGORIES = [
@@ -306,26 +306,26 @@ const MyJobs: React.FC = () => {
                                 {job.company}
                               </p>
                               {/* Job Details with Icons */}
-                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 mt-2">
-                                <div className="flex items-center">
+                              <div className="flex items-center gap-x-3 text-xs text-gray-600 mt-2 overflow-hidden">
+                                <div className="flex items-center flex-shrink-0">
                                   <FaMapMarkerAlt className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  <span>{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
+                                  <span className="whitespace-nowrap">{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="flex items-center flex-shrink-0">
                                   <FaClock className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  <span>{job.type}</span>
+                                  <span className="whitespace-nowrap">{job.type}</span>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="flex items-center flex-shrink-0">
                                   {job.salaryType === 'ADA' ? (
                                     <FaCoins className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
                                   ) : (
                                     <FaDollarSign className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
                                   )}
-                                  <span>{job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
+                                  <span className="whitespace-nowrap">{job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="flex items-center flex-shrink-0">
                                   <FaMoneyBillWave className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
-                                  <span>{job.salary}</span>
+                                  <span className="whitespace-nowrap truncate">{job.salary}</span>
                                 </div>
                               </div>
                               {job.featured && (
@@ -640,13 +640,17 @@ const MyJobs: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
                       {editingJob ? (
-                        <textarea
-                          value={editFormData.description || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                          rows={6}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          placeholder="Describe the role, responsibilities, and requirements..."
-                        />
+                        <div className="space-y-2">
+                          <textarea
+                            value={editFormData.description || ''}
+                            onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value.slice(0, 300) }))}
+                            maxLength={300}
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            placeholder="Describe the role, responsibilities, and requirements..."
+                          />
+                          <p className="text-xs text-gray-500 text-right">{(editFormData.description || '').length}/300 characters</p>
+                        </div>
                       ) : (
                         <div className="prose prose-sm max-w-none text-gray-700">
                           <p className="whitespace-pre-line leading-relaxed">{selectedJob.description}</p>
@@ -658,21 +662,48 @@ const MyJobs: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
                       {editingJob ? (
-                        <textarea
-                          value={(() => {
-                            if (!editFormData.requiredSkills) return '';
-                            if (Array.isArray(editFormData.requiredSkills)) {
-                              return editFormData.requiredSkills
-                                .map(skill => String(skill).replace(/[{}"\\/\s]+/g, ' ').trim())
-                                .join(', ');
-                            }
-                            return String(editFormData.requiredSkills).replace(/[{}"\\/\s]+/g, ' ').trim();
-                          })()}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, requiredSkills: e.target.value.split(',').map(skill => skill.trim()) }))}
-                          rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          placeholder="Enter skills separated by commas (e.g., React, TypeScript, Node.js)"
-                        />
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            {(editFormData.requiredSkills || []).slice(0, 5).map((skill, index) => (
+                              <div key={index} className="flex items-center bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                                <input
+                                  type="text"
+                                  value={String(skill).replace(/[{}"\\/\s]+/g, ' ').trim()}
+                                  onChange={(e) => {
+                                    const newSkills = [...(editFormData.requiredSkills || [])];
+                                    newSkills[index] = e.target.value.slice(0, 50);
+                                    setEditFormData(prev => ({ ...prev, requiredSkills: newSkills }));
+                                  }}
+                                  maxLength={50}
+                                  className="bg-transparent border-none outline-none text-sm font-medium text-blue-700 placeholder-blue-400 w-32"
+                                  placeholder="Skill name"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const newSkills = (editFormData.requiredSkills || []).filter((_, i) => i !== index);
+                                    setEditFormData(prev => ({ ...prev, requiredSkills: newSkills }));
+                                  }}
+                                  className="ml-2 text-blue-400 hover:text-red-500 transition-colors"
+                                >
+                                  <FaTimes className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {(!editFormData.requiredSkills || editFormData.requiredSkills.length < 5) && (
+                              <button
+                                onClick={() => {
+                                  const newSkills = [...(editFormData.requiredSkills || []), ''];
+                                  setEditFormData(prev => ({ ...prev, requiredSkills: newSkills }));
+                                }}
+                                className="flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg px-3 py-2 text-gray-500 hover:border-blue-300 hover:text-blue-500 transition-colors"
+                              >
+                                <FaPlus className="h-3 w-3 mr-1" />
+                                <span className="text-sm">Add Skill</span>
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">Max 5 skills, 50 characters each</p>
+                        </div>
                       ) : selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {selectedJob.requiredSkills
@@ -695,21 +726,34 @@ const MyJobs: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
                       {editingJob ? (
-                        <textarea
-                          value={(() => {
-                            if (!editFormData.additionalInfo) return '';
+                        <div className="space-y-2">
+                          <textarea
+                            value={(() => {
+                              if (!editFormData.additionalInfo) return '';
+                              if (Array.isArray(editFormData.additionalInfo)) {
+                                return editFormData.additionalInfo
+                                  .map(info => String(info).replace(/[{}"\\/\s]+/g, ' ').trim())
+                                  .join('\n');
+                              }
+                              return String(editFormData.additionalInfo).replace(/[{}"\\/\s]+/g, ' ').trim();
+                            })()}
+                            onChange={(e) => {
+                              const text = e.target.value.slice(0, 300);
+                              setEditFormData(prev => ({ ...prev, additionalInfo: text.split('\n').map(info => info.trim()) }));
+                            }}
+                            maxLength={300}
+                            rows={4}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            placeholder="Enter additional information (one item per line)"
+                          />
+                          <p className="text-xs text-gray-500 text-right">{(() => {
+                            if (!editFormData.additionalInfo) return '0/300 characters';
                             if (Array.isArray(editFormData.additionalInfo)) {
-                              return editFormData.additionalInfo
-                                .map(info => String(info).replace(/[{}"\\/\s]+/g, ' ').trim())
-                                .join('\n');
+                              return `${editFormData.additionalInfo.join('\n').length}/300 characters`;
                             }
-                            return String(editFormData.additionalInfo).replace(/[{}"\\/\s]+/g, ' ').trim();
-                          })()}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, additionalInfo: e.target.value.split('\n').map(info => info.trim()) }))}
-                          rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          placeholder="Enter additional information (one item per line)"
-                        />
+                            return `${String(editFormData.additionalInfo).length}/300 characters`;
+                          })()}</p>
+                        </div>
                       ) : selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 ? (
                         <div className="prose prose-sm max-w-none text-gray-700">
                           <p className="whitespace-pre-line leading-relaxed">
@@ -729,13 +773,17 @@ const MyJobs: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
                       {editingJob ? (
-                        <textarea
-                          value={editFormData.howToApply || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, howToApply: e.target.value }))}
-                          rows={4}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          placeholder="Instructions for applicants..."
-                        />
+                        <div className="space-y-2">
+                          <textarea
+                            value={editFormData.howToApply || ''}
+                            onChange={(e) => setEditFormData(prev => ({ ...prev, howToApply: e.target.value.slice(0, 300) }))}
+                            maxLength={300}
+                            rows={4}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            placeholder="Instructions for applicants..."
+                          />
+                          <p className="text-xs text-gray-500 text-right">{(editFormData.howToApply || '').length}/300 characters</p>
+                        </div>
                       ) : (
                         <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
                           <div className="prose prose-sm max-w-none text-gray-700">
