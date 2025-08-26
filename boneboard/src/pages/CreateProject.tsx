@@ -381,26 +381,29 @@ const CreateProject: React.FC = () => {
     }
   }, [formData, logoFile, navigate, currentStep, isConnected, walletAddress]);
   
-  const [platformPricing, setPlatformPricing] = useState<{projectListingFee: number, projectListingCurrency: string} | null>(null);
+  const [platformPricing, setPlatformPricing] = useState<{
+    projectListingFee: number;
+    projectListingFeeAda: number;
+  } | null>(null);
 
   // Load platform pricing on component mount
   useEffect(() => {
     const loadPricing = async () => {
       try {
-        const response = await fetch('/api/admin/settings');
+        const response = await fetch('/api/admin?type=settings');
         if (response.ok) {
           const data = await response.json();
           setPlatformPricing({
-            projectListingFee: data.projectListingFee,
-            projectListingCurrency: data.projectListingCurrency
+            projectListingFee: data.projectListingFee || 500,
+            projectListingFeeAda: data.projectListingFeeAda || 50
           });
         }
       } catch (error) {
         console.error('Error loading pricing:', error);
         // Set default pricing if API fails
         setPlatformPricing({
-          projectListingFee: 50,
-          projectListingCurrency: 'BONE'
+          projectListingFee: 500,
+          projectListingFeeAda: 50
         });
       }
     };
@@ -410,14 +413,18 @@ const CreateProject: React.FC = () => {
   const calculateProjectCost = () => {
     if (!platformPricing) {
       return {
-        amount: 50,
-        currency: 'BONE'
+        amount: formData.paymentMethod === 'ADA' ? 50 : 500,
+        currency: formData.paymentMethod
       };
     }
     
+    const amount = formData.paymentMethod === 'ADA' 
+      ? platformPricing.projectListingFeeAda 
+      : platformPricing.projectListingFee;
+    
     return {
-      amount: platformPricing.projectListingFee,
-      currency: platformPricing.projectListingCurrency
+      amount,
+      currency: formData.paymentMethod
     };
   };
   
