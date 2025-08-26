@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import JobListings from './pages/JobListings';
 import PostJob from './pages/PostJob';
 import Projects from './pages/Projects';
+import AdminPanel from './pages/AdminPanel';
 import SubmitProject from './pages/SubmitProject';
 import CreateProject from './pages/CreateProject';
 import MyProjects from './pages/profile/MyProjects';
@@ -57,7 +58,7 @@ function AnimatedRoutes() {
         <Route path="/post-job" element={<PostJob />} />
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/projects/new" element={<CreateProject />} />
-        
+        <Route path="/admin" element={<AdminPanel />} />
         {/* Profile Routes */}
         <Route path="/my-projects" element={<MyProjects />} />
         <Route path="/my-jobs" element={<MyJobs />} />

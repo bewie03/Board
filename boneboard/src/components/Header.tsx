@@ -8,7 +8,6 @@ import { isAdminWallet } from '../utils/adminAuth';
 import { AdminPanel } from './AdminPanel';
 // Freelancer and messaging services removed
 import WalletSelector from './WalletSelector';
-import { motion } from 'framer-motion';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -75,31 +74,55 @@ const Header: React.FC = () => {
             </NavLink>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center justify-center flex-1">
-              <div className="flex items-center space-x-1">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) => 
-                      `px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                        isActive 
-                          ? 'text-blue-700 border-b-2 border-blue-700' 
-                          : 'text-gray-700 hover:text-blue-700 hover:scale-105'
-                      }`
-                    }
-                  >
-                    <motion.span
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {item.label}
-                    </motion.span>
-                  </NavLink>
-                ))}
-              </div>
-            </div>
+            <nav className="hidden md:flex space-x-8">
+              <NavLink 
+                to="/" 
+                className={({ isActive }) => 
+                  `text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive ? 'text-blue-600 bg-blue-50' : ''
+                  }`
+                }
+              >
+                Home
+              </NavLink>
+              <NavLink 
+                to="/jobs" 
+                className={({ isActive }) => 
+                  `text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive ? 'text-blue-600 bg-blue-50' : ''
+                  }`
+                }
+              >
+                Jobs
+              </NavLink>
+              <NavLink 
+                to="/projects" 
+                className={({ isActive }) => 
+                  `text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive ? 'text-blue-600 bg-blue-50' : ''
+                  }`
+                }
+              >
+                Projects
+              </NavLink>
+              <NavLink 
+                to="/freelancers" 
+                className={({ isActive }) => 
+                  `text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive ? 'text-blue-600 bg-blue-50' : ''
+                  }`
+                }
+              >
+                Freelancers
+              </NavLink>
+              {/* Admin Mode Indicator */}
+              {isConnected && walletAddress && isAdminWallet(walletAddress) && (
+                <div className="flex items-center px-3 py-1 bg-blue-100 rounded-full">
+                  <FaShieldAlt className="h-4 w-4 text-blue-600 mr-2" />
+                  <span className="text-sm font-medium text-blue-800">Admin Mode</span>
+                </div>
+              )}
+            </nav>
             
             <div className="flex items-center space-x-4">
               {/* Notifications - Hidden for now */}
@@ -224,12 +247,11 @@ const Header: React.FC = () => {
                         {isAdminWallet(walletAddress) && (
                           <button
                             onClick={() => {
+                              navigate('/admin');
                               setShowProfile(false);
-                              setShowAdminPanel(true);
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors duration-200 flex items-center"
                           >
-                            <FaShieldAlt className="w-4 h-4 mr-3 text-red-600" />
+                            <FaShieldAlt className="inline mr-2" />
                             Admin Panel
                           </button>
                         )}
