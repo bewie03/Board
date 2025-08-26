@@ -275,7 +275,18 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     const dbField = fieldMapping[key];
     if (dbField) {
       updateFields.push(`${dbField} = $${paramIndex}`);
-      params.push(value);
+      
+      // Handle array fields that need to be converted to strings
+      if (key === 'requiredSkills' && Array.isArray(value)) {
+        // Convert array to comma-separated string
+        params.push(value.join(', '));
+      } else if (key === 'additionalInfo' && Array.isArray(value)) {
+        // Convert array to newline-separated string
+        params.push(value.join('\n'));
+      } else {
+        params.push(value);
+      }
+      
       paramIndex++;
     }
   });
