@@ -200,7 +200,16 @@ const FreelancerProfile: React.FC = () => {
             
             setFreelancer(freelancerWithServices);
             setEditedFreelancer(freelancerWithServices);
-            setIsOwner(walletAddress === freelancerWithServices.walletAddress);
+            console.log('Wallet comparison:', { 
+              currentWallet: walletAddress, 
+              freelancerWallet: freelancerWithServices.walletAddress,
+              isMatch: walletAddress === freelancerWithServices.walletAddress 
+            });
+            // Force isOwner to true for testing if wallet addresses match or if it's the mock wallet
+            const ownerCheck = walletAddress === freelancerWithServices.walletAddress || 
+                              (walletAddress === 'mock-wallet-address' && freelancerWithServices.walletAddress === 'mock-wallet-address');
+            console.log('Setting isOwner to:', ownerCheck);
+            setIsOwner(ownerCheck);
             if (freelancerWithServices.services && freelancerWithServices.services.length > 0) {
               setSelectedService(freelancerWithServices.services[0]);
             }
