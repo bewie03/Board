@@ -671,10 +671,10 @@ const MyJobs: React.FC = () => {
                                   value={String(skill).replace(/[{}"\\/\s]+/g, ' ').trim()}
                                   onChange={(e) => {
                                     const newSkills = [...(editFormData.requiredSkills || [])];
-                                    newSkills[index] = e.target.value.slice(0, 50);
+                                    newSkills[index] = e.target.value.slice(0, 25);
                                     setEditFormData(prev => ({ ...prev, requiredSkills: newSkills }));
                                   }}
-                                  maxLength={50}
+                                  maxLength={25}
                                   className="bg-transparent border-none outline-none text-sm font-medium text-blue-700 placeholder-blue-400 w-32"
                                   placeholder="Skill name"
                                 />
@@ -702,7 +702,7 @@ const MyJobs: React.FC = () => {
                               </button>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500">Max 5 skills, 50 characters each</p>
+                          <p className="text-xs text-gray-500">Max 5 skills, 25 characters each</p>
                         </div>
                       ) : selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 ? (
                         <div className="flex flex-wrap gap-2">

@@ -734,9 +734,14 @@ const PostJob: React.FC = () => {
 
                   {/* Job Description */}
                   <div className="space-y-2 sm:col-span-2 pt-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Job Description *
-                    </label>
+                    <div className="flex justify-between items-center">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Job Description *
+                      </label>
+                      <span className="text-xs text-gray-500">
+                        {formData.description.length}/300 characters
+                      </span>
+                    </div>
                     <textarea
                       name="description"
                       rows={4}
@@ -766,7 +771,7 @@ const PostJob: React.FC = () => {
                             type="text"
                             value={skill}
                             onChange={(e) => {
-                              if (e.target.value.length <= 50) {
+                              if (e.target.value.length <= 25) {
                                 const newSkills = [...formData.requiredSkills];
                                 newSkills[index] = e.target.value;
                                 setFormData(prev => ({
@@ -776,8 +781,8 @@ const PostJob: React.FC = () => {
                               }
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            placeholder={`Skill ${index + 1} (max 50 chars)`}
-                            maxLength={50}
+                            placeholder={`Skill ${index + 1} (max 25 chars)`}
+                            maxLength={25}
                             required
                           />
                           <button
@@ -862,9 +867,14 @@ const PostJob: React.FC = () => {
 
                   {/* How to Apply */}
                   <div className="space-y-2 sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      How to Apply *
-                    </label>
+                    <div className="flex justify-between items-center">
+                      <label className="block text-sm font-medium text-gray-700">
+                        How to Apply *
+                      </label>
+                      <span className="text-xs text-gray-500">
+                        {formData.howToApply.length}/300 characters
+                      </span>
+                    </div>
                     <div className="bg-gray-50 border border-gray-300 rounded-md p-3">
                       <textarea
                         name="howToApply"
