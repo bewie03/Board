@@ -300,7 +300,7 @@ const JobListings: React.FC = () => {
                   </div>
 
                   {/* Category Multi-Select */}
-                  <div className="space-y-2" style={{ position: 'relative', zIndex: 1000 }}>
+                  <div className="space-y-2" style={{ position: 'relative', zIndex: 10 }}>
                     <label className="block text-sm font-medium text-gray-700">Categories</label>
                     <div className="relative">
                       <button
