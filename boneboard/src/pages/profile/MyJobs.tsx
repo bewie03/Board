@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaRegBookmark, FaBookmark, FaMoneyBillWave, FaBuilding } from 'react-icons/fa';
+import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaRegBookmark, FaBookmark, FaMoneyBillWave, FaBuilding, FaFileAlt, FaBriefcase, FaUserCheck } from 'react-icons/fa';
 
 // Helper function to get expiry time string
 const getExpiryTimeString = (expiryDate: string): string => {
@@ -398,155 +398,222 @@ const MyJobs: React.FC = () => {
         {/* Edit Job Modal */}
       {editingJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden">
+            {/* Header with company logo area */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Edit Job Listing</h2>
+                <div className="flex items-center space-x-4">
+                  <div className="h-16 w-16 rounded-xl border-2 border-white bg-white shadow-sm flex items-center justify-center">
+                    {editFormData.companyLogo ? (
+                      <img 
+                        className="h-full w-full rounded-xl object-cover" 
+                        src={editFormData.companyLogo}
+                        alt={`${editFormData.company} logo`}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          const parent = (e.target as HTMLImageElement).parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<div class="text-blue-600 text-2xl"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                          }
+                        }}
+                      />
+                    ) : (
+                      <FaBuilding className="text-blue-600 text-2xl" />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Edit Job Listing</h2>
+                    <p className="text-sm text-gray-600 mt-1">{editFormData.company || 'Company Name'} • {editFormData.title || 'Job Title'}</p>
+                  </div>
+                </div>
                 <button
                   onClick={handleCancelEdit}
-                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 p-3 rounded-full hover:bg-white/50 transition-all duration-200"
                 >
-                  <FaTimes className="h-5 w-5" />
+                  <FaTimes className="h-6 w-6" />
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Job Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.title || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Senior React Developer"
-                  />
+            <div className="overflow-y-auto max-h-[calc(95vh-200px)]">
+              <div className="p-8 space-y-8">
+                {/* Basic Information Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaBuilding className="h-5 w-5 mr-2 text-blue-600" />
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Job Title *
+                      </label>
+                      <input
+                        type="text"
+                        value={editFormData.title || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        placeholder="e.g. Senior React Developer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Company *
+                      </label>
+                      <input
+                        type="text"
+                        value={editFormData.company || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        placeholder="e.g. Cardano Foundation"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Company *
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.company || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Cardano Foundation"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Job Description *
-                </label>
-                <textarea
-                  value={editFormData.description || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe the role, responsibilities, and requirements..."
-                />
-              </div>
+                {/* Job Description Section */}
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaFileAlt className="h-5 w-5 mr-2 text-blue-600" />
+                    Job Description
+                  </h3>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Description *
+                    </label>
+                    <textarea
+                      value={editFormData.description || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                      rows={6}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                      placeholder="Describe the role, responsibilities, and requirements..."
+                    />
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Salary
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.salary || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, salary: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. ₳50,000 - ₳80,000"
-                  />
+                {/* Job Details Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaBriefcase className="h-5 w-5 mr-2 text-blue-600" />
+                    Job Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        <FaMoneyBillWave className="inline h-4 w-4 mr-1" />
+                        Salary
+                      </label>
+                      <input
+                        type="text"
+                        value={editFormData.salary || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, salary: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        placeholder="e.g. ₳50,000 - ₳80,000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        <FaClock className="inline h-4 w-4 mr-1" />
+                        Job Type
+                      </label>
+                      <select
+                        value={editFormData.type || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, type: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      >
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Freelance">Freelance</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        <FaMapMarkerAlt className="inline h-4 w-4 mr-1" />
+                        Work Arrangement
+                      </label>
+                      <select
+                        value={editFormData.workArrangement || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, workArrangement: e.target.value as any }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      >
+                        <option value="remote">Remote</option>
+                        <option value="hybrid">Hybrid</option>
+                        <option value="onsite">On-site</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Job Type
-                  </label>
-                  <select
-                    value={editFormData.type || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Freelance">Freelance</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Work Arrangement
-                  </label>
-                  <select
-                    value={editFormData.workArrangement || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, workArrangement: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="remote">Remote</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="onsite">On-site</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Email
-                  </label>
-                  <input
-                    type="email"
-                    value={editFormData.contactEmail || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="jobs@company.com"
-                  />
+                {/* Contact Information Section */}
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaEnvelope className="h-5 w-5 mr-2 text-blue-600" />
+                    Contact Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        <FaEnvelope className="inline h-4 w-4 mr-1" />
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        value={editFormData.contactEmail || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        placeholder="jobs@company.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        <FaLink className="inline h-4 w-4 mr-1" />
+                        Company Website
+                      </label>
+                      <input
+                        type="url"
+                        value={editFormData.companyWebsite || ''}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, companyWebsite: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        placeholder="https://company.com"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Company Website
-                  </label>
-                  <input
-                    type="url"
-                    value={editFormData.companyWebsite || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, companyWebsite: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://company.com"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  How to Apply
-                </label>
-                <textarea
-                  value={editFormData.howToApply || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, howToApply: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Instructions for applicants..."
-                />
+                {/* Application Instructions Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <FaUserCheck className="h-5 w-5 mr-2 text-blue-600" />
+                    Application Instructions
+                  </h3>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      How to Apply
+                    </label>
+                    <textarea
+                      value={editFormData.howToApply || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, howToApply: e.target.value }))}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                      placeholder="Instructions for applicants..."
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            {/* Footer Actions */}
+            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 flex justify-end space-x-4">
               <button
                 onClick={handleCancelEdit}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+                className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 <FaSave className="h-4 w-4 mr-2" />
                 Save Changes
