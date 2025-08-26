@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaUpload, FaTwitter, FaDiscord, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
 import Modal from '../components/Modal';
+import CustomSelect from '../components/CustomSelect';
 import { useWallet } from '../contexts/WalletContext';
 import { initiateTwitterOAuth, initiateDiscordOAuth } from '../utils/auth';
 import { toast } from 'react-toastify';
@@ -643,21 +644,23 @@ const CreateProject: React.FC = () => {
                     Category *
                   </label>
                   <div className="mt-1">
-                    <select
+                    <CustomSelect
                       id="category"
                       name="category"
+                      options={[
+                        { value: '', label: 'Select a category' },
+                        ...PROJECT_CATEGORIES.map(category => ({
+                          value: category,
+                          label: category
+                        }))
+                      ]}
                       value={formData.category}
-                      onChange={handleChange}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
-                      required
-                    >
-                      <option value="">Select a category</option>
-                      {PROJECT_CATEGORIES.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => {
+                        const event = { target: { name: 'category', value } } as React.ChangeEvent<HTMLSelectElement>;
+                        handleChange(event);
+                      }}
+                      placeholder="Select a category"
+                    />
                   </div>
                 </div>
 

@@ -6,6 +6,7 @@ import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
 import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus } from 'react-icons/fa';
+import CustomSelect from '../../components/CustomSelect';
 
 // Category mapping to match JobListings
 const JOB_CATEGORIES = [
@@ -473,22 +474,15 @@ const MyJobs: React.FC = () => {
                               className="text-lg text-gray-600 bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none w-full"
                               placeholder="Company Name"
                             />
-                            <select
+                            <CustomSelect
+                              options={JOB_CATEGORIES.map(category => ({
+                                value: category.id,
+                                label: category.name
+                              }))}
                               value={editFormData.category || ''}
-                              onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                              onChange={(value) => setEditFormData(prev => ({ ...prev, category: value }))}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 focus:border-blue-500 outline-none"
-                            >
-                              <option value="development">Development</option>
-                              <option value="design">Design & Creative</option>
-                              <option value="marketing">Marketing</option>
-                              <option value="community">Community & Social</option>
-                              <option value="business">Business Development</option>
-                              <option value="content">Content Creation</option>
-                              <option value="defi">DeFi & Finance</option>
-                              <option value="nft">NFT & Digital Assets</option>
-                              <option value="security">Security & Auditing</option>
-                              <option value="research">Research & Analysis</option>
-                            </select>
+                            />
                           </div>
                         ) : (
                           <div>
@@ -532,15 +526,16 @@ const MyJobs: React.FC = () => {
                         <div className="flex items-center">
                           <FaMapMarkerAlt className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                           {editingJob ? (
-                            <select
+                            <CustomSelect
+                              options={[
+                                { value: 'remote', label: 'Remote' },
+                                { value: 'hybrid', label: 'Hybrid' },
+                                { value: 'onsite', label: 'On-site' }
+                              ]}
                               value={editFormData.workArrangement || ''}
-                              onChange={(e) => setEditFormData(prev => ({ ...prev, workArrangement: e.target.value as any }))}
+                              onChange={(value) => setEditFormData(prev => ({ ...prev, workArrangement: value as any }))}
                               className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                            >
-                              <option value="remote">Remote</option>
-                              <option value="hybrid">Hybrid</option>
-                              <option value="onsite">On-site</option>
-                            </select>
+                            />
                           ) : (
                             <span>{selectedJob.workArrangement === 'remote' ? 'Remote' : selectedJob.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
                           )}
@@ -548,16 +543,17 @@ const MyJobs: React.FC = () => {
                         <div className="flex items-center">
                           <FaClock className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                           {editingJob ? (
-                            <select
+                            <CustomSelect
+                              options={[
+                                { value: 'Full-time', label: 'Full-time' },
+                                { value: 'Part-time', label: 'Part-time' },
+                                { value: 'Contract', label: 'Contract' },
+                                { value: 'Freelance', label: 'Freelance' }
+                              ]}
                               value={editFormData.type || ''}
-                              onChange={(e) => setEditFormData(prev => ({ ...prev, type: e.target.value }))}
+                              onChange={(value) => setEditFormData(prev => ({ ...prev, type: value }))}
                               className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                            >
-                              <option value="Full-time">Full-time</option>
-                              <option value="Part-time">Part-time</option>
-                              <option value="Contract">Contract</option>
-                              <option value="Freelance">Freelance</option>
-                            </select>
+                            />
                           ) : (
                             <span>{selectedJob.type}</span>
                           )}
@@ -584,14 +580,15 @@ const MyJobs: React.FC = () => {
                               ) : (
                                 <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                               )}
-                              <select
+                              <CustomSelect
+                                options={[
+                                  { value: 'FIAT', label: 'Paid in Fiat' },
+                                  { value: 'ADA', label: 'Paid in ADA' }
+                                ]}
                                 value={editFormData.salaryType || ''}
-                                onChange={(e) => setEditFormData(prev => ({ ...prev, salaryType: e.target.value }))}
+                                onChange={(value) => setEditFormData(prev => ({ ...prev, salaryType: value }))}
                                 className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                              >
-                                <option value="FIAT">Paid in Fiat</option>
-                                <option value="ADA">Paid in ADA</option>
-                              </select>
+                              />
                             </>
                           ) : (
                             <>
