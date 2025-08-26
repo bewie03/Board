@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload, FaCoins, FaDollarSign } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
+import CustomSelect from '../components/CustomSelect';
 import { useContract } from '../hooks/useContract';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
@@ -256,7 +257,7 @@ const PostJob: React.FC = () => {
       if (project) {
         setFormData(prev => ({
           ...prev,
-          company: project.name || '',
+          company: project.name || project.title || '',
           companyWebsite: project.website || '',
           website: project.website || '',
           twitter: typeof project.twitter === 'object' ? project.twitter.username || '' : project.twitter || '',
@@ -466,23 +467,20 @@ const PostJob: React.FC = () => {
                     </label>
                   </div>
                   <div className="mt-2">
-                    <select
+                    <CustomSelect
                       id="project"
                       name="project"
-                      className="w-full h-[48px] pl-5 pr-12 border border-gray-300 rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_1rem_center] bg-[length:1.25em_1.25em] appearance-none cursor-pointer transition-all duration-200 hover:border-gray-400 hover:shadow-md"
-                      style={{
-                        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                      }}
+                      options={[
+                        { value: '', label: 'Select a project' },
+                        ...userProjects.map(project => ({
+                          value: project.id,
+                          label: project.name || project.title || 'Unnamed Project'
+                        }))
+                      ]}
                       value={selectedProject || ''}
-                      onChange={handleProjectSelect}
-                    >
-                      <option value="">Select a project</option>
-                      {userProjects.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {project.name || project.title}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => handleProjectSelect({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}
+                      placeholder="Select a project"
+                    />
                   </div>
                   {selectedProject ? (
                     <p className="mt-2 text-sm text-green-600">
@@ -533,20 +531,16 @@ const PostJob: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">
                       Work Arrangement *
                     </label>
-                    <select
+                    <CustomSelect
                       name="workArrangement"
+                      options={[
+                        { value: 'remote', label: 'Remote' },
+                        { value: 'hybrid', label: 'Hybrid' },
+                        { value: 'onsite', label: 'On-site' }
+                      ]}
                       value={formData.workArrangement}
-                      onChange={handleChange}
-                      className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                      style={{
-                        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                      }}
-                      required
-                    >
-                      <option value="remote">Remote</option>
-                      <option value="hybrid">Hybrid</option>
-                      <option value="onsite">On-site</option>
-                    </select>
+                      onChange={(value) => setFormData(prev => ({ ...prev, workArrangement: value as 'remote' | 'hybrid' | 'onsite' }))}
+                    />
                   </div>
 
                   {/* Job Type */}
@@ -554,25 +548,15 @@ const PostJob: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">
                       Job Type *
                     </label>
-                    <div className="relative">
-                      <select
-                        name="type"
-                        value={formData.type}
-                        onChange={handleChange}
-                        className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                        style={{
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                        }}
-                        required
-                      >
-                        {JOB_TYPES.map((jobType) => (
-                          <option key={jobType.id} value={jobType.id}>
-                            {jobType.name}
-                          </option>
-                        ))}
-                      </select>
-
-                    </div>
+                    <CustomSelect
+                      name="type"
+                      options={JOB_TYPES.map(jobType => ({
+                        value: jobType.id,
+                        label: jobType.name
+                      }))}
+                      value={formData.type}
+                      onChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+                    />
                   </div>
 
                   {/* Job Category */}
@@ -580,24 +564,15 @@ const PostJob: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">
                       Job Category *
                     </label>
-                    <div className="relative">
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                        style={{
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                        }}
-                        required
-                      >
-                        {JOB_CATEGORIES.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <CustomSelect
+                      name="category"
+                      options={JOB_CATEGORIES.map(category => ({
+                        value: category.id,
+                        label: category.name
+                      }))}
+                      value={formData.category}
+                      onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                    />
                   </div>
 
                   {/* Salary and Payment Type */}
@@ -631,19 +606,15 @@ const PostJob: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        <select
+                        <CustomSelect
                           name="salaryType"
+                          options={[
+                            { value: 'ADA', label: 'ADA' },
+                            { value: 'fiat', label: 'Fiat' }
+                          ]}
                           value={formData.salaryType}
-                          onChange={handleChange}
-                          className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                          style={{
-                            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                          }}
-                          required
-                        >
-                          <option value="ADA">ADA</option>
-                          <option value="fiat">Fiat</option>
-                        </select>
+                          onChange={(value) => setFormData(prev => ({ ...prev, salaryType: value as 'ADA' | 'fiat' }))}
+                        />
                       </div>
                     </div>
                     
@@ -962,22 +933,18 @@ const PostJob: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700">
                         Listing Duration *
                       </label>
-                      <select
+                      <CustomSelect
                         name="listingDuration"
-                        value={formData.listingDuration}
-                        onChange={handleChange}
-                        className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                      style={{
-                        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                      }}
-                        required
-                      >
-                        <option value={1}>1 Month - Base Price</option>
-                        <option value={2}>2 Months - 5% Discount</option>
-                        <option value={3}>3 Months - 10% Discount</option>
-                        <option value={6}>6 Months - 15% Discount</option>
-                        <option value={12}>12 Months - 20% Discount</option>
-                      </select>
+                        options={[
+                          { value: '1', label: '1 Month - Base Price' },
+                          { value: '2', label: '2 Months - 5% Discount' },
+                          { value: '3', label: '3 Months - 10% Discount' },
+                          { value: '6', label: '6 Months - 15% Discount' },
+                          { value: '12', label: '12 Months - 20% Discount' }
+                        ]}
+                        value={formData.listingDuration.toString()}
+                        onChange={(value) => setFormData(prev => ({ ...prev, listingDuration: parseInt(value) }))}
+                      />
                     </div>
                     
                     {/* Payment Method */}
@@ -985,19 +952,15 @@ const PostJob: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700">
                         Payment Method *
                       </label>
-                      <select
+                      <CustomSelect
                         name="paymentMethod"
+                        options={[
+                          { value: 'BONE', label: 'Pay with BONE' },
+                          { value: 'ADA', label: 'Pay with ADA' }
+                        ]}
                         value={formData.paymentMethod}
-                        onChange={handleChange}
-                        className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                        style={{
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                        }}
-                        required
-                      >
-                        <option value="BONE">Pay with BONE</option>
-                        <option value="ADA">Pay with ADA</option>
-                      </select>
+                        onChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value as 'BONE' | 'ADA' }))}
+                      />
                       <p className="mt-1 text-xs text-gray-500">
                         You'll need to connect your Cardano wallet to pay with {formData.paymentMethod === 'ADA' ? 'ADA' : 'BONE tokens'}
                       </p>
