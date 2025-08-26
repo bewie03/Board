@@ -216,9 +216,22 @@ const FreelancerProfile: React.FC = () => {
             }
             
             // Load social links, work images, and busy status from database
-            if ((freelancerWithServices as any).socialLinks) setSocialLinks((freelancerWithServices as any).socialLinks);
-            if ((freelancerWithServices as any).workImages) setWorkImages((freelancerWithServices as any).workImages);
-            if (freelancerWithServices.busyStatus) setBusyStatus(freelancerWithServices.busyStatus);
+            if ((freelancerWithServices as any).social_links) {
+              try {
+                const parsedSocialLinks = typeof (freelancerWithServices as any).social_links === 'string' 
+                  ? JSON.parse((freelancerWithServices as any).social_links) 
+                  : (freelancerWithServices as any).social_links;
+                setSocialLinks(parsedSocialLinks);
+              } catch (e) {
+                console.error('Error parsing social links:', e);
+              }
+            }
+            if ((freelancerWithServices as any).work_images) {
+              setWorkImages((freelancerWithServices as any).work_images);
+            }
+            if (freelancerWithServices.busyStatus || (freelancerWithServices as any).busy_status) {
+              setBusyStatus(freelancerWithServices.busyStatus || (freelancerWithServices as any).busy_status);
+            }
             
             // Load reviews from localStorage
             const storedReviews = localStorage.getItem(`reviews_${id}`);
@@ -718,6 +731,24 @@ const FreelancerProfile: React.FC = () => {
             }
           } catch (error) {
             console.error('Error loading service packages after save:', error);
+          }
+          
+          // Load social links, work images, and busy status from reloaded database data
+          if ((reloadedData as any).social_links) {
+            try {
+              const parsedSocialLinks = typeof (reloadedData as any).social_links === 'string' 
+                ? JSON.parse((reloadedData as any).social_links) 
+                : (reloadedData as any).social_links;
+              setSocialLinks(parsedSocialLinks);
+            } catch (e) {
+              console.error('Error parsing social links on reload:', e);
+            }
+          }
+          if ((reloadedData as any).work_images) {
+            setWorkImages((reloadedData as any).work_images);
+          }
+          if ((reloadedData as any).busy_status) {
+            setBusyStatus((reloadedData as any).busy_status);
           }
           
           setFreelancer(freelancerWithServices);

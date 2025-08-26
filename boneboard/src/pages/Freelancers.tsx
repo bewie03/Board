@@ -491,18 +491,20 @@ const Freelancers: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Starting Price */}
-                  <div className="mb-4">
-                    <div className="text-lg font-semibold text-gray-900">
-                      Starting at {freelancer.services?.[0]?.pricing?.basic?.price || 100} {freelancer.services?.[0]?.pricing?.basic?.currency || 'ADA'}
-                    </div>
-                  </div>
-
                   {/* Stats */}
                   <div className="flex justify-between text-sm text-gray-500 border-t pt-4">
                     <span>{freelancer.completedOrders} orders</span>
                     <span>Response: {freelancer.responseTime}</span>
                   </div>
+
+                  {/* Starting Price */}
+                  {freelancer.services?.[0]?.pricing?.basic?.price && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="text-lg font-semibold text-gray-900">
+                        Starting at {freelancer.services[0].pricing.basic.price} {freelancer.services[0].pricing.basic.currency || 'ADA'}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </motion.div>
