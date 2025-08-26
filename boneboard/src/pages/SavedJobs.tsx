@@ -472,26 +472,25 @@ const SavedJobs: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Additional Requirements */}
+                    {/* Additional Information */}
                     {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Requirements</h4>
-                        <ul className="space-y-2 text-sm text-gray-700">
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                        <div className="text-sm text-gray-700">
                           {selectedJob.additionalInfo.map((info, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="text-blue-500 mr-3 mt-1">•</span>
-                              <span>{info}</span>
-                            </li>
+                            <p key={index} className="mb-2 leading-relaxed">
+                              {info}
+                            </p>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
 
                     {/* How to Apply */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                      <div className="prose prose-sm max-w-none text-gray-700">
-                        <p className="leading-relaxed">{selectedJob.howToApply}</p>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p className="text-sm text-gray-700 leading-relaxed">{selectedJob.howToApply}</p>
                       </div>
                     </div>
                   </div>
