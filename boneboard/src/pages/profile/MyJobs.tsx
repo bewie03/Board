@@ -7,6 +7,32 @@ import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
 import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaRegBookmark, FaBookmark, FaMoneyBillWave, FaBuilding } from 'react-icons/fa';
 
+// Helper function to get expiry time string
+const getExpiryTimeString = (expiryDate: string): string => {
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  const diffInMs = expiry.getTime() - now.getTime();
+  const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+  const diffInWeeks = Math.ceil(diffInDays / 7);
+  const diffInMonths = Math.ceil(diffInDays / 30);
+
+  if (diffInDays <= 0) {
+    return 'Expired';
+  } else if (diffInDays === 1) {
+    return 'in 1 day';
+  } else if (diffInDays < 7) {
+    return `in ${diffInDays} days`;
+  } else if (diffInWeeks === 1) {
+    return 'in 1 week';
+  } else if (diffInWeeks < 4) {
+    return `in ${diffInWeeks} weeks`;
+  } else if (diffInMonths === 1) {
+    return 'in 1 month';
+  } else {
+    return `in ${diffInMonths} months`;
+  }
+};
+
 const MyJobs: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -234,38 +260,63 @@ const MyJobs: React.FC = () => {
                     >
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1 min-w-0 pr-4">
-                            <h3 className="text-lg font-semibold flex items-center">
-                              <span className="truncate">{job.title}</span>
-                              {job.featured && <span className="ml-2 text-blue-500 text-xl flex-shrink-0" title="Featured Job">★</span>}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {job.company}
-                            </p>
-                            <div className="flex items-center space-x-2 mb-2">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                {job.type}
-                              </span>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                job.status === 'confirmed' ? 'bg-green-50 text-green-700' :
-                                job.status === 'paused' ? 'bg-yellow-50 text-yellow-700' :
-                                job.status === 'pending' ? 'bg-blue-50 text-blue-700' :
-                                'bg-red-50 text-red-700'
-                              }`}>
-                                {job.status === 'paused' ? 'Paused' : job.status}
-                              </span>
-                              {job.featured && (
+                          <div className="flex items-start space-x-4 flex-1 min-w-0">
+                            {/* Company Logo */}
+                            <div className="flex-shrink-0">
+                              {job.companyLogo ? (
+                                <img 
+                                  className="h-12 w-12 rounded-full border border-gray-200 object-cover" 
+                                  src={job.companyLogo} 
+                                  alt={`${job.company} logo`}
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = '<div class="h-12 w-12 rounded-full border border-gray-200 bg-blue-100 flex items-center justify-center"><svg class="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-12 w-12 rounded-full border border-gray-200 bg-blue-100 flex items-center justify-center">
+                                  <FaBuilding className="h-6 w-6 text-blue-600" />
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-semibold flex items-center">
+                                <span className="truncate">{job.title}</span>
+                                {job.featured && <span className="ml-2 text-blue-500 text-xl flex-shrink-0" title="Featured Job">★</span>}
+                              </h3>
+                              <p className="text-sm text-gray-600 mb-2">
+                                {job.company}
+                              </p>
+                              <div className="flex items-center space-x-2 mb-2">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                  <span className="text-blue-600 mr-1 text-sm">★</span>
-                                  Featured
+                                  {job.type}
                                 </span>
-                              )}
-                              {new Date(job.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
-                                  <FaClock className="h-3 w-3 mr-1" />
-                                  Expires Soon
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  job.status === 'confirmed' ? 'bg-green-50 text-green-700' :
+                                  job.status === 'paused' ? 'bg-yellow-50 text-yellow-700' :
+                                  job.status === 'pending' ? 'bg-blue-50 text-blue-700' :
+                                  'bg-red-50 text-red-700'
+                                }`}>
+                                  {job.status === 'paused' ? 'Paused' : job.status}
                                 </span>
-                              )}
+                                {job.featured && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                    <span className="text-blue-600 mr-1 text-sm">★</span>
+                                    Featured
+                                  </span>
+                                )}
+                                {new Date(job.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
+                                    <FaClock className="h-3 w-3 mr-1" />
+                                    Expires Soon
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
@@ -326,7 +377,7 @@ const MyJobs: React.FC = () => {
                         </div>
                         
                         <div className="mt-3 text-xs text-gray-500">
-                          Expires {new Date(job.expiresAt).toLocaleDateString()}
+                          Expires {getExpiryTimeString(job.expiresAt)}
                         </div>
                       </div>
                     </motion.div>
@@ -518,7 +569,7 @@ const MyJobs: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
-              className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-50" 
+              className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60]" 
               style={{ top: '64px' }}
             >
               <div className="flex flex-col h-full">
@@ -629,24 +680,32 @@ const MyJobs: React.FC = () => {
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
                         <div className="flex flex-wrap gap-2">
-                          {selectedJob.requiredSkills.map((skill, index) => (
+                          {selectedJob.requiredSkills
+                            .filter(skill => skill && skill.trim() !== '')
+                            .map((skill, index) => (
                             <span
                               key={index}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
                             >
-                              {skill}
+                              {skill.replace(/[{}"\s]+/g, ' ').trim()}
                             </span>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Additional Requirements */}
+                    {/* Additional Information */}
                     {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Requirements</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
                         <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="whitespace-pre-line leading-relaxed">{selectedJob.additionalInfo.join('\n')}</p>
+                          <p className="whitespace-pre-line leading-relaxed">
+                            {selectedJob.additionalInfo
+                              .filter(info => info && info.trim() !== '')
+                              .map(info => info.replace(/[{}"\s]+/g, ' ').trim())
+                              .join('\n')
+                            }
+                          </p>
                         </div>
                       </div>
                     )}
