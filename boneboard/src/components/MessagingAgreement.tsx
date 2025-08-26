@@ -19,8 +19,8 @@ const MessagingAgreement: React.FC<MessagingAgreementProps> = ({ onAccept, onDec
         className="bg-white rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
       >
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
@@ -29,31 +29,61 @@ const MessagingAgreement: React.FC<MessagingAgreementProps> = ({ onAccept, onDec
         </div>
 
         <div className="space-y-4 mb-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="font-semibold text-red-800 mb-2">🚫 Prohibited Activities</h3>
-            <ul className="text-sm text-red-700 space-y-1">
-              <li>• Scamming, fraud, or deceptive practices</li>
-              <li>• Sharing illegal content or activities</li>
-              <li>• Harassment, abuse, or threatening behavior</li>
-              <li>• Spam or unsolicited promotional messages</li>
-              <li>• Sharing personal financial information</li>
+          <div className="border-l-4 border-red-500 bg-gray-50 p-4 rounded-r-lg">
+            <h3 className="font-semibold text-gray-900 mb-3">Prohibited Activities</h3>
+            <ul className="text-sm text-gray-700 space-y-2">
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Scamming, fraud, or deceptive practices
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Sharing illegal content or activities
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Harassment, abuse, or threatening behavior
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Spam or unsolicited promotional messages
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Sharing personal financial information
+              </li>
             </ul>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-800 mb-2">✅ Best Practices</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Be professional and respectful</li>
-              <li>• Clearly communicate project requirements</li>
-              <li>• Use official payment methods only</li>
-              <li>• Report suspicious activity immediately</li>
-              <li>• Keep conversations project-focused</li>
+          <div className="border-l-4 border-blue-500 bg-gray-50 p-4 rounded-r-lg">
+            <h3 className="font-semibold text-gray-900 mb-3">Best Practices</h3>
+            <ul className="text-sm text-gray-700 space-y-2">
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Be professional and respectful
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Clearly communicate project requirements
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Use official payment methods only
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Report suspicious activity immediately
+              </li>
+              <li className="flex items-start">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                Keep conversations project-focused
+              </li>
             </ul>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-semibold text-yellow-800 mb-2">⚠️ Important Notice</h3>
-            <p className="text-sm text-yellow-700">
+          <div className="border-l-4 border-amber-500 bg-gray-50 p-4 rounded-r-lg">
+            <h3 className="font-semibold text-gray-900 mb-3">Important Notice</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
               All messages are monitored for safety and compliance. Violations may result in account suspension or permanent ban.
               Never share wallet private keys or seed phrases.
             </p>

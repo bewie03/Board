@@ -153,7 +153,11 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
 
   } catch (error) {
     await client.query('ROLLBACK');
-    throw error;
+    console.error('Database error in handlePost:', error);
+    return res.status(500).json({ 
+      error: 'Failed to send message', 
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : undefined 
+    });
   } finally {
     client.release();
   }
