@@ -227,7 +227,8 @@ export const useContract = (): UseContractReturn => {
       companyLogo: jobData.companyLogo,
       website: jobData.website,
       twitter: jobData.twitter,
-      discord: jobData.discord
+      discord: jobData.discord,
+      featured: jobData.featured
     };
     
     await JobService.addJob(jobToSave);

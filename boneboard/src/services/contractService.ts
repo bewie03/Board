@@ -37,6 +37,7 @@ export interface JobPostingData {
   website?: string;
   twitter?: string;
   discord?: string;
+  featured?: boolean;
 }
 
 export interface ProjectPostingData {

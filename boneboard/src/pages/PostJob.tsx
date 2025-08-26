@@ -435,7 +435,7 @@ const PostJob: React.FC = () => {
                 </div>
 
                 {/* Project Selection Dropdown - Only show in step 1 */}
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <div className="space-y-1">
                     <label htmlFor="project" className="block text-sm font-medium text-gray-700">
                       Select Your Project (Optional)
@@ -448,7 +448,7 @@ const PostJob: React.FC = () => {
                     <select
                       id="project"
                       name="project"
-                      className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
+                      className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer transition-colors"
                       style={{
                         backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
                       }}
