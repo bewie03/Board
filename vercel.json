@@ -5,20 +5,9 @@
   "functions": {
     "api/**/*.ts": {
       "runtime": "@vercel/node@3.2.29"
-    },
-    "boneboard/pages/api/**/*.ts": {
-      "runtime": "@vercel/node@3.2.29"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/admin/(.*)",
-      "destination": "/boneboard/pages/api/admin/$1"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
