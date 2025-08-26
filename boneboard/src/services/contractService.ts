@@ -20,6 +20,7 @@ export interface JobPostingData {
   description: string;
   salary: string;
   salaryType: string;
+  customSalaryType?: string;
   category: string;
   type: string;
   contactEmail: string;

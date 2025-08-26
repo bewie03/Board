@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaCog } from 'react-icons/fa';
 
 // Category mapping to match JobListings
 const JOB_CATEGORIES = [
@@ -606,6 +606,8 @@ const MyJobs: React.FC = () => {
                             <>
                               {selectedJob.salaryType === 'ADA' ? (
                                 <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              ) : selectedJob.salaryType === 'CUSTOM' ? (
+                                <FaCog className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                               ) : (
                                 <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                               )}

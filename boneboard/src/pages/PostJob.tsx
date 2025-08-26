@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload, FaCoins, FaDollarSign, FaCog } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
 import { useContract } from '../hooks/useContract';
@@ -569,9 +569,20 @@ const PostJob: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Payment Type *
-                        </label>
+                        <div className="flex items-center">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Payment Type *
+                          </label>
+                          <div className="ml-2">
+                            {formData.salaryType === 'ADA' ? (
+                              <FaCoins className="h-4 w-4 text-gray-400" />
+                            ) : formData.salaryType === 'custom' ? (
+                              <FaCog className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <FaDollarSign className="h-4 w-4 text-gray-400" />
+                            )}
+                          </div>
+                        </div>
                         <select
                           name="salaryType"
                           value={formData.salaryType}
