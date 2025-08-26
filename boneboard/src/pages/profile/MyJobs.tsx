@@ -306,7 +306,7 @@ const MyJobs: React.FC = () => {
                                 {job.company}
                               </p>
                               {/* Job Details with Icons */}
-                              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mt-2">
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 mt-2">
                                 <div className="flex items-center">
                                   <FaMapMarkerAlt className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
                                   <span>{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
@@ -659,7 +659,15 @@ const MyJobs: React.FC = () => {
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
                       {editingJob ? (
                         <textarea
-                          value={editFormData.requiredSkills ? (Array.isArray(editFormData.requiredSkills) ? editFormData.requiredSkills.join(', ') : editFormData.requiredSkills) : ''}
+                          value={(() => {
+                            if (!editFormData.requiredSkills) return '';
+                            if (Array.isArray(editFormData.requiredSkills)) {
+                              return editFormData.requiredSkills
+                                .map(skill => String(skill).replace(/[{}"\\/\s]+/g, ' ').trim())
+                                .join(', ');
+                            }
+                            return String(editFormData.requiredSkills).replace(/[{}"\\/\s]+/g, ' ').trim();
+                          })()}
                           onChange={(e) => setEditFormData(prev => ({ ...prev, requiredSkills: e.target.value.split(',').map(skill => skill.trim()) }))}
                           rows={3}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -688,7 +696,15 @@ const MyJobs: React.FC = () => {
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
                       {editingJob ? (
                         <textarea
-                          value={editFormData.additionalInfo ? (Array.isArray(editFormData.additionalInfo) ? editFormData.additionalInfo.join('\n') : editFormData.additionalInfo) : ''}
+                          value={(() => {
+                            if (!editFormData.additionalInfo) return '';
+                            if (Array.isArray(editFormData.additionalInfo)) {
+                              return editFormData.additionalInfo
+                                .map(info => String(info).replace(/[{}"\\/\s]+/g, ' ').trim())
+                                .join('\n');
+                            }
+                            return String(editFormData.additionalInfo).replace(/[{}"\\/\s]+/g, ' ').trim();
+                          })()}
                           onChange={(e) => setEditFormData(prev => ({ ...prev, additionalInfo: e.target.value.split('\n').map(info => info.trim()) }))}
                           rows={4}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
