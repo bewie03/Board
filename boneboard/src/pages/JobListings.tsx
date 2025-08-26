@@ -271,7 +271,7 @@ const JobListings: React.FC = () => {
                   </div>
 
                   {/* Category Multi-Select */}
-                  <div className="space-y-2">
+                  <div className="space-y-2" style={{ position: 'relative', zIndex: 1000 }}>
                     <label className="block text-sm font-medium text-gray-700">Categories</label>
                     <div className="relative">
                       <button
@@ -292,7 +292,7 @@ const JobListings: React.FC = () => {
                       </button>
                       
                       {showCategoryDropdown && (
-                        <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto left-0 top-full">
+                        <div className="absolute z-[10000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-2xl max-h-64 overflow-y-auto left-0 top-full">
                           <div className="py-2">
                             <label className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
                               <input

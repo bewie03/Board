@@ -141,7 +141,7 @@ const Projects: React.FC = () => {
                 {/* Filters Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Category Filter */}
-                  <div className="space-y-2 relative">
+                  <div className="space-y-2" style={{ position: 'relative', zIndex: 1000 }}>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
                     <div className="relative">
                       <button
@@ -162,7 +162,7 @@ const Projects: React.FC = () => {
                       </button>
                       
                       {showCategoryDropdown && (
-                        <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-48 overflow-y-auto left-0 top-full">
+                        <div className="absolute z-[10000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-2xl max-h-64 overflow-y-auto left-0 top-full">
                           <div className="py-2">
                             {PROJECT_CATEGORIES.map((category) => (
                               <label key={category} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
