@@ -131,6 +131,11 @@ const PostJob: React.FC = () => {
           setPaymentStatus('processing');
           
           toast.info('Resuming payment process. Your transaction is being monitored.');
+          
+          // Ensure transaction monitoring is running
+          import('../services/transactionMonitor').then(({ transactionMonitor }) => {
+            transactionMonitor.startMonitoring(walletAddress);
+          });
         } catch (error) {
           console.error('Error parsing pending transaction:', error);
           localStorage.removeItem(pendingKey);

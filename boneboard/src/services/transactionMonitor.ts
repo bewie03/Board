@@ -18,12 +18,16 @@ class TransactionMonitor {
     console.log('Starting transaction monitoring for wallet:', walletAddress);
     this.isChecking = true;
     
-    // Initial check
+    // Initial check for current wallet
     await this.checkPendingTransactions(walletAddress);
+    
+    // Also check for any other pending transactions in localStorage
+    await this.checkAllPendingTransactions();
     
     // Set up interval checking every 10 seconds
     this.checkInterval = setInterval(() => {
       this.checkPendingTransactions(walletAddress);
+      this.checkAllPendingTransactions();
     }, 10000);
   }
 
@@ -36,13 +40,31 @@ class TransactionMonitor {
     }
   }
 
+  private async checkAllPendingTransactions() {
+    // Find all pending transactions in localStorage
+    const pendingKeys = Object.keys(localStorage).filter(key => key.startsWith('pendingTx_'));
+    
+    if (pendingKeys.length === 0) return;
+    
+    console.log(`Found ${pendingKeys.length} pending transaction(s) in localStorage`);
+    
+    for (const pendingKey of pendingKeys) {
+      const walletAddress = pendingKey.replace('pendingTx_', '');
+      await this.checkPendingTransactions(walletAddress);
+    }
+  }
+
   private async checkPendingTransactions(walletAddress: string) {
     const pendingKey = `pendingTx_${walletAddress}`;
     const pendingTxData = localStorage.getItem(pendingKey);
     
     if (!pendingTxData) {
-      // No pending transactions, stop monitoring
-      this.stopMonitoring();
+      // No pending transactions for this wallet, but check if there are others
+      const allPendingKeys = Object.keys(localStorage).filter(key => key.startsWith('pendingTx_'));
+      if (allPendingKeys.length === 0) {
+        // No pending transactions at all, stop monitoring
+        this.stopMonitoring();
+      }
       return;
     }
 
