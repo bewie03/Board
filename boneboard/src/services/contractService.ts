@@ -12,10 +12,7 @@ const NETWORK = import.meta.env.VITE_NETWORK || 'Mainnet'; // 'Preview' for test
 // Contract addresses - Using mainnet address for job posting payments
 const JOB_POSTING_ADDRESS = import.meta.env.VITE_JOB_POSTING_ADDRESS || 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
 
-// Fixed fees: 2 ADA for all posting types
-const JOB_POSTING_FEE_ADA = 2;
-const PROJECT_POSTING_FEE_ADA = 2;
-const FREELANCER_PROFILE_FEE_ADA = 2;
+// Dynamic fees will be passed from the UI based on admin settings
 
 export interface JobPostingData {
   title: string;
@@ -210,15 +207,15 @@ export class ContractService {
             duration: jobData.duration,
             timestamp: jobData.timestamp,
             poster: jobData.walletAddress.substring(0, 60),
-            fee: `${JOB_POSTING_FEE_ADA} ADA`
+            fee: `${jobData.paymentAmount} ADA`
           }
         }
       };
 
-      // Fixed fee: 2 ADA in lovelace (1 ADA = 1,000,000 lovelace)
-      const feeInLovelace = BigInt(JOB_POSTING_FEE_ADA * 1_000_000);
+      // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(jobData.paymentAmount * 1_000_000);
       
-      console.log(`Sending ${JOB_POSTING_FEE_ADA} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      console.log(`Sending ${jobData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
       
       // Build the transaction - send 2 ADA to the job posting address
       const tx = this.lucid.newTx()
@@ -238,7 +235,7 @@ export class ContractService {
       return { success: true, txHash };
     } catch (error) {
       console.error('Error posting job with ADA:', error);
-      const errorMessage = this.parsePaymentError(error, 'ADA', JOB_POSTING_FEE_ADA);
+      const errorMessage = this.parsePaymentError(error, 'ADA', jobData.paymentAmount);
       return { success: false, error: errorMessage };
     }
   }
@@ -263,15 +260,15 @@ export class ContractService {
             contactEmail: projectData.contactEmail.substring(0, 60),
             timestamp: projectData.timestamp,
             poster: projectData.walletAddress.substring(0, 60),
-            fee: `${PROJECT_POSTING_FEE_ADA} ADA`
+            fee: `${projectData.paymentAmount} ADA`
           }
         }
       };
 
-      // Fixed fee: 2 ADA in lovelace (1 ADA = 1,000,000 lovelace)
-      const feeInLovelace = BigInt(PROJECT_POSTING_FEE_ADA * 1_000_000);
+      // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(projectData.paymentAmount * 1_000_000);
       
-      console.log(`Sending ${PROJECT_POSTING_FEE_ADA} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      console.log(`Sending ${projectData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
       
       // Build the transaction - send 2 ADA to the posting address
       const tx = this.lucid.newTx()
@@ -291,7 +288,7 @@ export class ContractService {
       return { success: true, txHash };
     } catch (error) {
       console.error('Error posting project with ADA:', error);
-      const errorMessage = this.parsePaymentError(error, 'ADA', PROJECT_POSTING_FEE_ADA);
+      const errorMessage = this.parsePaymentError(error, 'ADA', projectData.paymentAmount);
       return { success: false, error: errorMessage };
     }
   }
@@ -386,15 +383,15 @@ export class ContractService {
             contactEmail: freelancerData.contactEmail.substring(0, 60),
             timestamp: freelancerData.timestamp,
             poster: freelancerData.walletAddress.substring(0, 60),
-            fee: `${FREELANCER_PROFILE_FEE_ADA} ADA`
+            fee: `${freelancerData.paymentAmount} ADA`
           }
         }
       };
 
-      // Fixed fee: 2 ADA in lovelace (1 ADA = 1,000,000 lovelace)
-      const feeInLovelace = BigInt(FREELANCER_PROFILE_FEE_ADA * 1_000_000);
+      // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(freelancerData.paymentAmount * 1_000_000);
       
-      console.log(`Sending ${FREELANCER_PROFILE_FEE_ADA} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      console.log(`Sending ${freelancerData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
       
       // Build the transaction - send 2 ADA to the posting address
       const tx = this.lucid.newTx()
@@ -414,7 +411,7 @@ export class ContractService {
       return { success: true, txHash };
     } catch (error) {
       console.error('Error posting freelancer with ADA:', error);
-      const errorMessage = this.parsePaymentError(error, 'ADA', FREELANCER_PROFILE_FEE_ADA);
+      const errorMessage = this.parsePaymentError(error, 'ADA', freelancerData.paymentAmount);
       return { success: false, error: errorMessage };
     }
   }

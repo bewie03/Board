@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaUpload, FaTwitter, FaDiscord, FaWallet, FaCoins, FaDollarSign, FaCheck, FaTimes } from 'react-icons/fa';
 import Modal from '../components/Modal';
@@ -381,11 +381,43 @@ const CreateProject: React.FC = () => {
     }
   }, [formData, logoFile, navigate, currentStep, isConnected, walletAddress]);
   
+  const [platformPricing, setPlatformPricing] = useState<{projectListingFee: number, projectListingCurrency: string} | null>(null);
+
+  // Load platform pricing on component mount
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setPlatformPricing({
+            projectListingFee: data.projectListingFee,
+            projectListingCurrency: data.projectListingCurrency
+          });
+        }
+      } catch (error) {
+        console.error('Error loading pricing:', error);
+        // Set default pricing if API fails
+        setPlatformPricing({
+          projectListingFee: 50,
+          projectListingCurrency: 'BONE'
+        });
+      }
+    };
+    loadPricing();
+  }, []);
+
   const calculateProjectCost = () => {
-    const baseCost = 2; // 2 ADA like job listings
+    if (!platformPricing) {
+      return {
+        amount: 50,
+        currency: 'BONE'
+      };
+    }
+    
     return {
-      amount: baseCost,
-      currency: formData.paymentMethod
+      amount: platformPricing.projectListingFee,
+      currency: platformPricing.projectListingCurrency
     };
   };
   

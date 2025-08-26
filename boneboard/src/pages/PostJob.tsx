@@ -87,29 +87,52 @@ const PostJob: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  // Fixed job posting fee: 2 ADA for testing
-  const JOB_POSTING_FEE_ADA = 2;
+  const [platformPricing, setPlatformPricing] = useState<{jobListingFee: number, jobListingCurrency: string} | null>(null);
+
+  // Load platform pricing on component mount
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setPlatformPricing({
+            jobListingFee: data.jobListingFee,
+            jobListingCurrency: data.jobListingCurrency
+          });
+        }
+      } catch (error) {
+        console.error('Error loading pricing:', error);
+        // Set default pricing if API fails
+        setPlatformPricing({
+          jobListingFee: 25,
+          jobListingCurrency: 'ADA'
+        });
+      }
+    };
+    loadPricing();
+  }, []);
   
-  // Calculate total price - fixed 2 ADA fee for now
+  // Calculate total price based on admin settings
   const calculateTotal = () => {
-    const basePrice = JOB_POSTING_FEE_ADA; // Fixed 2 ADA fee
-    
-    let displayText = `${basePrice} ${formData.paymentMethod}`;
-    displayText += ' (Fixed testing fee)';
-    
-    if (formData.paymentMethod === 'BONE') {
+    if (!platformPricing) {
       return {
-        amount: basePrice,
-        currency: 'BONE',
-        display: displayText
-      };
-    } else { // ADA
-      return {
-        amount: basePrice,
-        currency: 'ADA',
-        display: displayText
+        amount: 25,
+        displayText: '25 ADA (Loading...)',
+        currency: 'ADA'
       };
     }
+
+    const basePrice = platformPricing.jobListingFee;
+    const currency = platformPricing.jobListingCurrency;
+    
+    let displayText = `${basePrice} ${currency}`;
+    
+    return {
+      amount: basePrice,
+      displayText,
+      currency: currency
+    };
   };
   
   const totalCost = calculateTotal();
@@ -790,7 +813,7 @@ const PostJob: React.FC = () => {
                       }}
                         required
                       >
-                        <option value={1}>1 Month - {JOB_POSTING_FEE_ADA} {formData.paymentMethod === 'BONE' ? 'BONE' : 'ADA'} (Testing)</option>
+                        <option value={1}>1 Month - {totalCost.amount} {totalCost.currency}</option>
                       </select>
                     </div>
                     
@@ -823,7 +846,7 @@ const PostJob: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-700">Total Cost:</span>
                       <span className="text-lg font-bold text-blue-700">
-                        {totalCost.display}
+                        {totalCost.displayText}
                       </span>
                     </div>
 
@@ -942,13 +965,13 @@ const PostJob: React.FC = () => {
                             </p>
                           </div>
                           <p className="text-lg font-medium text-gray-900">
-                            {JOB_POSTING_FEE_ADA} {formData.paymentMethod}
+                            {totalCost.amount} {totalCost.currency}
                           </p>
                         </div>
                         
                         <div className="bg-blue-50 p-3 rounded-md">
                           <p className="text-sm text-blue-800">
-                            <span className="font-medium">Testing Mode:</span> Fixed {JOB_POSTING_FEE_ADA} ADA fee for job posting validation.
+                            <span className="font-medium">Platform Fee:</span> {totalCost.amount} {totalCost.currency} for job posting.
                           </p>
                         </div>
                         
@@ -963,7 +986,7 @@ const PostJob: React.FC = () => {
                           </div>
                           
                           <div className="mt-2 text-xs text-gray-500">
-                            <p>Fixed testing fee: {JOB_POSTING_FEE_ADA} ADA</p>
+                            <p>Platform fee: {totalCost.amount} {totalCost.currency}</p>
                             <p>Network fee: ~0.2-0.5 ADA (paid separately)</p>
                           </div>
                         </div>
