@@ -273,27 +273,28 @@ const PostJob: React.FC = () => {
     setPaymentStatus('processing');
     
     try {
-      // Validate wallet address matches current extension wallet
+      // Validate wallet address matches current extension wallet for the specific connected wallet type
       const cardano = (window as any).cardano;
       const connectedWallet = localStorage.getItem('connectedWallet');
       
       if (!cardano || !connectedWallet || !cardano[connectedWallet]) {
-        throw new Error('Wallet not connected. Please reconnect your wallet.');
+        throw new Error(`${connectedWallet} wallet not available. Please make sure your ${connectedWallet} wallet is enabled.`);
       }
       
+      // Only check the specific wallet that was originally connected
       const walletApi = await cardano[connectedWallet].enable();
       const currentAddresses = await walletApi.getUsedAddresses();
       
       if (currentAddresses.length === 0) {
-        throw new Error('No addresses found in wallet. Please check your wallet connection.');
+        throw new Error(`No addresses found in ${connectedWallet} wallet. Please check your wallet connection.`);
       }
       
-      // Get current wallet address from extension
+      // Get current wallet address from the specific connected wallet extension
       const currentAddress = currentAddresses[0];
       
-      // Compare with stored wallet address
+      // Compare with stored wallet address from the same wallet type
       if (currentAddress !== walletAddress) {
-        throw new Error('Wallet address mismatch detected. Please reconnect your wallet or switch back to the original address in your wallet extension.');
+        throw new Error(`Address mismatch in ${connectedWallet} wallet. Please switch back to the original address (${walletAddress?.slice(0, 12)}...) in your ${connectedWallet} extension or reconnect your wallet.`);
       }
       
       // Prepare job data for smart contract
