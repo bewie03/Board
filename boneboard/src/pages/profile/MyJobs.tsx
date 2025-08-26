@@ -305,31 +305,45 @@ const MyJobs: React.FC = () => {
                               <p className="text-sm text-gray-600 mb-2">
                                 {job.company}
                               </p>
-                              <div className="flex items-center space-x-2 mb-2">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                                  {job.type}
-                                </span>
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  job.status === 'confirmed' ? 'bg-green-50 text-green-700' :
-                                  job.status === 'paused' ? 'bg-yellow-50 text-yellow-700' :
-                                  job.status === 'pending' ? 'bg-blue-50 text-blue-700' :
-                                  'bg-red-50 text-red-700'
-                                }`}>
-                                  {job.status === 'paused' ? 'Paused' : job.status}
-                                </span>
-                                {job.featured && (
+                              {/* Job Details with Icons */}
+                              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mt-2">
+                                <div className="flex items-center">
+                                  <FaMapMarkerAlt className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
+                                  <span>{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <FaClock className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
+                                  <span>{job.type}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  {job.salaryType === 'ADA' ? (
+                                    <FaCoins className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
+                                  ) : (
+                                    <FaDollarSign className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
+                                  )}
+                                  <span>{job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <FaMoneyBillWave className="flex-shrink-0 mr-1 h-3 w-3 text-gray-400" />
+                                  <span>{job.salary}</span>
+                                </div>
+                              </div>
+                              {job.featured && (
+                                <div className="flex items-center mb-2">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
                                     <span className="text-blue-600 mr-1 text-sm">★</span>
                                     Featured
                                   </span>
-                                )}
-                                {new Date(job.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                                </div>
+                              )}
+                              {new Date(job.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                                <div className="mt-2">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
                                     <FaClock className="h-3 w-3 mr-1" />
                                     Expires Soon
                                   </span>
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
@@ -593,12 +607,28 @@ const MyJobs: React.FC = () => {
                           )}
                         </div>
                         <div className="flex items-center">
-                          {selectedJob.salaryType === 'ADA' ? (
-                            <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                          {editingJob ? (
+                            <>
+                              <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              <select
+                                value={editFormData.salaryType || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, salaryType: e.target.value }))}
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
+                              >
+                                <option value="FIAT">Paid in Fiat</option>
+                                <option value="ADA">Paid in ADA</option>
+                              </select>
+                            </>
                           ) : (
-                            <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                            <>
+                              {selectedJob.salaryType === 'ADA' ? (
+                                <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              ) : (
+                                <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              )}
+                              <span>{selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
+                            </>
                           )}
-                          <span>{selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
                         </div>
                       </div>
                     </div>
@@ -625,9 +655,17 @@ const MyJobs: React.FC = () => {
                     </div>
 
                     {/* Required Skills */}
-                    {selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
+                      {editingJob ? (
+                        <textarea
+                          value={editFormData.requiredSkills ? (Array.isArray(editFormData.requiredSkills) ? editFormData.requiredSkills.join(', ') : editFormData.requiredSkills) : ''}
+                          onChange={(e) => setEditFormData(prev => ({ ...prev, requiredSkills: e.target.value.split(',').map(skill => skill.trim()) }))}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          placeholder="Enter skills separated by commas (e.g., React, TypeScript, Node.js)"
+                        />
+                      ) : selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {selectedJob.requiredSkills
                             .filter(skill => skill && skill.trim() !== '')
@@ -640,13 +678,23 @@ const MyJobs: React.FC = () => {
                             </span>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-sm text-gray-500">No skills specified</p>
+                      )}
+                    </div>
 
                     {/* Additional Information */}
-                    {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                      {editingJob ? (
+                        <textarea
+                          value={editFormData.additionalInfo ? (Array.isArray(editFormData.additionalInfo) ? editFormData.additionalInfo.join('\n') : editFormData.additionalInfo) : ''}
+                          onChange={(e) => setEditFormData(prev => ({ ...prev, additionalInfo: e.target.value.split('\n').map(info => info.trim()) }))}
+                          rows={4}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          placeholder="Enter additional information (one item per line)"
+                        />
+                      ) : selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 ? (
                         <div className="prose prose-sm max-w-none text-gray-700">
                           <p className="whitespace-pre-line leading-relaxed">
                             {selectedJob.additionalInfo
@@ -656,8 +704,10 @@ const MyJobs: React.FC = () => {
                             }
                           </p>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-sm text-gray-500">No additional information provided</p>
+                      )}
+                    </div>
 
                     {/* How to Apply */}
                     <div>
