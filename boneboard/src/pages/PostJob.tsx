@@ -391,46 +391,6 @@ const PostJob: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Reach thousands of qualified candidates in the Cardano ecosystem
           </p>
-          
-          {/* Project Selection Dropdown */}
-          <div className="mb-6">
-            <div className="space-y-1">
-              <label htmlFor="project" className="block text-sm font-medium text-gray-700">
-                Select Your Project (Optional)
-              </label>
-              <p className="text-xs text-gray-500">
-                Select one of your projects to apply a 20% discount
-              </p>
-            </div>
-            <div className="mt-1">
-              <select
-                id="project"
-                name="project"
-                className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
-                style={{
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                }}
-                value={selectedProject || ''}
-                onChange={handleProjectSelect}
-              >
-                <option value="">-- Select a project --</option>
-                {userProjects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name || project.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {selectedProject ? (
-              <p className="mt-2 text-sm text-green-600">
-                20% discount applied for project listings!
-              </p>
-            ) : userProjects.length === 0 ? (
-              <p className="mt-2 text-sm text-gray-500">
-                You don't have any projects yet. <Link to="/my-projects" className="text-blue-600 hover:text-blue-500">Create a project</Link> to get a 20% discount on job postings.
-              </p>
-            ) : null}
-          </div>
         </div>
 
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -442,6 +402,46 @@ const PostJob: React.FC = () => {
                   <p className="mt-1 text-sm text-gray-500">
                     Fill in the details of your job posting
                   </p>
+                </div>
+
+                {/* Project Selection Dropdown - Only show in step 1 */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="space-y-1">
+                    <label htmlFor="project" className="block text-sm font-medium text-gray-700">
+                      Select Your Project (Optional)
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Select one of your projects to apply a 20% discount
+                    </p>
+                  </div>
+                  <div className="mt-2">
+                    <select
+                      id="project"
+                      name="project"
+                      className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
+                      }}
+                      value={selectedProject || ''}
+                      onChange={handleProjectSelect}
+                    >
+                      <option value="">-- Select a project --</option>
+                      {userProjects.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.name || project.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {selectedProject ? (
+                    <p className="mt-2 text-sm text-green-600">
+                      20% discount applied for project listings!
+                    </p>
+                  ) : userProjects.length === 0 ? (
+                    <p className="mt-2 text-sm text-gray-500">
+                      You don't have any projects yet. <Link to="/my-projects" className="text-blue-600 hover:text-blue-500">Create a project</Link> to get a 20% discount on job postings.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

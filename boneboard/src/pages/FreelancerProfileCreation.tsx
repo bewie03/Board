@@ -147,6 +147,12 @@ const FreelancerProfileCreation: React.FC = () => {
   const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check file size (1MB max)
+      if (file.size > 1024 * 1024) {
+        toast.error('File size should not exceed 1MB');
+        return;
+      }
+      
       try {
         const compressedImage = await compressImage(file, 400, 0.8);
         setProfileData(prev => ({
@@ -199,8 +205,16 @@ const FreelancerProfileCreation: React.FC = () => {
         toast.warning(`Only ${remainingSlots} more images can be added. Maximum 6 work examples allowed.`);
       }
       
+      // Check file sizes (1MB max each)
+      const oversizedFiles = filesToProcess.filter(file => file.size > 1024 * 1024);
+      if (oversizedFiles.length > 0) {
+        toast.error(`${oversizedFiles.length} file(s) exceed 1MB limit and will be skipped`);
+      }
+      
+      const validFiles = filesToProcess.filter(file => file.size <= 1024 * 1024);
+      
       // Process files with compression
-      for (const file of filesToProcess) {
+      for (const file of validFiles) {
         try {
           const compressedImage = await compressImage(file);
           setProfileData(prev => ({
@@ -448,7 +462,7 @@ const FreelancerProfileCreation: React.FC = () => {
                       >
                         Upload Photo
                       </button>
-                      <p className="text-sm text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                      <p className="text-sm text-gray-500 mt-1">PNG, JPG up to 1MB</p>
                     </div>
                   </div>
                 </div>
@@ -729,7 +743,7 @@ const FreelancerProfileCreation: React.FC = () => {
                   >
                     {profileData.workExamples.length >= 6 ? 'Maximum 6 images reached' : 'Click to upload work examples'}
                   </button>
-                  <p className="text-sm text-gray-500 mt-2">PNG, JPG up to 5MB each - images will be compressed ({profileData.workExamples.length}/6)</p>
+                  <p className="text-sm text-gray-500 mt-2">PNG, JPG up to 1MB each - images will be compressed ({profileData.workExamples.length}/6)</p>
                 </div>
                 
                 {profileData.workExamples.length > 0 && (

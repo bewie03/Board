@@ -14,6 +14,12 @@ const AccountSettings: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (1MB max)
+      if (file.size > 1024 * 1024) {
+        toast.error('File size should not exceed 1MB');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -93,7 +99,7 @@ const AccountSettings: React.FC = () => {
               </div>
               <div className="text-center sm:text-left">
                 <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
-                <p className="text-sm text-gray-500 mt-1">JPG, GIF or PNG. Max size of 5MB</p>
+                <p className="text-sm text-gray-500 mt-1">JPG, GIF or PNG. Max size of 1MB</p>
               </div>
             </div>
           </div>

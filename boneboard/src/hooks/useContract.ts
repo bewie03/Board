@@ -47,21 +47,29 @@ const forceCleanupLocalStorage = () => {
   console.log('Force cleaning localStorage...');
   const keysToRemove: string[] = [];
   
-  // Collect all pendingTx keys
+  // Log all localStorage keys to debug what's taking up space
+  console.log('Current localStorage keys and sizes:');
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.startsWith('pendingTx_')) {
-      keysToRemove.push(key);
+    if (key) {
+      const value = localStorage.getItem(key);
+      const size = value ? value.length : 0;
+      console.log(`${key}: ${size} characters`);
+      
+      // Collect pendingTx keys and other large items
+      if (key.startsWith('pendingTx_') || size > 10000) {
+        keysToRemove.push(key);
+      }
     }
   }
   
-  // Remove all pending transaction data
+  // Remove collected keys
   keysToRemove.forEach(key => {
     console.log('Force removing:', key);
     localStorage.removeItem(key);
   });
   
-  console.log(`Removed ${keysToRemove.length} pending transaction entries`);
+  console.log(`Removed ${keysToRemove.length} entries from localStorage`);
 };
 
 export const useContract = (): UseContractReturn => {
