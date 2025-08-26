@@ -323,9 +323,19 @@ const CreateProject: React.FC = () => {
       // Get current wallet address from the specific connected wallet extension
       const currentAddress = currentAddresses[0];
       
+      // Add debug logging
+      console.log('Wallet validation debug:', {
+        connectedWallet,
+        currentAddress: currentAddress?.slice(0, 20) + '...',
+        storedAddress: walletAddress?.slice(0, 20) + '...',
+        addressesMatch: currentAddress === walletAddress
+      });
+      
       // Compare with stored wallet address from the same wallet type
       if (currentAddress !== walletAddress) {
-        throw new Error(`Address mismatch in ${connectedWallet} wallet. Please switch back to the original address (${walletAddress?.slice(0, 12)}...) in your ${connectedWallet} extension or reconnect your wallet.`);
+        const currentTruncated = `${currentAddress?.slice(0, 8)}...${currentAddress?.slice(-8)}`;
+        const expectedTruncated = `${walletAddress?.slice(0, 8)}...${walletAddress?.slice(-8)}`;
+        throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
       
       await contractService.initializeLucid(walletApi);
