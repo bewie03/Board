@@ -518,7 +518,7 @@ const JobListings: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="ml-4 flex-shrink-0 h-12 w-12 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                        <div className="ml-4 flex-shrink-0 h-14 w-14 rounded-full border border-gray-200 flex items-center justify-center bg-white">
                           {job.logo ? (
                             <img 
                               className="h-full w-full rounded-full object-cover"
@@ -637,7 +637,7 @@ const JobListings: React.FC = () => {
                               </span>
                             </div>
                           </div>
-                          <div className="ml-3 flex-shrink-0 h-10 w-10 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                          <div className="ml-3 flex-shrink-0 h-12 w-12 rounded-full border border-gray-200 flex items-center justify-center bg-white">
                             {job.logo ? (
                               <img 
                                 className="h-full w-full rounded-full object-cover" 
@@ -744,7 +744,7 @@ const JobListings: React.FC = () => {
                             </div>
                             <div className="ml-3 flex-shrink-0">
                               <img 
-                                className="h-10 w-10 rounded-full border border-gray-200 object-cover" 
+                                className="h-14 w-14 rounded-full border border-gray-200 object-cover" 
                                 src={job.logo!} 
                                 alt={`${job.company} logo`}
                                 onError={(e) => {
