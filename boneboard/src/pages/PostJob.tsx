@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload, FaCoins, FaDollarSign, FaCog } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload, FaCoins, FaDollarSign } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
 import { useContract } from '../hooks/useContract';
@@ -63,8 +63,7 @@ const PostJob: React.FC = () => {
     type: 'Full-time',
     category: 'development',
     salary: '',
-    salaryType: 'ADA' as 'ADA' | 'fiat' | 'custom',
-    customPaymentType: '',
+    salaryType: 'ADA' as 'ADA' | 'fiat',
     description: '',
     requiredSkills: [] as string[],
     additionalInfo: [] as string[],
@@ -576,8 +575,6 @@ const PostJob: React.FC = () => {
                           <div className="ml-2">
                             {formData.salaryType === 'ADA' ? (
                               <FaCoins className="h-4 w-4 text-gray-400" />
-                            ) : formData.salaryType === 'custom' ? (
-                              <FaCog className="h-4 w-4 text-gray-400" />
                             ) : (
                               <FaDollarSign className="h-4 w-4 text-gray-400" />
                             )}
@@ -595,28 +592,10 @@ const PostJob: React.FC = () => {
                         >
                           <option value="ADA">ADA</option>
                           <option value="fiat">Fiat</option>
-                          <option value="custom">Custom</option>
                         </select>
                       </div>
                     </div>
                     
-                    {/* Custom Payment Type Input */}
-                    {formData.salaryType === 'custom' && (
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Custom Payment Type *
-                        </label>
-                        <input
-                          type="text"
-                          name="customPaymentType"
-                          value={formData.customPaymentType}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="e.g. USDC, Bitcoin, Ethereum, etc."
-                          required
-                        />
-                      </div>
-                    )}
                   </div>
 
                   {/* Company Logo Upload - Only show when no project selected */}
@@ -1312,7 +1291,6 @@ const PostJob: React.FC = () => {
                   workArrangement={formData.workArrangement}
                   salary={formData.salary}
                   salaryType={formData.salaryType}
-                  customPaymentType={formData.customPaymentType}
                   logo={formData.companyLogo || undefined}
                   description={formData.description}
                   requiredSkills={formData.requiredSkills}

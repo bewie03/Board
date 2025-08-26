@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCog } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTwitter, FaDiscord, FaEnvelope, FaLink } from 'react-icons/fa';
 
 export interface JobDetailPreviewProps {
   title: string;
@@ -7,8 +7,7 @@ export interface JobDetailPreviewProps {
   type: string;
   category: string;
   salary: string;
-  salaryType: 'ADA' | 'fiat' | 'custom';
-  customPaymentType?: string;
+  salaryType: 'ADA' | 'fiat';
   logo?: string;
   workArrangement: 'remote' | 'hybrid' | 'onsite';
   description: string;
@@ -54,7 +53,6 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
   category,
   salary,
   salaryType,
-  customPaymentType,
   logo,
   workArrangement,
   description,
@@ -118,12 +116,10 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
             <span className="flex items-center">
               {salaryType === 'ADA' ? (
                 <FaCoins className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              ) : salaryType === 'custom' ? (
-                <FaCog className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
               ) : (
                 <FaDollarSign className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
               )}
-              {salaryType === 'ADA' ? 'Paid in ADA' : salaryType === 'fiat' ? 'Paid in Fiat' : `Paid in ${customPaymentType || 'Custom'}`}
+              {salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
             </span>
 
             <span className="flex items-center">

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaCog } from 'react-icons/fa';
+import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus } from 'react-icons/fa';
 
 // Category mapping to match JobListings
 const JOB_CATEGORIES = [
@@ -310,9 +310,7 @@ const MyJobs: React.FC = () => {
                                 <span className="whitespace-nowrap">{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
                                 <span className="whitespace-nowrap">{job.type}</span>
                                 <span className="whitespace-nowrap">
-                                  {job.salaryType === 'ADA' ? 'Paid in ADA' : 
-                                   job.salaryType === 'CUSTOM' ? `Paid in ${job.customSalaryType || 'Custom'}` : 
-                                   'Paid in Fiat'}
+                                  {job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
                                 </span>
                                 <span className="whitespace-nowrap truncate">{job.salary}</span>
                               </div>
@@ -581,7 +579,11 @@ const MyJobs: React.FC = () => {
                         <div className="flex items-center">
                           {editingJob ? (
                             <>
-                              <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              {editFormData.salaryType === 'ADA' ? (
+                                <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              ) : (
+                                <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                              )}
                               <select
                                 value={editFormData.salaryType || ''}
                                 onChange={(e) => setEditFormData(prev => ({ ...prev, salaryType: e.target.value }))}
@@ -589,32 +591,17 @@ const MyJobs: React.FC = () => {
                               >
                                 <option value="FIAT">Paid in Fiat</option>
                                 <option value="ADA">Paid in ADA</option>
-                                <option value="CUSTOM">Custom</option>
                               </select>
-                              {editFormData.salaryType === 'CUSTOM' && (
-                                <input
-                                  type="text"
-                                  value={editFormData.customSalaryType || ''}
-                                  onChange={(e) => setEditFormData(prev => ({ ...prev, customSalaryType: e.target.value.slice(0, 10) }))}
-                                  maxLength={10}
-                                  placeholder="Custom type"
-                                  className="ml-2 text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-24"
-                                />
-                              )}
                             </>
                           ) : (
                             <>
                               {selectedJob.salaryType === 'ADA' ? (
                                 <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                              ) : selectedJob.salaryType === 'CUSTOM' ? (
-                                <FaCog className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                               ) : (
                                 <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                               )}
                               <span>
-                                {selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 
-                                 selectedJob.salaryType === 'CUSTOM' ? `Paid in ${selectedJob.customSalaryType || 'Custom'}` : 
-                                 'Paid in Fiat'}
+                                {selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
                               </span>
                             </>
                           )}

@@ -20,7 +20,6 @@ export interface JobPostingData {
   description: string;
   salary: string;
   salaryType: string;
-  customSalaryType?: string;
   category: string;
   type: string;
   contactEmail: string;
@@ -545,19 +544,24 @@ export class ContractService {
     try {
       console.log('Checking transaction status:', txHash);
       
-      // Wait for transaction confirmation
-      const confirmed = await this.lucid.awaitTx(txHash);
+      // Use awaitTx with a short timeout to avoid blocking
+      const confirmed = await Promise.race([
+        this.lucid.awaitTx(txHash),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000)) // 5 second timeout
+      ]);
       
       if (confirmed) {
         console.log('Transaction confirmed:', txHash);
         return 'confirmed';
       } else {
-        console.log('Transaction still pending:', txHash);
+        console.log('Transaction still pending (timeout or not yet confirmed):', txHash);
         return 'pending';
       }
     } catch (error) {
       console.error('Error checking transaction status:', error);
-      return 'failed';
+      // Don't immediately mark as failed - could be network issue or still pending
+      console.log('Treating as pending due to error - transaction may still be processing');
+      return 'pending';
     }
   }
 }

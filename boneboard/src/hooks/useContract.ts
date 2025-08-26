@@ -223,7 +223,6 @@ export const useContract = (): UseContractReturn => {
       description: jobData.description,
       salary: jobData.salary,
       salaryType: jobData.salaryType,
-      customSalaryType: jobData.customSalaryType,
       category: jobData.category,
       type: jobData.type,
       contactEmail: jobData.contactEmail,

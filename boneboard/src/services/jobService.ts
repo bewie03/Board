@@ -5,7 +5,6 @@ export interface Job {
   description: string;
   salary: string;
   salaryType: string;
-  customSalaryType?: string;
   category: string;
   type: string;
   contactEmail: string;
