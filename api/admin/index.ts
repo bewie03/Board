@@ -1,23 +1,33 @@
 // Admin API endpoints for platform management
-import { getPool } from '../../boneboard/src/lib/database';
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { Pool } from 'pg';
 
-interface ApiRequest {
-  method?: string;
-  url?: string;
-  headers: { [key: string]: string | undefined };
-  body?: any;
+// Database connection pool
+let pool: Pool | null = null;
+
+function getPool() {
+  if (!pool) {
+    const DATABASE_URL = process.env.DATABASE_URL;
+    
+    if (!DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    
+    pool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 1,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+  }
+  return pool;
 }
 
-interface ApiResponse {
-  status: (code: number) => ApiResponse;
-  json: (data: any) => void;
-  setHeader: (name: string, value: string) => void;
-}
-
-const ADMIN_WALLET_ADDRESS = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
+const ADMIN_WALLET_ADDRESS = process.env.ADMIN_WALLET_ADDRESS || 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
 
 // Middleware to check admin authentication
-const requireAdmin = (req: ApiRequest) => {
+const requireAdmin = (req: VercelRequest) => {
   const adminWallet = req.headers['x-wallet-address'] as string;
   if (!adminWallet || adminWallet !== ADMIN_WALLET_ADDRESS) {
     throw new Error('Unauthorized: Admin access required');
@@ -45,7 +55,15 @@ const logAdminActivity = async (
   }
 };
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-wallet-address');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   try {
     const { method } = req;
     const pool = getPool();
@@ -61,17 +79,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           if (result.rows.length === 0) {
             // Create default settings if none exist
             const defaultSettings = await pool.query(
-              `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, fee_currency, updated_by) 
-               VALUES ($1, $2, $3, $4) RETURNING *`,
-              [5.0, 10.0, 'ADA', '']
+              `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, project_listing_currency, job_listing_currency, updated_by) 
+               VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+              [50.0, 25.0, 'BONE', 'ADA', 'system']
             );
             const settings = defaultSettings.rows[0];
             return res.status(200).json({
               projectListingFee: parseFloat(settings.project_listing_fee),
               jobListingFee: parseFloat(settings.job_listing_fee),
-              projectListingCurrency: settings.fee_currency,
-              jobListingCurrency: settings.fee_currency,
-              lastUpdated: settings.updated_at,
+              projectListingCurrency: settings.project_listing_currency,
+              jobListingCurrency: settings.job_listing_currency,
+              lastUpdated: settings.created_at,
               updatedBy: settings.updated_by
             });
           }
