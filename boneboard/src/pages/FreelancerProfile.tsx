@@ -600,12 +600,24 @@ const FreelancerProfile: React.FC = () => {
       // Update the main freelancer state immediately for real-time preview
       setFreelancer(updatedFreelancer);
       
-      // Save to database via API
+      // Save to database via API - only send essential fields to avoid 413 error
       try {
+        const essentialFields = {
+          name: updatedFreelancer.name,
+          title: updatedFreelancer.title,
+          bio: updatedFreelancer.bio,
+          category: updatedFreelancer.category,
+          skills: updatedFreelancer.skills,
+          languages: updatedFreelancer.languages,
+          socialLinks,
+          workImages,
+          busyStatus
+        };
+        
         const response = await fetch(`/api/freelancers?walletAddress=${updatedFreelancer.walletAddress}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedFreelancer)
+          body: JSON.stringify(essentialFields)
         });
         if (!response.ok) throw new Error('API update failed');
         console.log('Freelancer updated successfully via API');
@@ -1290,10 +1302,6 @@ const FreelancerProfile: React.FC = () => {
                                   const newImage = event.target?.result as string;
                                   setWorkImages(prev => {
                                     const updated = prev.length < 6 ? [...prev, newImage] : prev;
-                                    // Save to freelancer data for persistence
-                                    if (freelancer) {
-                                      FreelancerService.updateFreelancer(freelancer.walletAddress, { workImages: updated } as any);
-                                    }
                                     return updated;
                                   });
                                 };

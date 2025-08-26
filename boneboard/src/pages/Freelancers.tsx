@@ -75,11 +75,85 @@ const Freelancers: React.FC = () => {
       try {
         const allFreelancers = await FreelancerService.getAllFreelancers();
         console.log('Loading freelancers:', allFreelancers.map(f => ({ name: f.name, category: f.category, avatar: f.avatar })));
-        setFreelancers(allFreelancers);
+        
+        // Load service packages for each freelancer to get pricing
+        const freelancersWithServices = await Promise.all(
+          allFreelancers.map(async (freelancer) => {
+            try {
+              const packagesResponse = await fetch(`/api/freelancers?id=${freelancer.id}&packages=true`);
+              if (packagesResponse.ok) {
+                const packagesData = await packagesResponse.json();
+                if (packagesData.packages && packagesData.packages.length > 0) {
+                  const packagesByType = packagesData.packages.reduce((acc: any, pkg: any) => {
+                    acc[pkg.package_type] = {
+                      price: pkg.price,
+                      currency: pkg.currency,
+                      deliveryTime: pkg.delivery_time,
+                      description: pkg.description,
+                      features: Array.isArray(pkg.features) ? pkg.features : ['Service delivery']
+                    };
+                    return acc;
+                  }, {});
+                  
+                  if (Object.keys(packagesByType).length > 0) {
+                    return {
+                      ...freelancer,
+                      services: [{
+                        id: `${freelancer.id}-service-0`,
+                        freelancerId: freelancer.id,
+                        walletAddress: freelancer.walletAddress,
+                        title: packagesData.packages[0]?.title || `${freelancer.title} Service`,
+                        description: freelancer.bio || 'Professional service',
+                        shortDescription: freelancer.bio?.substring(0, 100) || 'Professional service',
+                        category: freelancer.category,
+                        skills: freelancer.skills,
+                        images: ['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'],
+                        pricing: {
+                          basic: packagesByType.basic || {
+                            price: 100,
+                            currency: 'ADA',
+                            deliveryTime: '7 days',
+                            description: 'Basic Package',
+                            features: ['Basic service delivery']
+                          },
+                          standard: packagesByType.standard || {
+                            price: 150,
+                            currency: 'ADA',
+                            deliveryTime: '5 days',
+                            description: 'Standard Package',
+                            features: ['Enhanced service delivery', 'Priority support']
+                          },
+                          premium: packagesByType.premium || {
+                            price: 200,
+                            currency: 'ADA',
+                            deliveryTime: '3 days',
+                            description: 'Premium Package',
+                            features: ['Premium service delivery', 'Priority support', 'Unlimited revisions']
+                          }
+                        },
+                        rating: freelancer.rating,
+                        reviewCount: freelancer.reviewCount,
+                        completedOrders: freelancer.completedOrders,
+                        responseTime: freelancer.responseTime,
+                        isActive: true,
+                        createdAt: new Date().toISOString()
+                      }]
+                    };
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(`Error loading packages for freelancer ${freelancer.id}:`, error);
+            }
+            return freelancer;
+          })
+        );
+        
+        setFreelancers(freelancersWithServices);
         
         // Check if current user has a freelancer profile
         if (walletAddress) {
-          const profile = await FreelancerService.getFreelancerByWallet(walletAddress);
+          const profile = freelancersWithServices.find(f => f.walletAddress === walletAddress);
           setUserProfile(profile || null);
         }
       } catch (error) {

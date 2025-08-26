@@ -82,7 +82,9 @@ class FreelancerServiceClass {
           walletAddress: freelancer.wallet_address,
           isOnline: freelancer.is_online || false,
           busyStatus: freelancer.busy_status || 'available',
-          services: [] // Services will be loaded separately if needed
+          services: [], // Services will be loaded separately if needed
+          socialLinks: freelancer.social_links ? (typeof freelancer.social_links === 'string' ? JSON.parse(freelancer.social_links) : freelancer.social_links) : {},
+          workImages: freelancer.work_images || []
         }));
       }
     } catch (error) {
