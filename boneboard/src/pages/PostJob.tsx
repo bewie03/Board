@@ -390,7 +390,7 @@ const PostJob: React.FC = () => {
                 <option value="">-- Select a project --</option>
                 {userProjects.map((project) => (
                   <option key={project.id} value={project.id}>
-                    {project.name}
+                    {project.name || project.title}
                   </option>
                 ))}
               </select>
