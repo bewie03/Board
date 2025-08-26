@@ -4,6 +4,8 @@ import { requireAdminAuth } from '../utils/adminAuth';
 export interface PlatformSettings {
   projectListingFee: number;
   jobListingFee: number;
+  projectListingFeeAda?: number;
+  jobListingFeeAda?: number;
   projectListingCurrency: 'ADA' | 'BONE';
   jobListingCurrency: 'ADA' | 'BONE';
   lastUpdated: string;
@@ -33,8 +35,10 @@ export class AdminService {
       console.error('Error getting platform settings:', error);
       // Return default settings if API fails
       return {
-        projectListingFee: 50,
-        jobListingFee: 25,
+        projectListingFee: 500,
+        jobListingFee: 250,
+        projectListingFeeAda: 50,
+        jobListingFeeAda: 25,
         projectListingCurrency: 'BONE',
         jobListingCurrency: 'ADA',
         lastUpdated: new Date().toISOString(),

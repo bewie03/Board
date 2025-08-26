@@ -87,17 +87,18 @@ const PostJob: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [platformPricing, setPlatformPricing] = useState<{jobListingFee: number, jobListingCurrency: string} | null>(null);
+  const [platformPricing, setPlatformPricing] = useState<{jobListingFee: number, jobListingFeeAda: number, jobListingCurrency: string} | null>(null);
 
   // Load platform pricing on component mount
   useEffect(() => {
     const loadPricing = async () => {
       try {
-        const response = await fetch('/api/admin/settings');
+        const response = await fetch('/api/admin?type=settings');
         if (response.ok) {
           const data = await response.json();
           setPlatformPricing({
             jobListingFee: data.jobListingFee,
+            jobListingFeeAda: data.jobListingFeeAda,
             jobListingCurrency: data.jobListingCurrency
           });
         }
@@ -105,7 +106,8 @@ const PostJob: React.FC = () => {
         console.error('Error loading pricing:', error);
         // Set default pricing if API fails
         setPlatformPricing({
-          jobListingFee: 25,
+          jobListingFee: 250,
+          jobListingFeeAda: 25,
           jobListingCurrency: 'ADA'
         });
       }
@@ -123,16 +125,64 @@ const PostJob: React.FC = () => {
       };
     }
 
-    const basePrice = platformPricing.jobListingFee;
-    const currency = platformPricing.jobListingCurrency;
+    // Get base price based on payment method
+    const basePrice = formData.paymentMethod === 'BONE' 
+      ? platformPricing.jobListingFee 
+      : platformPricing.jobListingFeeAda;
     
-    let displayText = `${basePrice} ${currency}`;
+    const currency = formData.paymentMethod;
+    
+    // Apply duration discounts (1 month = base price)
+    const durationMultiplier = getDurationMultiplier(formData.listingDuration);
+    let finalPrice = basePrice * durationMultiplier;
+    
+    // Apply featured job cost (+50%)
+    if (formData.featured) {
+      finalPrice = finalPrice * 1.5;
+    }
+    
+    // Apply 20% project discount if project selected
+    if (selectedProject) {
+      finalPrice = finalPrice * 0.8;
+    }
+    
+    // Round to reasonable precision
+    finalPrice = Math.round(finalPrice * 100) / 100;
+    
+    let displayText = `${finalPrice} ${currency}`;
+    
+    // Add discount indicators
+    if (selectedProject && formData.listingDuration > 1) {
+      displayText += ` (20% project + ${getDurationDiscount(formData.listingDuration)}% duration discount)`;
+    } else if (selectedProject) {
+      displayText += ` (20% project discount)`;
+    } else if (formData.listingDuration > 1) {
+      displayText += ` (${getDurationDiscount(formData.listingDuration)}% duration discount)`;
+    }
     
     return {
-      amount: basePrice,
+      amount: finalPrice,
       displayText,
       currency: currency
     };
+  };
+  
+  // Duration multipliers with progressive discounts
+  const getDurationMultiplier = (months: number) => {
+    const discounts = {
+      1: 1.0,    // Base price
+      2: 1.9,    // 5% discount
+      3: 2.7,    // 10% discount  
+      6: 5.1,    // 15% discount
+      12: 9.6    // 20% discount
+    };
+    return discounts[months as keyof typeof discounts] || months;
+  };
+  
+  // Get discount percentage for display
+  const getDurationDiscount = (months: number) => {
+    const discounts = { 1: 0, 2: 5, 3: 10, 6: 15, 12: 20 };
+    return discounts[months as keyof typeof discounts] || 0;
   };
   
   const totalCost = calculateTotal();
@@ -813,7 +863,11 @@ const PostJob: React.FC = () => {
                       }}
                         required
                       >
-                        <option value={1}>1 Month - {totalCost.amount} {totalCost.currency}</option>
+                        <option value={1}>1 Month - Base Price</option>
+                        <option value={2}>2 Months - 5% Discount</option>
+                        <option value={3}>3 Months - 10% Discount</option>
+                        <option value={6}>6 Months - 15% Discount</option>
+                        <option value={12}>12 Months - 20% Discount</option>
                       </select>
                     </div>
                     
@@ -863,18 +917,17 @@ const PostJob: React.FC = () => {
                           id="featured"
                           name="featured"
                           type="checkbox"
-                          checked={false}
-                          disabled={true}
-                          onChange={() => {}}
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                          checked={formData.featured}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded cursor-pointer"
                         />
                       </div>
                       <div className="ml-3 text-sm">
-                        <label htmlFor="featured" className="font-medium text-gray-700">
-                          ★ Feature this job listing (Coming Soon)
+                        <label htmlFor="featured" className="font-medium text-gray-700 cursor-pointer">
+                          ★ Feature this job listing (+50% cost)
                         </label>
                         <p className="text-gray-600 mt-1">
-                          Featured job functionality will be available in a future update. For now, all jobs get equal visibility.
+                          Featured jobs appear at the top of search results and get highlighted styling for maximum visibility.
                         </p>
                       </div>
                     </div>

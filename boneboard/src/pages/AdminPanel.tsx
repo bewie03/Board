@@ -228,73 +228,124 @@ const PricingSettings: React.FC<{
   onUpdate: (settings: Partial<PlatformSettings>) => Promise<void>;
   loading: boolean;
 }> = ({ settings, onUpdate, loading }) => {
-  const [projectFee, setProjectFee] = useState(settings.projectListingFee);
-  const [jobFee, setJobFee] = useState(settings.jobListingFee);
-  const [projectCurrency, setProjectCurrency] = useState(settings.projectListingCurrency);
-  const [jobCurrency, setJobCurrency] = useState(settings.jobListingCurrency);
+  const [projectFeeBone, setProjectFeeBone] = useState(settings.projectListingFee);
+  const [jobFeeBone, setJobFeeBone] = useState(settings.jobListingFee);
+  const [projectFeeAda, setProjectFeeAda] = useState((settings as any).projectListingFeeAda || settings.projectListingFee);
+  const [jobFeeAda, setJobFeeAda] = useState((settings as any).jobListingFeeAda || settings.jobListingFee);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onUpdate({
-      projectListingFee: projectFee,
-      jobListingFee: jobFee,
-      projectListingCurrency: projectCurrency,
-      jobListingCurrency: jobCurrency,
+      projectListingFee: projectFeeBone,
+      jobListingFee: jobFeeBone,
+      projectListingFeeAda: projectFeeAda,
+      jobListingFeeAda: jobFeeAda,
+      projectListingCurrency: settings.projectListingCurrency,
+      jobListingCurrency: settings.jobListingCurrency,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Project Listing Fee */}
+      <div className="space-y-8">
+        {/* Project Listing Fees */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Project Listing Fee
-          </label>
-          <div className="flex">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={projectFee}
-              onChange={(e) => setProjectFee(parseFloat(e.target.value))}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-            <select
-              value={projectCurrency}
-              onChange={(e) => setProjectCurrency(e.target.value as 'ADA' | 'BONE')}
-              className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="ADA">ADA</option>
-              <option value="BONE">BONE</option>
-            </select>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Project Listing Fees</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                BONE Price (Base Price)
+              </label>
+              <div className="flex">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={projectFeeBone}
+                  onChange={(e) => setProjectFeeBone(parseFloat(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
+                  BONE
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ADA Price (Alternative)
+              </label>
+              <div className="flex">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={projectFeeAda}
+                  onChange={(e) => setProjectFeeAda(parseFloat(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
+                  ADA
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Job Listing Fee */}
+        {/* Job Listing Fees */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Job Listing Fee
-          </label>
-          <div className="flex">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={jobFee}
-              onChange={(e) => setJobFee(parseFloat(e.target.value))}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-            <select
-              value={jobCurrency}
-              onChange={(e) => setJobCurrency(e.target.value as 'ADA' | 'BONE')}
-              className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="ADA">ADA</option>
-              <option value="BONE">BONE</option>
-            </select>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Job Listing Fees</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                BONE Price (Base Price)
+              </label>
+              <div className="flex">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={jobFeeBone}
+                  onChange={(e) => setJobFeeBone(parseFloat(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
+                  BONE
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ADA Price (Alternative)
+              </label>
+              <div className="flex">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={jobFeeAda}
+                  onChange={(e) => setJobFeeAda(parseFloat(e.target.value))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
+                  ADA
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Info */}
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <h4 className="text-sm font-medium text-blue-900 mb-2">Pricing Structure</h4>
+          <div className="text-sm text-blue-800 space-y-1">
+            <p>• Base price is for 1-month listings</p>
+            <p>• Duration discounts: 2mo (5%), 3mo (10%), 6mo (15%), 12mo (20%)</p>
+            <p>• Project listings get 20% discount</p>
+            <p>• Featured listings cost +50%</p>
           </div>
         </div>
       </div>
