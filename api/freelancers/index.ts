@@ -1,13 +1,19 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
-import { 
-  getFreelancerByWallet, 
-  getAllFreelancers, 
-  createFreelancer, 
-  updateFreelancer,
-  getUserByWallet,
-  createUser
-} from '../../boneboard/src/lib/database';
+// Import database functions with error handling
+let dbFunctions: any = null;
+
+async function getDbFunctions() {
+  if (!dbFunctions) {
+    try {
+      dbFunctions = await import('../../boneboard/src/lib/database');
+    } catch (error) {
+      console.error('Failed to import database functions:', error);
+      throw new Error('Database connection failed');
+    }
+  }
+  return dbFunctions;
+}
 
 // Database connection for packages functionality
 let pool: any = null;
@@ -246,11 +252,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         } else if (req.query.walletAddress) {
           // Get freelancer by wallet address
-          const freelancer = await getFreelancerByWallet(req.query.walletAddress as string);
+          const db = await getDbFunctions();
+          const freelancer = await db.getFreelancerByWallet(req.query.walletAddress as string);
           return res.status(200).json(freelancer);
         } else {
           // Get all freelancers
-          const freelancers = await getAllFreelancers();
+          const db = await getDbFunctions();
+          const freelancers = await db.getAllFreelancers();
           return res.status(200).json(freelancers);
         }
 
@@ -264,9 +272,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const freelancerData = req.body;
         
         // First, create or get user
-        let user = await getUserByWallet(freelancerData.walletAddress);
+        const dbFuncs = await getDbFunctions();
+        let user = await dbFuncs.getUserByWallet(freelancerData.walletAddress);
         if (!user) {
-          user = await createUser(freelancerData.walletAddress);
+          user = await dbFuncs.createUser(freelancerData.walletAddress);
         }
         
         // Transform frontend data to match database schema
@@ -290,7 +299,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           workImages: freelancerData.workImages || freelancerData.workExamples || []
         };
         
-        const newFreelancer = await createFreelancer(dbFreelancerData);
+        const newFreelancer = await dbFuncs.createFreelancer(dbFreelancerData);
         return res.status(201).json(newFreelancer);
 
       case 'PUT':
@@ -298,7 +307,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!req.query.walletAddress) {
           return res.status(400).json({ error: 'Wallet address required' });
         }
-        const updatedFreelancer = await updateFreelancer(
+        const dbUpdate = await getDbFunctions();
+        const updatedFreelancer = await dbUpdate.updateFreelancer(
           req.query.walletAddress as string,
           req.body
         );
