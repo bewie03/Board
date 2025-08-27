@@ -293,13 +293,6 @@ const MyJobs: React.FC = () => {
                               <p className="text-sm text-gray-600 mb-2">
                                 {job.company}
                               </p>
-                              {/* Job Details - Simple text only */}
-                              <div className="flex items-center gap-x-3 text-xs text-gray-600 mt-2 overflow-hidden">
-                                <span className="whitespace-nowrap">
-                                  {job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
-                                </span>
-                                <span className="whitespace-nowrap truncate">{job.salary}</span>
-                              </div>
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
@@ -346,18 +339,14 @@ const MyJobs: React.FC = () => {
                           </div>
                         </div>
                         
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                           {job.description}
                         </p>
                         
                         <div className="flex items-center justify-between">
                           <div className="text-xs text-gray-500">
-                            Posted {new Date(job.createdAt).toLocaleDateString()}
+                            Posted {new Date(job.createdAt).toLocaleDateString()} • Expires {getExpiryTimeString(job.expiresAt)}
                           </div>
-                        </div>
-                        
-                        <div className="mt-3 text-xs text-gray-500">
-                          Expires {getExpiryTimeString(job.expiresAt)}
                         </div>
                       </div>
                     </motion.div>
