@@ -84,14 +84,16 @@ const AdminPanel: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
-                <FaShieldAlt className="h-8 w-8 text-blue-600 mr-3" />
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                  <FaShieldAlt className="h-6 w-6 text-blue-600" />
+                </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-                  <p className="text-sm text-gray-600">Platform Management Dashboard</p>
+                  <p className="text-sm text-blue-600">Platform Management Dashboard</p>
                 </div>
               </div>
-              <div className="bg-blue-100 px-3 py-1 rounded-full">
-                <span className="text-sm font-medium text-blue-800">Admin Mode</span>
+              <div className="bg-blue-600 px-4 py-2 rounded-xl">
+                <span className="text-sm font-semibold text-white">Admin Mode</span>
               </div>
             </div>
           </div>
@@ -99,39 +101,39 @@ const AdminPanel: React.FC = () => {
 
         {/* Navigation Tabs */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
+          <div className="bg-white rounded-xl shadow-sm border border-blue-100">
+            <nav className="flex space-x-1 p-2">
               <button
                 onClick={() => setActiveTab('reports')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                   activeTab === 'reports'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-blue-600 hover:bg-blue-50'
                 }`}
               >
-                <FaChartBar className="inline mr-2" />
+                <FaChartBar className="mr-2 h-4 w-4" />
                 Reports
               </button>
               <button
                 onClick={() => setActiveTab('pricing')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                   activeTab === 'pricing'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-blue-600 hover:bg-blue-50'
                 }`}
               >
-                <FaDollarSign className="inline mr-2" />
+                <FaDollarSign className="mr-2 h-4 w-4" />
                 Pricing
               </button>
               <button
                 onClick={() => setActiveTab('bugs')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                   activeTab === 'bugs'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-blue-600 hover:bg-blue-50'
                 }`}
               >
-                <FaBug className="inline mr-2" />
+                <FaBug className="mr-2 h-4 w-4" />
                 Bug Reports
               </button>
             </nav>
@@ -151,16 +153,25 @@ const AdminPanel: React.FC = () => {
 
           {/* Reports Tab */}
           {activeTab === 'reports' && (
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">User Reports</h2>
-                <p className="text-sm text-gray-600">Manage reported projects and job listings</p>
+            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
+              <div className="px-6 py-5 border-b border-blue-100">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <FaChartBar className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">User Reports</h2>
+                    <p className="text-sm text-blue-600">Manage reported projects and job listings</p>
+                  </div>
+                </div>
               </div>
-              <div className="p-6">
-                <div className="text-center py-12">
-                  <FaChartBar className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">No Reports Yet</h3>
-                  <p className="mt-2 text-gray-600">User reporting system will be implemented here</p>
+              <div className="p-8">
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FaChartBar className="h-10 w-10 text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reports Yet</h3>
+                  <p className="text-blue-600">User reporting system will be implemented here</p>
                 </div>
               </div>
             </div>
@@ -168,10 +179,17 @@ const AdminPanel: React.FC = () => {
 
           {/* Pricing Tab */}
           {activeTab === 'pricing' && (
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Platform Pricing</h2>
-                <p className="text-sm text-gray-600">Manage listing fees and pricing structure</p>
+            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
+              <div className="px-6 py-5 border-b border-blue-100">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <FaDollarSign className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Platform Pricing</h2>
+                    <p className="text-sm text-blue-600">Manage listing fees and pricing structure</p>
+                  </div>
+                </div>
               </div>
               <div className="p-6">
                 {loading ? (
@@ -202,16 +220,25 @@ const AdminPanel: React.FC = () => {
 
           {/* Bug Reports Tab */}
           {activeTab === 'bugs' && (
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Bug Reports</h2>
-                <p className="text-sm text-gray-600">Track and manage platform issues</p>
+            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
+              <div className="px-6 py-5 border-b border-blue-100">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <FaBug className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Bug Reports</h2>
+                    <p className="text-sm text-blue-600">Track and manage platform issues</p>
+                  </div>
+                </div>
               </div>
-              <div className="p-6">
-                <div className="text-center py-12">
-                  <FaBug className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">No Bug Reports</h3>
-                  <p className="mt-2 text-gray-600">Bug reporting system will be implemented here</p>
+              <div className="p-8">
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FaBug className="h-10 w-10 text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Bug Reports</h3>
+                  <p className="text-blue-600">Bug reporting system will be implemented here</p>
                 </div>
               </div>
             </div>
@@ -249,14 +276,14 @@ const PricingSettings: React.FC<{
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-8">
         {/* Project Listing Fees */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+        <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
           <div className="flex items-center mb-6">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-              <FaDollarSign className="h-5 w-5 text-blue-600" />
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mr-4 shadow-sm">
+              <FaShieldAlt className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Project Listing Fees</h3>
-              <p className="text-sm text-gray-600">Set pricing for project submissions</p>
+              <p className="text-sm text-blue-700">Set pricing for project submissions</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -302,14 +329,14 @@ const PricingSettings: React.FC<{
         </div>
 
         {/* Job Listing Fees */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+        <div className="bg-white rounded-xl p-6 border border-blue-200">
           <div className="flex items-center mb-6">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-              <FaDollarSign className="h-5 w-5 text-green-600" />
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+              <FaChartBar className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Job Listing Fees</h3>
-              <p className="text-sm text-gray-600">Set pricing for job postings</p>
+              <p className="text-sm text-blue-600">Set pricing for job postings</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -355,32 +382,40 @@ const PricingSettings: React.FC<{
         </div>
 
         {/* Pricing Info */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-              <FaChartBar className="h-4 w-4 text-purple-600" />
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 shadow-sm">
+              <FaBug className="h-5 w-5 text-blue-600" />
             </div>
-            <h4 className="text-lg font-semibold text-purple-900">Pricing Structure</h4>
+            <h4 className="text-lg font-semibold text-gray-900">Pricing Structure</h4>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <div className="flex items-center text-sm text-purple-800">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span>Base price is for 1-month listings</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                  <span className="text-white text-xs font-bold">1</span>
+                </div>
+                <span className="text-sm text-gray-700">Base price is for 1-month listings</span>
               </div>
-              <div className="flex items-center text-sm text-purple-800">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span>Project listings get 20% discount</span>
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                  <span className="text-white text-xs font-bold">2</span>
+                </div>
+                <span className="text-sm text-gray-700">Project listings get 20% discount</span>
               </div>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center text-sm text-purple-800">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span>Duration discounts: 2mo (5%), 3mo (10%), 6mo (15%), 12mo (20%)</span>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                  <span className="text-white text-xs font-bold">3</span>
+                </div>
+                <span className="text-sm text-gray-700">Duration discounts: 2mo (5%), 3mo (10%), 6mo (15%), 12mo (20%)</span>
               </div>
-              <div className="flex items-center text-sm text-purple-800">
-                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                <span>Featured listings cost +50%</span>
+              <div className="flex items-start">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                  <span className="text-white text-xs font-bold">4</span>
+                </div>
+                <span className="text-sm text-gray-700">Featured listings cost +50%</span>
               </div>
             </div>
           </div>
@@ -388,21 +423,21 @@ const PricingSettings: React.FC<{
       </div>
 
       {/* Current Settings Info */}
-      <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl border border-gray-200">
-        <div className="flex items-center mb-3">
-          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-            <FaShieldAlt className="h-4 w-4 text-gray-600" />
+      <div className="bg-white p-6 rounded-xl border border-blue-200">
+        <div className="flex items-center mb-4">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+            <FaShieldAlt className="h-5 w-5 text-blue-600" />
           </div>
           <h4 className="text-lg font-semibold text-gray-900">Current Settings</h4>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
-            <span><strong>Last updated:</strong> {new Date(settings.lastUpdated).toLocaleString()}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+            <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+            <span className="text-sm text-gray-700"><strong>Last updated:</strong> {new Date(settings.lastUpdated).toLocaleString()}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
-            <span><strong>Updated by:</strong> {settings.updatedBy}</span>
+          <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+            <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+            <span className="text-sm text-gray-700"><strong>Updated by:</strong> {settings.updatedBy}</span>
           </div>
         </div>
       </div>
@@ -412,7 +447,7 @@ const PricingSettings: React.FC<{
         <button
           type="submit"
           disabled={loading}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 shadow-lg"
+          className="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
         >
           {loading ? (
             <div className="flex items-center">
