@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload, FaCoins, FaDollarSign } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
 import CustomSelect from '../components/CustomSelect';
@@ -52,7 +52,8 @@ const PostJob: React.FC = () => {
     type: 'Full-time',
     category: 'development',
     salary: '',
-    salaryType: 'ADA' as 'ADA' | 'fiat',
+    salaryType: 'ADA' as 'ADA' | 'FIAT' | 'Custom',
+    customCurrency: '',
     description: '',
     requiredSkills: [] as string[],
     additionalInfo: [] as string[],
@@ -558,10 +559,10 @@ const PostJob: React.FC = () => {
                     />
                   </div>
 
-                  {/* Salary and Payment Type */}
+                  {/* Salary and Currency */}
                   <div className="space-y-2 sm:col-span-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700">
                           Salary *
                         </label>
@@ -569,38 +570,49 @@ const PostJob: React.FC = () => {
                           type="text"
                           name="salary"
                           value={formData.salary}
-                          onChange={handleChange}
+                          onChange={(e) => {
+                            // Only allow numbers, commas, and dashes
+                            const value = e.target.value.replace(/[^0-9,-]/g, '');
+                            setFormData(prev => ({ ...prev, salary: value }));
+                          }}
                           maxLength={18}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="e.g. $80k-90k USD"
+                          placeholder="e.g. 80,000-90,000"
                           required
                         />
                       </div>
                       <div>
-                        <div className="flex items-center">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Payment Type *
-                          </label>
-                          <div className="ml-2">
-                            {formData.salaryType === 'ADA' ? (
-                              <FaCoins className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <FaDollarSign className="h-4 w-4 text-gray-400" />
-                            )}
-                          </div>
-                        </div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Currency *
+                        </label>
                         <CustomSelect
                           name="salaryType"
                           options={[
-                            { value: 'ADA', label: 'ADA' },
-                            { value: 'fiat', label: 'Fiat' }
+                            { value: 'ADA', label: '₳ ADA' },
+                            { value: 'FIAT', label: '$ FIAT' },
+                            { value: 'Custom', label: 'Custom' }
                           ]}
                           value={formData.salaryType}
-                          onChange={(value) => setFormData(prev => ({ ...prev, salaryType: value as 'ADA' | 'fiat' }))}
+                          onChange={(value) => setFormData(prev => ({ ...prev, salaryType: value as 'ADA' | 'FIAT' | 'Custom' }))}
                         />
                       </div>
                     </div>
-                    
+                    {formData.salaryType === 'Custom' && (
+                      <div className="mt-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Custom Currency
+                        </label>
+                        <input
+                          type="text"
+                          name="customCurrency"
+                          value={formData.customCurrency || ''}
+                          onChange={(e) => setFormData(prev => ({ ...prev, customCurrency: e.target.value }))}
+                          maxLength={10}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="e.g. USD, EUR, AUD"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Company Logo Upload - Only show when no project selected */}
@@ -1288,6 +1300,7 @@ const PostJob: React.FC = () => {
                   workArrangement={formData.workArrangement}
                   salary={formData.salary}
                   salaryType={formData.salaryType}
+                  customCurrency={formData.customCurrency}
                   logo={formData.companyLogo || undefined}
                   description={formData.description}
                   requiredSkills={formData.requiredSkills}

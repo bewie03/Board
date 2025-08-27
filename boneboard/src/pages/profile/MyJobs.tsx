@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEdit, FaClock, FaDollarSign, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaCoins, FaLink, FaTwitter } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaLink, FaTwitter } from 'react-icons/fa';
 import CustomSelect from '../../components/CustomSelect';
 import { JOB_CATEGORIES } from '../../constants/categories';
 
@@ -555,38 +555,7 @@ const MyJobs: React.FC = () => {
                               placeholder="Salary"
                             />
                           ) : (
-                            <span>{selectedJob.salary}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          {editingJob ? (
-                            <>
-                              {editFormData.salaryType === 'ADA' ? (
-                                <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                              ) : (
-                                <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                              )}
-                              <CustomSelect
-                                options={[
-                                  { value: 'FIAT', label: 'Paid in Fiat' },
-                                  { value: 'ADA', label: 'Paid in ADA' }
-                                ]}
-                                value={editFormData.salaryType || ''}
-                                onChange={(value) => setEditFormData(prev => ({ ...prev, salaryType: value }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                              />
-                            </>
-                          ) : (
-                            <>
-                              {selectedJob.salaryType === 'ADA' ? (
-                                <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                              ) : (
-                                <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                              )}
-                              <span>
-                                {selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
-                              </span>
-                            </>
+                            <span>{selectedJob.salary} {selectedJob.salaryType === 'ADA' ? '₳' : selectedJob.salaryType === 'FIAT' ? 'FIAT' : selectedJob.customCurrency || ''}</span>
                           )}
                         </div>
                       </div>

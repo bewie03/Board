@@ -7,7 +7,8 @@ export interface JobCardPreviewProps {
   location: string;
   type: string;
   salary: string;
-  salaryType: 'crypto' | 'fiat';
+  salaryType: 'ADA' | 'FIAT' | 'Custom';
+  customCurrency?: string;
   logo?: string;
   category?: string;
 }
@@ -19,6 +20,7 @@ const JobCardPreview: React.FC<JobCardPreviewProps> = ({
   type,
   salary,
   salaryType,
+  customCurrency,
   logo = '/Logo.png',
   category = 'Development'
 }) => {
@@ -49,39 +51,23 @@ const JobCardPreview: React.FC<JobCardPreviewProps> = ({
           </div>
         </div>
         
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-3 gap-4">
           <div className="flex items-center text-sm text-gray-600">
             <FaMapMarkerAlt className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
             <span className="truncate">{location || 'Location'}</span>
           </div>
           
           <div className="flex items-center text-sm text-gray-600">
-            <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-            <span>{new Date().toISOString().split('T')[0]}</span>
-          </div>
-          
-          <div className="flex items-center text-sm text-gray-600">
             <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-            <span className="truncate">{salary || 'Salary'}</span>
+            <span className="truncate">{salary || 'Salary'} {salaryType === 'ADA' ? '₳' : salaryType === 'FIAT' ? 'FIAT' : customCurrency || ''}</span>
           </div>
           
           <div className="flex items-center text-sm text-gray-600">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-              {salaryType === 'crypto' ? 'Paid in ADA' : 'Paid in Fiat'}
-            </span>
+            <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+            <span>{type || 'Full-time'}</span>
           </div>
         </div>
         
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              {type || 'Full-time'}
-            </span>
-            <span className="text-sm text-gray-500">
-              {location === 'Remote' ? '🌍 Remote' : '📍 On-site'}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );

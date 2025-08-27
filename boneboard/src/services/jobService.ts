@@ -4,7 +4,8 @@ export interface Job {
   company: string;
   description: string;
   salary: string;
-  salaryType: string;
+  salaryType: 'ADA' | 'FIAT' | 'Custom';
+  customCurrency?: string;
   category: string;
   type: string;
   contactEmail: string;

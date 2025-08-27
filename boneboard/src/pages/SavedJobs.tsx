@@ -341,15 +341,7 @@ const SavedJobs: React.FC = () => {
                         </span>
                         <span className="flex items-center">
                           <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                          {job.salary}
-                        </span>
-                        <span className="flex items-center">
-                          {job.salaryType === 'ADA' ? (
-                            <FaCoins className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                          ) : (
-                            <FaDollarSign className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                          )}
-                          {job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
+                          {job.salary} {job.salaryType === 'ADA' ? '₳' : job.salaryType === 'FIAT' ? 'FIAT' : (job as any).customCurrency || ''}
                         </span>
                         <span className="flex items-center">
                           <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
