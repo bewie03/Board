@@ -1,7 +1,6 @@
 // Project verification badge component
 import React from 'react';
-import { FaShieldAlt } from 'react-icons/fa';
-import { isVerifiedProject, getProjectStatusDisplay, getProjectStatusClasses } from '../utils/adminAuth';
+import { getProjectStatusDisplay, getProjectStatusClasses } from '../utils/adminAuth';
 
 interface ProjectVerificationBadgeProps {
   status: string;
@@ -16,7 +15,7 @@ export const ProjectVerificationBadge: React.FC<ProjectVerificationBadgeProps> =
   size = 'md',
   showText = true 
 }) => {
-  const isVerified = isVerifiedProp !== undefined ? isVerifiedProp : isVerifiedProject(status);
+  const isVerified = isVerifiedProp !== undefined ? isVerifiedProp : status === 'verified';
   
   const sizeClasses = {
     sm: 'text-xs px-2 py-1',
@@ -24,16 +23,10 @@ export const ProjectVerificationBadge: React.FC<ProjectVerificationBadgeProps> =
     lg: 'text-base px-4 py-2'
   };
 
-  const iconSizes = {
-    sm: 12,
-    md: 16,
-    lg: 20
-  };
-
   if (isVerified) {
     return (
-      <div className={`inline-flex items-center gap-1 rounded-full font-medium border ${getProjectStatusClasses(status)} ${sizeClasses[size]}`}>
-        <FaShieldAlt size={iconSizes[size]} className="text-green-600" />
+      <div className={`inline-flex items-center gap-1 rounded-full font-medium bg-blue-100 text-blue-800 border border-blue-200 ${sizeClasses[size]}`}>
+        <span className="text-blue-600">✓</span>
         {showText && (
           <span>Verified</span>
         )}

@@ -116,7 +116,7 @@ const Projects: React.FC = () => {
     setCreatedProjects(prev => 
       prev.map(project => 
         project.id === projectId 
-          ? { ...project, status: verified ? 'verified' : 'active' }
+          ? { ...project, isVerified: verified }
           : project
       )
     );
@@ -125,7 +125,7 @@ const Projects: React.FC = () => {
     if (selectedProject && selectedProject.id.toString() === projectId) {
       setSelectedProject(prev => prev ? {
         ...prev,
-        status: verified ? 'verified' : 'active'
+        isVerified: verified
       } : null);
     }
   };
@@ -391,8 +391,6 @@ const Projects: React.FC = () => {
                               onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
                             />
                           )}
-                          {/* Temporary debug - remove after confirming it works */}
-                          {isAdmin && <span className="text-xs text-green-600 ml-2">ADMIN</span>}
                         </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -490,8 +488,6 @@ const Projects: React.FC = () => {
                               onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
                             />
                           )}
-                          {/* Temporary debug - remove after confirming it works */}
-                          {isAdmin && <span className="text-xs text-green-600 ml-2">ADMIN</span>}
                         </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
