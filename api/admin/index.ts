@@ -269,9 +269,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             console.log('Verifying project:', projectId, 'by admin:', adminWallet);
 
-            // First check if project exists
+            // First check if project exists and get current status
             console.log('Checking if project exists...');
-            const projectCheck = await pool.query('SELECT id FROM projects WHERE id = $1', [projectId]);
+            const projectCheck = await pool.query('SELECT id, status, user_id, is_verified FROM projects WHERE id = $1', [projectId]);
             console.log('Project check result:', projectCheck.rows);
             
             if (projectCheck.rows.length === 0) {
