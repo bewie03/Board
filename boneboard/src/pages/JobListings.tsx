@@ -871,25 +871,25 @@ const JobListings: React.FC = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold text-gray-900">{selectedJob.title}</h3>
-                        <div className="mt-2">
-                          <p className="text-lg text-gray-600 flex items-center">
+                        <div className="mt-2 flex items-center">
+                          <span className="text-lg text-gray-600">
                             {selectedJob.company}
-                            {selectedJob.isProjectVerified && (
-                              <div 
-                                className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
-                                title="Verified project"
-                              >
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
-                          </p>
-                          <div className="mt-2">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
-                              {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
-                            </span>
-                          </div>
+                          </span>
+                          {selectedJob.isProjectVerified && (
+                            <div 
+                              className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
+                              title="Verified project"
+                            >
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-2">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
+                            {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
+                          </span>
                         </div>
                       </div>
                       <div className="ml-3 flex-shrink-0">
