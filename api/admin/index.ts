@@ -255,6 +255,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             console.log('Processing VERIFY request...');
             console.log('Admin wallet from header:', req.headers['x-wallet-address']);
             console.log('Expected admin wallet:', ADMIN_WALLET_ADDRESS);
+            console.log('Environment ADMIN_WALLET_ADDRESS:', process.env.ADMIN_WALLET_ADDRESS);
+            console.log('Database URL exists:', !!process.env.DATABASE_URL);
+            console.log('Postgres URL exists:', !!process.env.POSTGRES_URL);
             
             const adminWallet = requireAdmin(req);
             const projectId = req.query.projectId as string;
