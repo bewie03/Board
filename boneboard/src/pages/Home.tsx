@@ -10,6 +10,7 @@ const Home: React.FC = () => {
   const [jobCount, setJobCount] = useState(0);
   const [projectCount, setProjectCount] = useState(0);
   const [boneBurnt, setBoneBurnt] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -34,6 +35,8 @@ const Home: React.FC = () => {
         setJobCount(0);
         setProjectCount(0);
         setBoneBurnt(0);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -204,8 +207,17 @@ const Home: React.FC = () => {
             >
               <Link to="/jobs" className="block">
                 <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-center border border-gray-200 hover:border-blue-300 cursor-pointer">
-                  <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{jobCount}</div>
-                  <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Active Jobs</div>
+                  {loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-10 bg-blue-200 rounded mb-3 mx-auto w-16"></div>
+                      <div className="h-6 bg-gray-200 rounded mx-auto w-24"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{jobCount}</div>
+                      <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Active Jobs</div>
+                    </>
+                  )}
                 </div>
               </Link>
             </motion.div>
@@ -218,8 +230,17 @@ const Home: React.FC = () => {
             >
               <Link to="/projects" className="block">
                 <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-center border border-gray-200 hover:border-blue-300 cursor-pointer">
-                  <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{projectCount}</div>
-                  <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Total Projects</div>
+                  {loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-10 bg-blue-200 rounded mb-3 mx-auto w-16"></div>
+                      <div className="h-6 bg-gray-200 rounded mx-auto w-32"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{projectCount}</div>
+                      <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Total Projects</div>
+                    </>
+                  )}
                 </div>
               </Link>
             </motion.div>
@@ -231,8 +252,17 @@ const Home: React.FC = () => {
               className="group cursor-pointer"
             >
               <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-center border border-gray-200 hover:border-blue-300">
-                <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{boneBurnt}</div>
-                <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Total $BONE Burnt</div>
+                {loading ? (
+                  <div className="animate-pulse">
+                    <div className="h-10 bg-blue-200 rounded mb-3 mx-auto w-16"></div>
+                    <div className="h-6 bg-gray-200 rounded mx-auto w-40"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{boneBurnt}</div>
+                    <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Total $BONE Burnt</div>
+                  </>
+                )}
               </div>
             </motion.div>
           </div>
@@ -247,11 +277,11 @@ const Home: React.FC = () => {
               className="group"
             >
               <Link to="/jobs" className="block">
-                <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 hover:border-blue-300 h-full">
-                  <div className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-xl text-white mb-4 group-hover:scale-110 transition-all duration-300 shadow-md">
-                    <FaBriefcase className="h-7 w-7" />
+                <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 hover:border-blue-300 h-full flex flex-col items-center text-center">
+                  <div className="flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl text-white mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
+                    <FaBriefcase className="h-8 w-8" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
                     Job Listings
                   </h3>
                   <p className="text-gray-700 leading-relaxed text-lg">
@@ -269,11 +299,11 @@ const Home: React.FC = () => {
               className="group"
             >
               <Link to="/post-job" className="block">
-                <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 hover:border-blue-300 h-full">
-                  <div className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-xl text-white mb-4 group-hover:scale-110 transition-all duration-300 shadow-md">
-                    <FaUsers className="h-7 w-7" />
+                <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 hover:border-blue-300 h-full flex flex-col items-center text-center">
+                  <div className="flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl text-white mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
+                    <FaUsers className="h-8 w-8" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
                     Post a Job
                   </h3>
                   <p className="text-gray-700 leading-relaxed text-lg">
