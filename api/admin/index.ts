@@ -279,6 +279,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               return res.status(404).json({ error: 'Project not found' });
             }
 
+            const currentProject = projectCheck.rows[0];
+            console.log('Current project state:', currentProject);
+            
+            // Check if project has null user_id which would cause constraint violation
+            if (!currentProject.user_id) {
+              console.log('ERROR: Project has null user_id, cannot update');
+              return res.status(400).json({ 
+                error: 'Project has invalid user_id and cannot be verified. Please contact support.' 
+              });
+            }
+
+            // Check if already verified
+            if (currentProject.status === 'verified' && currentProject.is_verified) {
+              console.log('Project already verified, returning success');
+              return res.status(200).json({ success: true, message: 'Project already verified' });
+            }
+
             console.log('Executing UPDATE query...');
             console.log('Query parameters:', {
               status: 'verified',
