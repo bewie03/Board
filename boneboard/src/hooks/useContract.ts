@@ -152,7 +152,7 @@ export const useContract = (): UseContractReturn => {
         
         // Try immediate confirmation check
         try {
-          const txStatus = await contractService.checkTransactionStatus(result.txHash);
+          const txStatus = await contractService.checkTransactionStatus(result.txHash, 120000);
           
           if (txStatus === 'confirmed') {
             // Save job to database immediately if confirmed

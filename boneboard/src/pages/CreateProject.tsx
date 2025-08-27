@@ -368,11 +368,12 @@ const CreateProject: React.FC = () => {
       }
       
       const txHash = result.txHash!;
+      setPaymentStatus('processing');
       toast.info('Payment submitted! Waiting for blockchain confirmation...');
 
-      // Wait for transaction confirmation like job listings do
+      // Wait for transaction confirmation with 2-minute timeout
       try {
-        const txStatus = await contractService.checkTransactionStatus(txHash);
+        const txStatus = await contractService.checkTransactionStatus(txHash, 120000);
         
         if (txStatus === 'confirmed') {
           // Save project to database only after payment confirmation

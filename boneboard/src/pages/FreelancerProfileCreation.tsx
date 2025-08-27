@@ -319,9 +319,9 @@ const FreelancerProfileCreation: React.FC = () => {
       const txHash = result.txHash!;
       toast.info('Payment submitted! Waiting for blockchain confirmation...');
 
-      // Wait for transaction confirmation like job listings do
+      // Wait for transaction confirmation with 2-minute timeout
       try {
-        const txStatus = await contractService.checkTransactionStatus(txHash);
+        const txStatus = await contractService.checkTransactionStatus(txHash, 120000);
         
         if (txStatus === 'confirmed') {
           // Save profile only after payment confirmation

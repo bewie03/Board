@@ -537,26 +537,26 @@ export class ContractService {
     }
   }
 
-  async checkTransactionStatus(txHash: string): Promise<'pending' | 'confirmed' | 'failed'> {
+  async checkTransactionStatus(txHash: string, timeoutMs: number = 120000): Promise<'pending' | 'confirmed' | 'failed'> {
     if (!this.lucid) {
       console.log('Lucid not initialized, treating transaction as pending');
       return 'pending';
     }
 
     try {
-      console.log('Checking transaction status:', txHash);
+      console.log(`Checking transaction status: ${txHash} (timeout: ${timeoutMs/1000}s)`);
       
-      // Use awaitTx with a short timeout to avoid blocking
+      // Use awaitTx with configurable timeout (default 2 minutes)
       const confirmed = await Promise.race([
         this.lucid.awaitTx(txHash),
-        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000)) // 5 second timeout
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs))
       ]);
       
       if (confirmed) {
         console.log('Transaction confirmed:', txHash);
         return 'confirmed';
       } else {
-        console.log('Transaction still pending (timeout or not yet confirmed):', txHash);
+        console.log(`Transaction still pending after ${timeoutMs/1000}s timeout:`, txHash);
         return 'pending';
       }
     } catch (error) {
