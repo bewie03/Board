@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch } from 'react-icons/fa';
+import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaShieldAlt } from 'react-icons/fa';
 import { JobService } from '../services/jobService';
 import { ProjectService, Project as StoredProject } from '../services/projectService';
+import { useWallet } from '../contexts/WalletContext';
+import { ProjectVerificationToggle } from '../components/ProjectVerificationToggle';
+import { ProjectVerificationBadge } from '../components/ProjectVerificationBadge';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -41,12 +44,14 @@ const PROJECT_CATEGORIES = [
 ];
 
 const Projects: React.FC = () => {
+  const { walletAddress } = useWallet();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [createdProjects, setCreatedProjects] = useState<StoredProject[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showActiveJobsOnly, setShowActiveJobsOnly] = useState(false);
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -87,7 +92,10 @@ const Projects: React.FC = () => {
     );
     const matchesJobFilter = !showActiveJobsOnly || projectJobs.length > 0;
     
-    return matchesSearch && matchesCategory && matchesJobFilter;
+    const isVerified = project.status === 'verified';
+    const matchesVerifiedFilter = !showVerifiedOnly || isVerified;
+    
+    return matchesSearch && matchesCategory && matchesJobFilter && matchesVerifiedFilter;
   });
 
   const toggleCategory = (category: string) => {
@@ -96,6 +104,25 @@ const Projects: React.FC = () => {
         ? prev.filter(c => c !== category)
         : [...prev, category]
     );
+  };
+
+  const handleVerificationChange = (projectId: string, verified: boolean) => {
+    // Update the project in the local state
+    setCreatedProjects(prev => 
+      prev.map(project => 
+        project.id === projectId 
+          ? { ...project, status: verified ? 'verified' : 'active' }
+          : project
+      )
+    );
+    
+    // Update selected project if it's the one being modified
+    if (selectedProject && selectedProject.id.toString() === projectId) {
+      setSelectedProject(prev => prev ? {
+        ...prev,
+        status: verified ? 'verified' : 'active'
+      } : null);
+    }
   };
 
   // Close dropdown when clicking outside
@@ -169,7 +196,7 @@ const Projects: React.FC = () => {
                 </div>
 
                 {/* Filters Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Category Filter */}
                   <div className="space-y-2" style={{ position: 'relative', zIndex: 10 }}>
                     <label className="block text-sm font-medium text-gray-700">Category</label>
@@ -227,15 +254,31 @@ const Projects: React.FC = () => {
                     </label>
                   </div>
 
+                  {/* Verified Projects Filter */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Verification</label>
+                    <label className="flex items-center h-[42px] px-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={showVerifiedOnly}
+                        onChange={(e) => setShowVerifiedOnly(e.target.checked)}
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-3"
+                      />
+                      <FaShieldAlt className="w-3 h-3 text-green-600 mr-2" />
+                      <span className="text-sm text-gray-700">Verified projects only</span>
+                    </label>
+                  </div>
+
                   {/* Clear Filters */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">&nbsp;</label>
-                    {(searchTerm || selectedCategories.length > 0 || showActiveJobsOnly) && (
+                    {(searchTerm || selectedCategories.length > 0 || showActiveJobsOnly || showVerifiedOnly) && (
                       <button
                         onClick={() => {
                           setSearchTerm('');
                           setSelectedCategories([]);
                           setShowActiveJobsOnly(false);
+                          setShowVerifiedOnly(false);
                           setShowCategoryDropdown(false);
                         }}
                         className="w-full h-[42px] px-4 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors font-medium"
@@ -333,10 +376,13 @@ const Projects: React.FC = () => {
                         <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
                           {project.title || project.name}
                         </h2>
-                        <div className="flex items-center mt-2">
+                        <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
+                          {project.status === 'verified' && (
+                            <ProjectVerificationBadge status={project.status} size="sm" showText={false} />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -417,10 +463,13 @@ const Projects: React.FC = () => {
                         <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
                           {project.title || project.name}
                         </h2>
-                        <div className="flex items-center mt-2">
+                        <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
+                          {project.status === 'verified' && (
+                            <ProjectVerificationBadge status={project.status} size="sm" showText={false} />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -509,12 +558,23 @@ const Projects: React.FC = () => {
                           <FaBuilding className="text-blue-600 text-xl" />
                         )}
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-4 flex-1">
                         <h2 className="text-2xl font-bold text-gray-900">{selectedProject.name}</h2>
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-1">
-                          {selectedProject.category}
-                        </span>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            {selectedProject.category}
+                          </span>
+                          {selectedProject.status === 'verified' && (
+                            <ProjectVerificationBadge status={selectedProject.status} size="sm" />
+                          )}
+                        </div>
                       </div>
+                      <ProjectVerificationToggle
+                        projectId={selectedProject.id.toString()}
+                        isVerified={selectedProject.status === 'verified'}
+                        walletAddress={walletAddress}
+                        onVerificationChange={(verified) => handleVerificationChange(selectedProject.id.toString(), verified)}
+                      />
                     </div>
                     <button
                       onClick={() => setSelectedProject(null)}

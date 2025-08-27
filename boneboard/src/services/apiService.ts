@@ -272,7 +272,10 @@ export class ApiService {
       website: updates.website,
       discordLink: updates.discord,
       twitterLink: updates.twitter,
-      status: updates.status
+      status: updates.status,
+      isVerified: updates.isVerified,
+      verifiedAt: updates.verifiedAt,
+      verifiedBy: updates.verifiedBy
     };
 
     // Remove undefined values

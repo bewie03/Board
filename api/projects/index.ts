@@ -139,7 +139,10 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     paymentAmount: parseFloat(row.payment_amount) || 0,
     paymentCurrency: row.payment_currency,
     txHash: row.tx_hash,
-    expiresAt: row.expires_at
+    expiresAt: row.expires_at,
+    isVerified: row.is_verified || row.status === 'verified',
+    verifiedAt: row.verified_at,
+    verifiedBy: row.verified_by
   }));
 
   return res.status(200).json(projects);

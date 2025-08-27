@@ -23,7 +23,7 @@ export interface Project {
   walletAddress: string;
   timestamp?: number;
   txHash?: string;
-  status: 'pending' | 'confirmed' | 'failed';
+  status: 'pending' | 'confirmed' | 'failed' | 'active' | 'verified' | 'completed' | 'paused' | 'cancelled';
   createdAt: string;
   fundingGoal?: number;
   currentFunding?: number;
@@ -33,6 +33,9 @@ export interface Project {
   userVote?: string | null;
   fundingAddress?: string;
   expiresAt?: string;
+  isVerified?: boolean; // Computed field based on status
+  verifiedAt?: string;
+  verifiedBy?: string;
 }
 
 import { ApiService } from './apiService';
