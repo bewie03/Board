@@ -391,7 +391,7 @@ const SavedJobs: React.FC = () => {
                 exit={{ x: '100%' }}
                 transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
                 className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60]" 
-                style={{ top: '64px' }}
+                style={{ top: '0px' }}
               >
               <div className="flex flex-col h-full">
                 {/* Header */}
