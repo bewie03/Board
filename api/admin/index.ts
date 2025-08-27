@@ -7,16 +7,16 @@ let pool: Pool | null = null;
 
 function getPool() {
   if (!pool) {
-    const DATABASE_URL = process.env.DATABASE_URL;
+    const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     
     if (!DATABASE_URL) {
-      throw new Error('DATABASE_URL environment variable is not set');
+      throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
     }
     
     pool = new Pool({
       connectionString: DATABASE_URL,
       ssl: { rejectUnauthorized: false },
-      max: 1,
+      max: 1, // Vercel functions are stateless
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
     });
@@ -283,9 +283,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 verified_by = $2, 
                 verified_at = NOW(), 
                 updated_at = NOW(),
-                is_verified = true
+                is_verified = $4
               WHERE id = $3`,
-              ['verified', adminWallet, projectId]
+              ['verified', adminWallet, projectId, true]
             );
             console.log('Update result:', updateResult);
 
@@ -329,9 +329,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 verified_by = NULL, 
                 verified_at = NULL, 
                 updated_at = NOW(),
-                is_verified = false
+                is_verified = $3
               WHERE id = $2`,
-              ['active', projectId]
+              ['active', projectId, false]
             );
 
             await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
