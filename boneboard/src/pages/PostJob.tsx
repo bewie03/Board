@@ -9,25 +9,13 @@ import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { ProjectService, Project } from '../services/projectService';
 import PageTransition from '../components/PageTransition';
+import { JOB_CATEGORIES } from '../constants/categories';
 
 const PostJob: React.FC = () => {
   const navigate = useNavigate();
   const { isConnected, walletAddress, formatAddress } = useWallet();
   const { isLoading: contractLoading, postJob } = useContract();
   const [currentStep, setCurrentStep] = useState(1);
-  // Job categories for Cardano ecosystem
-  const JOB_CATEGORIES = [
-    { id: 'development', name: 'Development' },
-    { id: 'design', name: 'Design & Creative' },
-    { id: 'marketing', name: 'Marketing' },
-    { id: 'community', name: 'Community & Social' },
-    { id: 'business', name: 'Business Development' },
-    { id: 'content', name: 'Content Creation' },
-    { id: 'defi', name: 'DeFi & Finance' },
-    { id: 'nft', name: 'NFT & Digital Assets' },
-    { id: 'security', name: 'Security & Auditing' },
-    { id: 'research', name: 'Research & Analysis' },
-  ];
 
   const JOB_TYPES = [
     { id: 'Full-time', name: 'Full-time' },

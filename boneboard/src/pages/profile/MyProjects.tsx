@@ -8,44 +8,7 @@ import { toast } from 'react-toastify';
 import PageTransition from '../../components/PageTransition';
 import CustomSelect from '../../components/CustomSelect';
 import { Link } from 'react-router-dom';
-
-// Project categories to match CreateProject
-const PROJECT_CATEGORIES = [
-  'AI',
-  'Alpha Group',
-  'Book Publishing',
-  'Bridge',
-  'CEX',
-  'Cloud Services',
-  'Compute',
-  'Currency',
-  'DAO',
-  'DeFi',
-  'DePIN',
-  'Derivatives',
-  'DEX',
-  'DEX Aggregator',
-  'Education',
-  'Gaming',
-  'Index Funds',
-  'Infrastructure',
-  'Launchpad',
-  'Lending',
-  'Marketplace',
-  'Meme',
-  'Metaverse',
-  'NFT',
-  'Oracle',
-  'Privacy',
-  'RWA',
-  'Social',
-  'Stablecoin',
-  'Staking',
-  'Tools',
-  'Wallet',
-  'Yield Farming',
-  'Other'
-];
+import { PROJECT_CATEGORIES } from '../../constants/categories';
 
 const MyProjects: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();

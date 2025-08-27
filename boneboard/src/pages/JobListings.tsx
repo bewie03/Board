@@ -39,19 +39,7 @@ type PaymentType = 'all' | 'ada' | 'fiat';
 type JobType = 'all' | 'full-time' | 'part-time' | 'contract' | 'internship';
 type WorkArrangement = 'all' | 'remote' | 'hybrid' | 'onsite';
 
-const JOB_CATEGORIES = [
-  { id: 'all', name: 'All Categories' },
-  { id: 'development', name: 'Development' },
-  { id: 'design', name: 'Design & Creative' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'community', name: 'Community & Social' },
-  { id: 'business', name: 'Business Development' },
-  { id: 'content', name: 'Content Creation' },
-  { id: 'defi', name: 'DeFi & Finance' },
-  { id: 'nft', name: 'NFT & Digital Assets' },
-  { id: 'security', name: 'Security & Auditing' },
-  { id: 'research', name: 'Research & Analysis' },
-];
+import { JOB_CATEGORIES_WITH_ALL as JOB_CATEGORIES } from '../constants/categories';
 
 const JobListings: React.FC = () => {
   const navigate = useNavigate();

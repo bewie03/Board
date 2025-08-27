@@ -5,19 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import PageTransition from '../components/PageTransition';
-// Job categories constant
-const JOB_CATEGORIES = [
-  { id: 'development', name: 'Development' },
-  { id: 'design', name: 'Design & Creative' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'community', name: 'Community & Social' },
-  { id: 'business', name: 'Business Development' },
-  { id: 'content', name: 'Content Creation' },
-  { id: 'defi', name: 'DeFi & Finance' },
-  { id: 'nft', name: 'NFT & Digital Assets' },
-  { id: 'security', name: 'Security & Auditing' },
-  { id: 'research', name: 'Research & Analysis' },
-];
+import { JOB_CATEGORIES } from '../constants/categories';
 
 // Helper function to get relative time
 const getTimeAgo = (dateString: string): string => {

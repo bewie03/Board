@@ -7,20 +7,7 @@ import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
 import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus } from 'react-icons/fa';
 import CustomSelect from '../../components/CustomSelect';
-
-// Category mapping to match JobListings
-const JOB_CATEGORIES = [
-  { id: 'development', name: 'Development' },
-  { id: 'design', name: 'Design & Creative' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'community', name: 'Community & Social' },
-  { id: 'business', name: 'Business Development' },
-  { id: 'content', name: 'Content Creation' },
-  { id: 'defi', name: 'DeFi & Finance' },
-  { id: 'nft', name: 'NFT & Digital Assets' },
-  { id: 'security', name: 'Security & Auditing' },
-  { id: 'research', name: 'Research & Analysis' },
-];
+import { JOB_CATEGORIES } from '../../constants/categories';
 
 // Helper function to get expiry time string
 const getExpiryTimeString = (expiryDate: string): string => {

@@ -8,56 +8,7 @@ import { initiateTwitterOAuth, initiateDiscordOAuth } from '../utils/auth';
 import { toast } from 'react-toastify';
 import { ProjectService } from '../services/projectService';
 import { contractService, ProjectPostingData } from '../services/contractService';
-
-const PROJECT_CATEGORIES = [
-  'AI',
-  'Alpha Group',
-  'Book Publishing',
-  'Bridge',
-  'CEX',
-  'Cloud Services',
-  'Compute',
-  'Currency',
-  'DAO',
-  'DeFi',
-  'DePIN',
-  'Derivatives',
-  'DEX',
-  'DEX Aggregator',
-  'Education',
-  'Gaming',
-  'Index Funds',
-  'Infrastructure',
-  'Launchpad',
-  'Layer 2',
-  'Lend/Borrow',
-  'Liquid Staking',
-  'Memecoin',
-  'Metaverse',
-  'Music',
-  'NFT',
-  'NFT Infrastructure',
-  'NFT Marketplace',
-  'Oracle',
-  'PoW Mining',
-  'Prediction Market',
-  'Privacy',
-  'Reserve Coin',
-  'RWA',
-  'SocialFi',
-  'Stablecoin',
-  'Storage',
-  'Synthetics',
-  'Telecoms',
-  'Token Distribution',
-  'Tools',
-  'Utility',
-  'Wallet',
-  'Wrapped Token',
-  'Yield',
-  'Yield Products',
-  'Other'
-];
+import { PROJECT_CATEGORIES } from '../constants/categories';
 
 const CreateProject: React.FC = () => {
   const navigate = useNavigate();

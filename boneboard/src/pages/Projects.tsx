@@ -7,6 +7,7 @@ import { useWallet } from '../contexts/WalletContext';
 import { ProjectVerificationToggle } from '../components/ProjectVerificationToggle';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PROJECT_CATEGORIES } from '../constants/categories';
 
 type Job = {
   id: number;
@@ -27,15 +28,6 @@ type Project = ServiceProject & {
   };
   jobs?: Job[];
 };
-
-const PROJECT_CATEGORIES = [
-  'AI', 'Alpha Group', 'Book Publishing', 'Bridge', 'CEX', 'Cloud Services', 'Compute', 'Currency',
-  'DAO', 'DeFi', 'DePIN', 'Derivatives', 'DEX', 'DEX Aggregator', 'Education', 'Gaming',
-  'Index Funds', 'Infrastructure', 'Launchpad', 'Layer 2', 'Lend/Borrow', 'Liquid Staking',
-  'Memecoin', 'Metaverse', 'Music', 'NFT', 'NFT Infrastructure', 'NFT Marketplace', 'Oracle',
-  'PoW Mining', 'Prediction Market', 'Privacy', 'Reserve Coin', 'RWA', 'SocialFi', 'Stablecoin',
-  'Storage', 'Synthetics', 'Telecoms', 'Utilities', 'Wallet', 'Wrapped Token', 'Yield Farming'
-];
 
 const Projects: React.FC = () => {
   const { walletAddress } = useWallet();
