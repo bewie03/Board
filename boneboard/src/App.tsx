@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { WalletProvider } from './contexts/WalletContext';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -94,19 +94,27 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isInitialLoading) {
-    return <LoadingScreen isLoading={true} />;
-  }
-
   return (
-    <WalletProvider>
-      <Router>
-        <Layout>
-          <AnimatedRoutes />
-        </Layout>
-        <ToastContainer position="top-right" autoClose={5000} />
-      </Router>
-    </WalletProvider>
+    <>
+      <AnimatePresence>
+        {isInitialLoading && <LoadingScreen isLoading={true} />}
+      </AnimatePresence>
+      
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isInitialLoading ? 0 : 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+      >
+        <WalletProvider>
+          <Router>
+            <Layout>
+              <AnimatedRoutes />
+            </Layout>
+            <ToastContainer position="top-right" autoClose={5000} />
+          </Router>
+        </WalletProvider>
+      </motion.div>
+    </>
   );
 }
 

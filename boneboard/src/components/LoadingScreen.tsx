@@ -68,7 +68,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Loading your workspace...
+          Loading Marketplace...
         </motion.p>
       </div>
     </motion.div>
