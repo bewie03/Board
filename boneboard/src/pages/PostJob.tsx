@@ -481,7 +481,7 @@ const PostJob: React.FC = () => {
                   {/* Job Title */}
                   <div className="space-y-2 sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Job Title *
+                      Job Title * <span className="text-xs text-gray-500">({formData.title.length}/35)</span>
                     </label>
                     <input
                       type="text"
@@ -498,7 +498,7 @@ const PostJob: React.FC = () => {
                   {/* Company and Work Arrangement */}
                   <div className="space-y-2 sm:col-span-1">
                     <label className="block text-sm font-medium text-gray-700">
-                      Company *
+                      Company Name * <span className="text-xs text-gray-500">({formData.company.length}/40)</span>
                     </label>
                     <input
                       type="text"
@@ -510,7 +510,6 @@ const PostJob: React.FC = () => {
                       required
                     />
                   </div>
-                  
                   <div className="space-y-2 sm:col-span-1">
                     <label className="block text-sm font-medium text-gray-700">
                       Work Arrangement *
@@ -564,18 +563,16 @@ const PostJob: React.FC = () => {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          Salary *
+                          Salary * <span className="text-xs text-gray-500">({formData.salary.length}/50)</span>
                         </label>
                         <input
                           type="text"
                           name="salary"
                           value={formData.salary}
                           onChange={(e) => {
-                            // Only allow numbers, commas, and dashes
-                            const value = e.target.value.replace(/[^0-9,-]/g, '');
-                            setFormData(prev => ({ ...prev, salary: value }));
+                            setFormData(prev => ({ ...prev, salary: e.target.value }));
                           }}
-                          maxLength={18}
+                          maxLength={50}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                           placeholder="e.g. 80,000-90,000"
                           required
@@ -600,7 +597,7 @@ const PostJob: React.FC = () => {
                     {formData.salaryType === 'Custom' && (
                       <div className="mt-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          Custom Currency
+                          Custom Currency * <span className="text-xs text-gray-500">({(formData.customCurrency || '').length}/10)</span>
                         </label>
                         <input
                           type="text"
@@ -680,19 +677,16 @@ const PostJob: React.FC = () => {
                   {/* Website Link */}
                   <div className="space-y-2 sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Website (Optional)
+                      Website (Optional) <span className="text-xs text-gray-500">({formData.website.length}/50)</span>
                     </label>
                     <div className="relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">https://</span>
-                      </div>
                       <input
                         type="text"
                         name="website"
                         value={formData.website}
                         onChange={handleChange}
                         maxLength={50}
-                        className="pl-16 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         placeholder="example.com"
                       />
                     </div>
@@ -702,7 +696,7 @@ const PostJob: React.FC = () => {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:col-span-2">
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Twitter (Optional)
+                        Twitter (Optional) <span className="text-xs text-gray-500">({formData.twitter.length}/30)</span>
                       </label>
                       <div className="relative rounded-md shadow-sm">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -722,7 +716,7 @@ const PostJob: React.FC = () => {
 
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Discord Server Invite (Optional)
+                        Discord Server Invite (Optional) <span className="text-xs text-gray-500">({formData.discord.length}/255)</span>
                       </label>
                       <div className="relative rounded-md shadow-sm">
                         <input
@@ -731,7 +725,7 @@ const PostJob: React.FC = () => {
                           value={formData.discord}
                           onChange={handleChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="https://discord.gg/invite-code"
+                          placeholder="discord.gg/invite-code"
                         />
                       </div>
                     </div>
@@ -743,7 +737,7 @@ const PostJob: React.FC = () => {
                   <div className="space-y-2 sm:col-span-2 pt-2">
                     <div className="flex justify-between items-center">
                       <label className="block text-sm font-medium text-gray-700">
-                        Job Description *
+                        Job Description * <span className="text-xs text-gray-500">({formData.description.length}/300)</span>
                       </label>
                       <span className="text-xs text-gray-500">
                         {formData.description.length}/300 characters
@@ -838,7 +832,7 @@ const PostJob: React.FC = () => {
                   <div className="space-y-2 sm:col-span-2">
                     <div className="flex justify-between items-center">
                       <label className="block text-sm font-medium text-gray-700">
-                        Additional Information
+                        Additional Information (Optional) <span className="text-xs text-gray-500">({formData.additionalInfo.length}/300)</span>
                       </label>
                       <span className="text-xs text-gray-500">
                         {formData.additionalInfo.join('\n').length}/300 characters
@@ -876,7 +870,7 @@ const PostJob: React.FC = () => {
                   <div className="space-y-2 sm:col-span-2">
                     <div className="flex justify-between items-center">
                       <label className="block text-sm font-medium text-gray-700">
-                        How to Apply *
+                        How to Apply * <span className="text-xs text-gray-500">({formData.howToApply.length}/300)</span>
                       </label>
                       <span className="text-xs text-gray-500">
                         {formData.howToApply.length}/300 characters
@@ -899,7 +893,7 @@ const PostJob: React.FC = () => {
                   {/* Contact Email */}
                   <div className="space-y-2 sm:col-span-2 pt-2 border-t border-gray-200">
                     <label className="block text-sm font-medium text-gray-700">
-                      Contact Email *
+                      Contact Email * <span className="text-xs text-gray-500">({formData.contactEmail.length}/50)</span>
                     </label>
                     <input
                       type="email"
