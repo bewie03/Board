@@ -319,7 +319,7 @@ const Projects: React.FC = () => {
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
           {/* Display filtered projects */}
-          {filteredProjects.map((project) => {
+          {filteredProjects.map((project, index) => {
             const projectName = project.title || project.name || '';
             const relatedJobs = allJobs.filter(job => 
               job.company && projectName && (
@@ -329,8 +329,15 @@ const Projects: React.FC = () => {
             );
             
             return (
-              <div 
-                key={project.id} 
+              <motion.div 
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4,
+                  delay: index * 0.1,
+                  ease: "easeOut"
+                }} 
                 onClick={() => setSelectedProject({
                   ...project,
                   id: project.id,
@@ -382,17 +389,12 @@ const Projects: React.FC = () => {
                           <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
                             {project.title || project.name}
                           </h2>
-                          {(project.isVerified || false) && (
-                            <span className="text-blue-600 text-lg">✓</span>
-                          )}
-                          {isAdmin && (
-                            <ProjectVerificationToggle
-                              projectId={String(project.id)}
-                              isVerified={project.isVerified || false}
-                              walletAddress={walletAddress}
-                              onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
-                            />
-                          )}
+                          <ProjectVerificationToggle
+                            projectId={String(project.id)}
+                            isVerified={project.isVerified || false}
+                            walletAddress={walletAddress}
+                            onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
+                          />
                         </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -434,12 +436,12 @@ const Projects: React.FC = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
           
           {/* Display sample projects */}
-          {sampleProjects.map((project) => {
+          {sampleProjects.map((project, index) => {
             const relatedJobs = allJobs.filter(job => 
               job.company && project.name && (
                 job.company.toLowerCase().includes(project.name.toLowerCase()) ||
@@ -448,8 +450,15 @@ const Projects: React.FC = () => {
             );
             
             return (
-              <div 
-                key={project.id} 
+              <motion.div 
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4,
+                  delay: (filteredProjects.length + index) * 0.1,
+                  ease: "easeOut"
+                }} 
                 onClick={() => setSelectedProject(project)}
                 className="group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
@@ -479,17 +488,12 @@ const Projects: React.FC = () => {
                           <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
                             {project.title || project.name}
                           </h2>
-                          {(project.isVerified || false) && (
-                            <span className="text-blue-600 text-lg">✓</span>
-                          )}
-                          {isAdmin && (
-                            <ProjectVerificationToggle
-                              projectId={String(project.id)}
-                              isVerified={project.isVerified || false}
-                              walletAddress={walletAddress}
-                              onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
-                            />
-                          )}
+                          <ProjectVerificationToggle
+                            projectId={String(project.id)}
+                            isVerified={project.isVerified || false}
+                            walletAddress={walletAddress}
+                            onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
+                          />
                         </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -532,7 +536,7 @@ const Projects: React.FC = () => {
 
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -586,9 +590,12 @@ const Projects: React.FC = () => {
                       <div className="ml-4">
                         <div className="flex items-center gap-2">
                           <h2 className="text-2xl font-bold text-gray-900">{selectedProject.name}</h2>
-                          {(selectedProject.isVerified || false) && (
-                            <span className="text-blue-600 text-xl">✓</span>
-                          )}
+                          <ProjectVerificationToggle
+                            projectId={String(selectedProject.id)}
+                            isVerified={selectedProject.isVerified || false}
+                            walletAddress={walletAddress}
+                            onVerificationChange={(verified) => handleVerificationChange(String(selectedProject.id), verified)}
+                          />
                         </div>
                         <div className="flex items-center space-x-2 mt-1">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">

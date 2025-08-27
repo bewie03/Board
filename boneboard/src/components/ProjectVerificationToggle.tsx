@@ -19,8 +19,9 @@ export const ProjectVerificationToggle: React.FC<ProjectVerificationToggleProps>
   const [isLoading, setIsLoading] = useState(false);
   const isAdmin = isAdminWallet(walletAddress);
 
-  if (!isAdmin) {
-    return null; // Don't show anything if not admin
+  // Show for everyone when verified, but only allow admin to click
+  if (!isAdmin && !isVerified) {
+    return null; // Only show for non-admins if project is verified
   }
 
   const handleToggleVerification = async (e: React.MouseEvent) => {
@@ -57,14 +58,14 @@ export const ProjectVerificationToggle: React.FC<ProjectVerificationToggleProps>
 
   return (
     <button
-      onClick={handleToggleVerification}
-      disabled={isLoading}
+      onClick={isAdmin ? handleToggleVerification : undefined}
+      disabled={isLoading || !isAdmin}
       className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
         isVerified
           ? 'bg-blue-500 text-white hover:bg-blue-600'
           : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
-      } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-      title={isVerified ? 'Click to unverify project' : 'Click to verify project'}
+      } ${isLoading ? 'opacity-50 cursor-not-allowed' : isAdmin ? 'cursor-pointer' : 'cursor-default'}`}
+      title={isAdmin ? (isVerified ? 'Click to unverify project' : 'Click to verify project') : 'Verified by admin'}
     >
       {isLoading ? (
         <FaSpinner className="animate-spin w-3 h-3" />

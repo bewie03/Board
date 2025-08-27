@@ -474,9 +474,16 @@ const JobListings: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                filteredJobs.map((job) => (
-                  <div
+                filteredJobs.map((job, index) => (
+                  <motion.div
                     key={job.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.4,
+                      delay: index * 0.1,
+                      ease: "easeOut"
+                    }}
                     onClick={(e) => selectJob(e, job.id)}
                     className={`group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative ${
                       selectedJob?.id === job.id ? 'ring-2 ring-blue-500 shadow-xl' : ''
@@ -575,7 +582,7 @@ const JobListings: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
             </div>
