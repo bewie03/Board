@@ -187,9 +187,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'POST':
         // Verify project
-        if (req.url?.includes('/verify')) {
+        if (req.query?.action === 'verify') {
           const adminWallet = requireAdmin(req);
-          const projectId = req.url.split('/projects/')[1].split('/verify')[0];
+          const projectId = req.query.projectId as string;
+
+          if (!projectId) {
+            return res.status(400).json({ error: 'Project ID is required' });
+          }
 
           await pool.query(
             `UPDATE projects SET status = 'verified', verified_by = $1, verified_at = NOW(), updated_at = NOW() WHERE id = $2`,
@@ -202,9 +206,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // Unverify project
-        if (req.url?.includes('/unverify')) {
+        if (req.query?.action === 'unverify') {
           const adminWallet = requireAdmin(req);
-          const projectId = req.url.split('/projects/')[1].split('/unverify')[0];
+          const projectId = req.query.projectId as string;
+
+          if (!projectId) {
+            return res.status(400).json({ error: 'Project ID is required' });
+          }
 
           await pool.query(
             `UPDATE projects SET status = 'active', verified_by = NULL, verified_at = NULL, updated_at = NOW() WHERE id = $1`,

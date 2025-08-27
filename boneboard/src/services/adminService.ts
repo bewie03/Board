@@ -103,11 +103,11 @@ export class AdminService {
     requireAdminAuth(walletAddress);
 
     try {
-      const response = await fetch(`${this.baseUrl}/projects/${projectId}/verify`, {
+      const response = await fetch(`${this.baseUrl}?action=verify&projectId=${projectId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
           status: 'verified',
@@ -129,11 +129,11 @@ export class AdminService {
     requireAdminAuth(walletAddress);
 
     try {
-      const response = await fetch(`${this.baseUrl}/projects/${projectId}/unverify`, {
+      const response = await fetch(`${this.baseUrl}?action=unverify&projectId=${projectId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
           status: 'active',

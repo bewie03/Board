@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaShieldAlt } from 'react-icons/fa';
+import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch } from 'react-icons/fa';
 import { JobService } from '../services/jobService';
 import { ProjectService, Project as StoredProject } from '../services/projectService';
 import { useWallet } from '../contexts/WalletContext';
@@ -264,7 +264,6 @@ const Projects: React.FC = () => {
                         onChange={(e) => setShowVerifiedOnly(e.target.checked)}
                         className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-3"
                       />
-                      <FaShieldAlt className="w-3 h-3 text-green-600 mr-2" />
                       <span className="text-sm text-gray-700">Verified projects only</span>
                     </label>
                   </div>
@@ -334,6 +333,7 @@ const Projects: React.FC = () => {
                   logo: project.logo || null,
                   description: project.description,
                   category: project.category,
+                  status: project.status,
                   jobsAvailable: relatedJobs.length,
                   socials: {
                     website: project.website, // Use the actual website field from database
@@ -349,9 +349,15 @@ const Projects: React.FC = () => {
                     skills: job.requiredSkills || []
                   }))
                 })}
-                className="group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                className="group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative"
               >
                 <div className="p-6">
+                  <ProjectVerificationToggle
+                    projectId={project.id.toString()}
+                    isVerified={project.status === 'verified'}
+                    walletAddress={walletAddress}
+                    onVerificationChange={(verified) => handleVerificationChange(project.id.toString(), verified)}
+                  />
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
@@ -439,6 +445,12 @@ const Projects: React.FC = () => {
                 className="group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 <div className="p-6">
+                  <ProjectVerificationToggle
+                    projectId={project.id.toString()}
+                    isVerified={project.status === 'verified'}
+                    walletAddress={walletAddress}
+                    onVerificationChange={(verified) => handleVerificationChange(project.id.toString(), verified)}
+                  />
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
@@ -558,7 +570,7 @@ const Projects: React.FC = () => {
                           <FaBuilding className="text-blue-600 text-xl" />
                         )}
                       </div>
-                      <div className="ml-4 flex-1">
+                      <div className="ml-4">
                         <h2 className="text-2xl font-bold text-gray-900">{selectedProject.name}</h2>
                         <div className="flex items-center space-x-2 mt-1">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -569,12 +581,6 @@ const Projects: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <ProjectVerificationToggle
-                        projectId={selectedProject.id.toString()}
-                        isVerified={selectedProject.status === 'verified'}
-                        walletAddress={walletAddress}
-                        onVerificationChange={(verified) => handleVerificationChange(selectedProject.id.toString(), verified)}
-                      />
                     </div>
                     <button
                       onClick={() => setSelectedProject(null)}
