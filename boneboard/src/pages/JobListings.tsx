@@ -39,6 +39,7 @@ type DateRange = 'all' | 'today' | 'week' | 'month';
 type PaymentType = 'all' | 'ada' | 'fiat';
 type JobType = 'all' | 'full-time' | 'part-time' | 'contract' | 'internship';
 type WorkArrangement = 'all' | 'remote' | 'hybrid' | 'onsite';
+type VerificationFilter = 'all' | 'verified';
 
 import { JOB_CATEGORIES_WITH_ALL as JOB_CATEGORIES } from '../constants/categories';
 
@@ -77,6 +78,7 @@ const JobListings: React.FC = () => {
   const [selectedPaymentType, setSelectedPaymentType] = useState<PaymentType>('all');
   const [selectedJobType, setSelectedJobType] = useState<JobType>('all');
   const [selectedWorkArrangement, setSelectedWorkArrangement] = useState<WorkArrangement>('all');
+  const [selectedVerificationFilter, setSelectedVerificationFilter] = useState<VerificationFilter>('all');
   const [emailCopied, setEmailCopied] = useState(false);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
@@ -114,18 +116,27 @@ const JobListings: React.FC = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const activeJobs = await JobService.getActiveJobs();
-        const fetchedJobs: JobWithDisplayProps[] = activeJobs.map(job => ({
+        setLoading(true);
+        const jobsData = await JobService.getAllJobs();
+        
+        // Transform jobs to include display properties
+        const transformedJobs: JobWithDisplayProps[] = jobsData.map(job => ({
           ...job,
           logo: job.companyLogo || null,
-          posted: new Date(job.timestamp).toLocaleDateString(),
+          posted: formatRelativeTime(job.timestamp),
+          // Temporary: Set some jobs as verified for testing
+          isProjectVerified: job.company === 'SundaeSwap' || job.title.toLowerCase().includes('sundae'),
+          // Transform discord string to object format if needed
           discord: job.discord ? { inviteUrl: job.discord } : undefined,
+          // Ensure companyLogo is properly typed
           companyLogo: job.companyLogo || undefined
         }));
-        setJobs(fetchedJobs);
         
+        setJobs(transformedJobs);
+        
+        // If there's a jobId in the URL, select that job
         if (jobId) {
-          const job = fetchedJobs.find(j => j.id === jobId);
+          const job = transformedJobs.find(j => j.id === jobId);
           if (job) setSelectedJob(job);
         }
       } catch (error) {
@@ -134,6 +145,7 @@ const JobListings: React.FC = () => {
         setLoading(false);
       }
     };
+    
     fetchJobs();
   }, [jobId]);
 
@@ -182,7 +194,11 @@ const JobListings: React.FC = () => {
     const matchesWorkArrangement = selectedWorkArrangement === 'all' ||
       job.workArrangement === selectedWorkArrangement;
     
-    return matchesSearch && matchesDate && matchesCategory && matchesPayment && matchesJobType && matchesWorkArrangement;
+    // Verification filter
+    const matchesVerification = selectedVerificationFilter === 'all' ||
+      (selectedVerificationFilter === 'verified' && job.isProjectVerified === true);
+    
+    return matchesSearch && matchesDate && matchesCategory && matchesPayment && matchesJobType && matchesWorkArrangement && matchesVerification;
   }).filter(job => !job.featured).sort((a, b) => {
     // Sort by timestamp (newest first)
     return b.timestamp - a.timestamp;
@@ -376,7 +392,7 @@ const JobListings: React.FC = () => {
                   {/* Advanced Filters */}
                   {showFilters && (
                     <div className="pt-6 border-t border-gray-200">
-                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                         {/* Date Posted Filter */}
                         <div className="space-y-2">
                           <label className="block text-sm font-medium text-gray-700">
@@ -442,6 +458,21 @@ const JobListings: React.FC = () => {
                             <option value="remote">Remote</option>
                             <option value="hybrid">Hybrid</option>
                             <option value="onsite">On-site</option>
+                          </select>
+                        </div>
+
+                        {/* Verification Filter */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Verification Status
+                          </label>
+                          <select
+                            value={selectedVerificationFilter}
+                            onChange={(e) => setSelectedVerificationFilter(e.target.value as VerificationFilter)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="all">All Jobs</option>
+                            <option value="verified">Verified Projects Only</option>
                           </select>
                         </div>
                       </div>
