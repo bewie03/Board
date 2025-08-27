@@ -7,7 +7,7 @@ import CustomSelect from '../components/CustomSelect';
 import { useWallet } from '../contexts/WalletContext';
 import { initiateTwitterOAuth, initiateDiscordOAuth } from '../utils/auth';
 import { toast } from 'react-toastify';
-import { ProjectService } from '../services/projectService';
+// ProjectService import removed - now handled by projectTransactionMonitor
 import { contractService, ProjectPostingData } from '../services/contractService';
 import { PROJECT_CATEGORIES } from '../constants/categories';
 
@@ -24,6 +24,59 @@ const CreateProject: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Check for pending transactions on load and resume to payment step
+  useEffect(() => {
+    if (isConnected && walletAddress) {
+      const pendingKey = `pendingProjectTx_${walletAddress}`;
+      const pendingTxData = localStorage.getItem(pendingKey);
+      
+      if (pendingTxData) {
+        try {
+          const pendingTx = JSON.parse(pendingTxData);
+          console.log('Found pending project transaction, resuming to payment step');
+          
+          // Restore form data from pending transaction
+          setFormData(pendingTx.formData);
+          if (pendingTx.logoPreview) {
+            // Restore logo preview from stored data
+            setLogoPreview(pendingTx.logoPreview);
+          }
+          setCurrentStep(2);
+          setPaymentStatus('processing');
+          
+          toast.info('Resuming payment process. Your transaction is being monitored.');
+          
+          // Ensure transaction monitoring is running
+          import('../services/projectTransactionMonitor').then(({ projectTransactionMonitor }) => {
+            projectTransactionMonitor.startMonitoring(walletAddress);
+          });
+        } catch (error) {
+          console.error('Error parsing pending project transaction:', error);
+          localStorage.removeItem(pendingKey);
+        }
+      }
+    }
+  }, [isConnected, walletAddress]);
+
+  // Listen for successful project creation from transaction monitor
+  useEffect(() => {
+    const handleProjectCreated = () => {
+      if (currentStep === 2 && paymentStatus === 'processing') {
+        setPaymentStatus('success');
+        setTimeout(() => {
+          navigate('/projects');
+        }, 2000);
+      }
+    };
+
+    // Listen for the custom event from transaction monitor
+    window.addEventListener('projectCreatedSuccessfully', handleProjectCreated);
+    
+    return () => {
+      window.removeEventListener('projectCreatedSuccessfully', handleProjectCreated);
+    };
+  }, [currentStep, paymentStatus, navigate]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -231,15 +284,7 @@ const CreateProject: React.FC = () => {
       // Process real blockchain payment
       toast.info('Processing payment...');
       
-      // Convert logo file to base64 data URL for metadata
-      let logoDataUrl = null;
-      if (logoFile) {
-        logoDataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(logoFile);
-        });
-      }
+      // Logo conversion now handled by projectTransactionMonitor
 
       // Prepare project data for blockchain
       const projectData: ProjectPostingData = {
@@ -320,60 +365,29 @@ const CreateProject: React.FC = () => {
       }
       
       const txHash = result.txHash!;
+      
+      // Save transaction to localStorage for persistence
+      const pendingKey = `pendingProjectTx_${walletAddress}`;
+      const pendingTxData = {
+        txHash,
+        projectData,
+        formData,
+        logoFile: null, // Can't serialize File object
+        logoPreview: logoPreview, // Store the preview instead
+        timestamp: Date.now()
+      };
+      localStorage.setItem(pendingKey, JSON.stringify(pendingTxData));
+      
       setPaymentStatus('processing');
       toast.info('Payment submitted! Waiting for blockchain confirmation...');
+      
+      // Start transaction monitoring
+      import('../services/projectTransactionMonitor').then(({ projectTransactionMonitor }) => {
+        projectTransactionMonitor.startMonitoring(walletAddress!);
+      });
 
-      // Wait for transaction confirmation with 2-minute timeout
-      try {
-        const txStatus = await contractService.checkTransactionStatus(txHash, 120000);
-        
-        if (txStatus === 'confirmed') {
-          // Save project to database only after payment confirmation
-          const projectForStorage = {
-            title: formData.name,
-            name: formData.name,
-            description: formData.description,
-            website: formData.website || '',
-            category: formData.category,
-            logo: logoDataUrl,
-            twitter: formData.twitter.verified ? {
-              username: formData.twitter.username,
-              verified: formData.twitter.verified,
-              id: formData.twitter.id
-            } : undefined,
-            discord: formData.discord.verified ? {
-              serverName: formData.discord.serverName,
-              verified: formData.discord.verified,
-              inviteUrl: formData.discord.inviteUrl
-            } : undefined,
-            paymentAmount: totalCost.amount,
-            paymentCurrency: formData.paymentMethod as 'BONE' | 'ADA',
-            walletAddress: walletAddress!,
-            txHash,
-            status: 'confirmed' as const,
-            createdAt: new Date().toISOString()
-          };
-          
-          await ProjectService.addProject(projectForStorage);
-          
-          setPaymentStatus('success');
-          toast.success(`Project created successfully! Payment confirmed. Transaction: ${txHash.substring(0, 8)}...`);
-          
-          // Navigate to projects page after a delay
-          setTimeout(() => {
-            navigate('/projects');
-          }, 2000);
-        } else {
-          toast.error('Payment transaction failed to confirm. Please try again.');
-          setPaymentStatus('error');
-          setError('Payment transaction failed to confirm. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error verifying transaction:', error);
-        toast.error('Payment submitted but confirmation failed. Please check your transaction.');
-        setPaymentStatus('error');
-        setError('Payment submitted but confirmation failed. Please check your transaction.');
-      }
+      // Transaction monitoring will handle confirmation and database saving
+      // The UI will be updated via the event listener when transaction is confirmed
       
     } catch (err) {
       console.error('Error creating project:', err);
