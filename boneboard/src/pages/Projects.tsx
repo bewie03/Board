@@ -97,7 +97,7 @@ const Projects: React.FC = () => {
     );
     const matchesJobFilter = !showActiveJobsOnly || projectJobs.length > 0;
     
-    const isVerified = project.status === 'verified';
+    const isVerified = project.isVerified || false;
     const matchesVerifiedFilter = !showVerifiedOnly || isVerified;
     
     return matchesSearch && matchesCategory && matchesJobFilter && matchesVerifiedFilter;
@@ -386,7 +386,7 @@ const Projects: React.FC = () => {
                           {isAdmin && (
                             <ProjectVerificationToggle
                               projectId={String(project.id)}
-                              isVerified={project.status === 'verified'}
+                              isVerified={project.isVerified || false}
                               walletAddress={walletAddress}
                               onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
                             />
@@ -398,8 +398,8 @@ const Projects: React.FC = () => {
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
-                          {project.status === 'verified' && (
-                            <ProjectVerificationBadge status={project.status} size="sm" showText={false} />
+                          {(project.isVerified || false) && (
+                            <ProjectVerificationBadge status={project.status} isVerified={project.isVerified || false} size="sm" showText={false} />
                           )}
                         </div>
                       </div>
@@ -485,7 +485,7 @@ const Projects: React.FC = () => {
                           {isAdmin && (
                             <ProjectVerificationToggle
                               projectId={String(project.id)}
-                              isVerified={project.status === 'verified'}
+                              isVerified={project.isVerified || false}
                               walletAddress={walletAddress}
                               onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
                             />
@@ -497,8 +497,8 @@ const Projects: React.FC = () => {
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
-                          {project.status === 'verified' && (
-                            <ProjectVerificationBadge status={project.status} size="sm" showText={false} />
+                          {(project.isVerified || false) && (
+                            <ProjectVerificationBadge status={project.status} isVerified={project.isVerified || false} size="sm" showText={false} />
                           )}
                         </div>
                       </div>
@@ -594,8 +594,8 @@ const Projects: React.FC = () => {
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {selectedProject.category}
                           </span>
-                          {selectedProject.status === 'verified' && (
-                            <ProjectVerificationBadge status={selectedProject.status} size="sm" />
+                          {(selectedProject.isVerified || false) && (
+                            <ProjectVerificationBadge status={selectedProject.status} isVerified={selectedProject.isVerified || false} size="sm" />
                           )}
                         </div>
                       </div>

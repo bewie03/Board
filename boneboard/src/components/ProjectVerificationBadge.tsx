@@ -5,16 +5,18 @@ import { isVerifiedProject, getProjectStatusDisplay, getProjectStatusClasses } f
 
 interface ProjectVerificationBadgeProps {
   status: string;
+  isVerified?: boolean;
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
 }
 
 export const ProjectVerificationBadge: React.FC<ProjectVerificationBadgeProps> = ({ 
-  status, 
+  status,
+  isVerified: isVerifiedProp,
   size = 'md',
   showText = true 
 }) => {
-  const isVerified = isVerifiedProject(status);
+  const isVerified = isVerifiedProp !== undefined ? isVerifiedProp : isVerifiedProject(status);
   
   const sizeClasses = {
     sm: 'text-xs px-2 py-1',
