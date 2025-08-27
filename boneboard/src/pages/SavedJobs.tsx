@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import PageTransition from '../components/PageTransition';
@@ -276,9 +277,18 @@ const SavedJobs: React.FC = () => {
 
             {/* Saved Jobs List */}
             <div className="space-y-4">
-              {savedJobsData.map((job) => (
-                <div
+              {savedJobsData.map((job, index) => (
+                <motion.div
                   key={job.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.3, 
+                    delay: index * 0.1,
+                    ease: 'easeOut'
+                  }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => selectJob(job.id)}
                   className="bg-white shadow rounded-lg overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-blue-300 relative"
                 >
@@ -359,7 +369,7 @@ const SavedJobs: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </>

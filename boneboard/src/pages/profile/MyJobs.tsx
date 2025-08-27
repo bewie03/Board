@@ -308,8 +308,6 @@ const MyJobs: React.FC = () => {
                               </p>
                               {/* Job Details - Simple text only */}
                               <div className="flex items-center gap-x-3 text-xs text-gray-600 mt-2 overflow-hidden">
-                                <span className="whitespace-nowrap">{job.workArrangement === 'remote' ? 'Remote' : job.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
-                                <span className="whitespace-nowrap">{job.type}</span>
                                 <span className="whitespace-nowrap">
                                   {job.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
                                 </span>
