@@ -53,11 +53,12 @@ const logAdminActivity = async (
     const pool = getPool();
     await pool.query(
       `INSERT INTO admin_activity_log (admin_wallet, action, target_type, target_id, details) 
-       VALUES ($1, $2, $3, $4, $5)`,
-      [adminWallet, action, targetType, targetId || null, details ? JSON.stringify(details) : null]
+       VALUES ($1, $2, $3, $4::uuid, $5)`,
+      [adminWallet, action, targetType, targetId, details ? JSON.stringify(details) : null]
     );
   } catch (error) {
     console.error('Error logging admin activity:', error);
+    console.error('Failed to log activity for:', { adminWallet, action, targetType, targetId });
   }
 };
 
