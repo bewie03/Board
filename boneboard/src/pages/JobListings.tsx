@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaRegBookmark, FaBookmark, FaTimes, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck, FaBuilding } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaBuilding, FaBookmark, FaRegBookmark, FaTimes, FaLink, FaTwitter, FaDiscord, FaCheck, FaEnvelope } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -883,14 +883,6 @@ const JobListings: React.FC = () => {
                         <div className="flex items-center">
                           <FaMoneyBillWave className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                           <span>{selectedJob.salary}</span>
-                        </div>
-                        <div className="flex items-center">
-                          {selectedJob.salaryType === 'ADA' ? (
-                            <FaCoins className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                          ) : (
-                            <FaDollarSign className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
-                          )}
-                          <span>{selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}</span>
                         </div>
                       </div>
                     </div>

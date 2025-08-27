@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
@@ -469,16 +469,6 @@ const SavedJobs: React.FC = () => {
                       <div className="flex items-center">
                         <FaMoneyBillWave className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
                         <span className="text-gray-700">{selectedJob.salary}</span>
-                      </div>
-                      <div className="flex items-center">
-                        {selectedJob.salaryType === 'ADA' ? (
-                          <FaCoins className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
-                        ) : (
-                          <FaDollarSign className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
-                        )}
-                        <span className="text-gray-700">
-                          {selectedJob.salaryType === 'ADA' ? 'Paid in ADA' : 'Paid in Fiat'}
-                        </span>
                       </div>
                     </div>
                   </div>
