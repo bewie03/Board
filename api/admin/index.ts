@@ -29,9 +29,15 @@ const ADMIN_WALLET_ADDRESS = process.env.ADMIN_WALLET_ADDRESS || 'addr1q9l3t0hzc
 // Middleware to check admin authentication
 const requireAdmin = (req: VercelRequest) => {
   const adminWallet = req.headers['x-wallet-address'] as string;
+  console.log('Auth check - Received wallet:', adminWallet);
+  console.log('Auth check - Expected wallet:', ADMIN_WALLET_ADDRESS);
+  console.log('Auth check - Match:', adminWallet === ADMIN_WALLET_ADDRESS);
+  
   if (!adminWallet || adminWallet !== ADMIN_WALLET_ADDRESS) {
+    console.log('AUTH FAILED: Unauthorized access attempt');
     throw new Error('Unauthorized: Admin access required');
   }
+  console.log('AUTH SUCCESS: Admin authenticated');
   return adminWallet;
 };
 
@@ -64,6 +70,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Add comprehensive logging
+  console.log('=== ADMIN API REQUEST ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Query:', req.query);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  console.log('========================');
+
   try {
     const { method } = req;
     const pool = getPool();
@@ -189,22 +205,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Verify project
         if (req.query?.action === 'verify') {
           try {
+            console.log('Processing VERIFY request...');
+            console.log('Admin wallet from header:', req.headers['x-wallet-address']);
+            console.log('Expected admin wallet:', ADMIN_WALLET_ADDRESS);
+            
             const adminWallet = requireAdmin(req);
             const projectId = req.query.projectId as string;
 
             if (!projectId) {
+              console.log('ERROR: No project ID provided');
               return res.status(400).json({ error: 'Project ID is required' });
             }
 
             console.log('Verifying project:', projectId, 'by admin:', adminWallet);
 
             // First check if project exists
+            console.log('Checking if project exists...');
             const projectCheck = await pool.query('SELECT id FROM projects WHERE id = $1', [projectId]);
+            console.log('Project check result:', projectCheck.rows);
+            
             if (projectCheck.rows.length === 0) {
+              console.log('ERROR: Project not found in database');
               return res.status(404).json({ error: 'Project not found' });
             }
 
-            await pool.query(
+            console.log('Executing UPDATE query...');
+            const updateResult = await pool.query(
               `UPDATE projects SET 
                 status = $1, 
                 verified_by = $2, 
@@ -214,9 +240,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               WHERE id = $3`,
               ['verified', adminWallet, projectId]
             );
+            console.log('Update result:', updateResult);
 
+            console.log('Logging admin activity...');
             await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
 
+            console.log('SUCCESS: Project verified successfully');
             return res.status(200).json({ success: true });
           } catch (error) {
             console.error('Admin POST verify error:', error);

@@ -27,17 +27,28 @@ export const ProjectVerificationToggle: React.FC<ProjectVerificationToggleProps>
     e.stopPropagation(); // Prevent card click
     if (isLoading) return;
 
+    console.log('=== VERIFICATION TOGGLE ===');
+    console.log('Project ID:', projectId);
+    console.log('Wallet Address:', walletAddress);
+    console.log('Is Verified:', isVerified);
+    console.log('Is Admin:', isAdmin);
+    console.log('========================');
+
     setIsLoading(true);
     try {
       if (isVerified) {
+        console.log('Calling unverifyProject...');
         await adminService.unverifyProject(walletAddress!, projectId);
         onVerificationChange(false);
       } else {
+        console.log('Calling verifyProject...');
         await adminService.verifyProject(walletAddress!, projectId);
         onVerificationChange(true);
       }
+      console.log('Verification toggle completed successfully');
     } catch (error) {
       console.error('Error toggling project verification:', error);
+      console.error('Error details:', error);
       // You could add a toast notification here
     } finally {
       setIsLoading(false);

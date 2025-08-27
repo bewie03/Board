@@ -56,6 +56,7 @@ const Projects: React.FC = () => {
   console.log('Current wallet:', walletAddress);
   console.log('Admin wallet:', ADMIN_WALLET);
   console.log('Is admin:', isAdmin);
+  console.log('Wallet match check:', walletAddress === ADMIN_WALLET);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
 
