@@ -85,35 +85,35 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   const conditions: string[] = [];
 
   if (id) {
-    conditions.push('id = $' + (params.length + 1));
+    conditions.push('j.id = $' + (params.length + 1));
     params.push(id);
   }
 
   if (wallet) {
-    conditions.push('user_id = $' + (params.length + 1));
+    conditions.push('j.user_id = $' + (params.length + 1));
     params.push(wallet);
   }
 
   if (status) {
-    conditions.push('status = $' + (params.length + 1));
+    conditions.push('j.status = $' + (params.length + 1));
     params.push(status);
   }
 
   if (category) {
-    conditions.push('category = $' + (params.length + 1));
+    conditions.push('j.category = $' + (params.length + 1));
     params.push(category);
   }
 
   if (active === 'true') {
-    conditions.push('expires_at > NOW()');
-    conditions.push('status IN (\'confirmed\', \'pending\')');
+    conditions.push('j.expires_at > NOW()');
+    conditions.push('j.status IN (\'confirmed\', \'pending\')');
   }
 
   if (conditions.length > 0) {
     query += ' WHERE ' + conditions.join(' AND ');
   }
 
-  query += ' ORDER BY created_at DESC';
+  query += ' ORDER BY j.created_at DESC';
 
   const result = await getPool().query(query, params);
   
