@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { WalletProvider } from './contexts/WalletContext';
@@ -23,6 +23,7 @@ import DiscordCallback from './pages/auth/DiscordCallback';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import Header from './components/Header';
+import LoadingScreen from './components/LoadingScreen';
 
 
 
@@ -75,6 +76,8 @@ function AnimatedRoutes() {
 }
 
 function App() {
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
   // Debug: Check if wallet is detected
   useEffect(() => {
     console.log('Cardano wallet detected:', !!(window as any).cardano);
@@ -82,7 +85,18 @@ function App() {
       console.log('Available wallets:', Object.keys((window as any).cardano));
       console.log('Vesper (vespr) wallet detected:', !!(window as any).cardano.vespr);
     }
+
+    // Simulate initial loading time
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 2000); // 2 second loading screen
+
+    return () => clearTimeout(timer);
   }, []);
+
+  if (isInitialLoading) {
+    return <LoadingScreen isLoading={true} />;
+  }
 
   return (
     <WalletProvider>
