@@ -289,9 +289,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             );
             console.log('Update result:', updateResult);
 
-            console.log('Logging admin activity...');
-            await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
-
             console.log('SUCCESS: Project verified successfully');
             return res.status(200).json({ success: true });
           } catch (error) {
@@ -333,8 +330,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               WHERE id = $2`,
               ['active', projectId]
             );
-
-            await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
 
             return res.status(200).json({ success: true });
           } catch (error) {
