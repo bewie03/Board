@@ -280,6 +280,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
 
             console.log('Executing UPDATE query...');
+            console.log('Query parameters:', {
+              status: 'verified',
+              verified_by: adminWallet,
+              project_id: projectId,
+              is_verified: true
+            });
+            
             const updateResult = await pool.query(
               `UPDATE projects SET 
                 status = $1, 
