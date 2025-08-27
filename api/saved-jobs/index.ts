@@ -72,8 +72,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
            j.expires_at, j.created_at as job_created_at,
            p.is_verified as project_verified, p.status as project_status
     FROM saved_jobs sj
-    INNER JOIN jobs j ON sj.job_id = j.id
-    LEFT JOIN projects p ON j.company = p.name
+    INNER JOIN job_listings j ON sj.job_id = j.id
+    LEFT JOIN projects p ON j.company = p.title
     WHERE sj.wallet_address = $1
     ORDER BY sj.created_at DESC
   `;
