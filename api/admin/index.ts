@@ -53,7 +53,7 @@ const logAdminActivity = async (
     const pool = getPool();
     await pool.query(
       `INSERT INTO admin_activity_log (admin_wallet, action, target_type, target_id, details) 
-       VALUES ($1, $2, $3, $4::uuid, $5)`,
+       VALUES ($1, $2, $3, $4, $5)`,
       [adminWallet, action, targetType, targetId, details ? JSON.stringify(details) : null]
     );
   } catch (error) {
@@ -289,6 +289,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             );
             console.log('Update result:', updateResult);
 
+            console.log('Logging admin activity...');
+            await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
+
             console.log('SUCCESS: Project verified successfully');
             return res.status(200).json({ success: true });
           } catch (error) {
@@ -330,6 +333,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               WHERE id = $2`,
               ['active', projectId]
             );
+
+            await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
 
             return res.status(200).json({ success: true });
           } catch (error) {
