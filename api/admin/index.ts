@@ -54,7 +54,7 @@ const logAdminActivity = async (
     await pool.query(
       `INSERT INTO admin_activity_log (admin_wallet, action, target_type, target_id, details) 
        VALUES ($1, $2, $3, $4, $5)`,
-      [adminWallet, action, targetType, targetId, JSON.stringify(details)]
+      [adminWallet, action, targetType, targetId || null, details ? JSON.stringify(details) : null]
     );
   } catch (error) {
     console.error('Error logging admin activity:', error);
