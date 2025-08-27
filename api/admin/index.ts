@@ -186,42 +186,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(404).json({ error: 'Endpoint not found' });
 
       case 'POST':
-        // Verify project
-        if (req.query?.action === 'verify') {
-          const adminWallet = requireAdmin(req);
-          const projectId = req.query.projectId as string;
+        try {
+          // Verify project
+          if (req.query?.action === 'verify') {
+            const adminWallet = requireAdmin(req);
+            const projectId = req.query.projectId as string;
 
-          if (!projectId) {
-            return res.status(400).json({ error: 'Project ID is required' });
+            if (!projectId) {
+              return res.status(400).json({ error: 'Project ID is required' });
+            }
+
+            await pool.query(
+              `UPDATE projects SET status = 'verified', verified_by = $1, verified_at = NOW(), updated_at = NOW() WHERE id = $2`,
+              [adminWallet, projectId]
+            );
+
+            await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
+
+            return res.status(200).json({ success: true });
           }
 
-          await pool.query(
-            `UPDATE projects SET status = 'verified', verified_by = $1, verified_at = NOW(), updated_at = NOW() WHERE id = $2`,
-            [adminWallet, projectId]
-          );
+          // Unverify project
+          if (req.query?.action === 'unverify') {
+            const adminWallet = requireAdmin(req);
+            const projectId = req.query.projectId as string;
 
-          await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
+            if (!projectId) {
+              return res.status(400).json({ error: 'Project ID is required' });
+            }
 
-          return res.status(200).json({ success: true });
-        }
+            await pool.query(
+              `UPDATE projects SET status = 'active', verified_by = NULL, verified_at = NULL, updated_at = NOW() WHERE id = $1`,
+              [projectId]
+            );
 
-        // Unverify project
-        if (req.query?.action === 'unverify') {
-          const adminWallet = requireAdmin(req);
-          const projectId = req.query.projectId as string;
+            await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
 
-          if (!projectId) {
-            return res.status(400).json({ error: 'Project ID is required' });
+            return res.status(200).json({ success: true });
           }
-
-          await pool.query(
-            `UPDATE projects SET status = 'active', verified_by = NULL, verified_at = NULL, updated_at = NOW() WHERE id = $1`,
-            [projectId]
-          );
-
-          await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
-
-          return res.status(200).json({ success: true });
+        } catch (error) {
+          console.error('Admin POST error:', error);
+          return res.status(500).json({ error: 'Internal server error' });
         }
 
         return res.status(404).json({ error: 'Endpoint not found' });

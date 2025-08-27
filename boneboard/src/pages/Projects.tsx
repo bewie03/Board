@@ -2,36 +2,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch } from 'react-icons/fa';
 import { JobService } from '../services/jobService';
-import { ProjectService, Project as StoredProject } from '../services/projectService';
+import { ProjectService, Project as ServiceProject } from '../services/projectService';
 import { useWallet } from '../contexts/WalletContext';
 import { ProjectVerificationToggle } from '../components/ProjectVerificationToggle';
 import { ProjectVerificationBadge } from '../components/ProjectVerificationBadge';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type Project = {
+type Job = {
   id: number;
-  name: string;
-  title?: string; // API returns title field
-  logo: string | null;
+  title: string;
+  type: string;
+  location: string;
   description: string;
-  category: string;
-  status?: string; // Add status field for verification
-  jobsAvailable: number;
-  socials: {
+  skills: string[];
+};
+
+type Project = ServiceProject & {
+  jobsAvailable?: number;
+  socials?: {
     website?: string;
     twitter?: string;
     discord?: string;
     github?: string;
   };
-  jobs: Array<{
-    id: number;
-    title: string;
-    type: string;
-    location: string;
-    description: string;
-    skills: string[];
-  }>;
+  jobs?: Job[];
 };
 
 const PROJECT_CATEGORIES = [
@@ -45,13 +40,16 @@ const PROJECT_CATEGORIES = [
 
 const Projects: React.FC = () => {
   const { walletAddress } = useWallet();
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [createdProjects, setCreatedProjects] = useState<Project[]>([]);
   const [allJobs, setAllJobs] = useState<any[]>([]);
-  const [createdProjects, setCreatedProjects] = useState<StoredProject[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showActiveJobsOnly, setShowActiveJobsOnly] = useState(false);
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  
+  // Check if current user is admin
+  const isAdmin = walletAddress === process.env.REACT_APP_ADMIN_WALLET_ADDRESS;
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -328,7 +326,8 @@ const Projects: React.FC = () => {
               <div 
                 key={project.id} 
                 onClick={() => setSelectedProject({
-                  id: parseInt(project.id),
+                  ...project,
+                  id: project.id,
                   name: project.title || project.name || '',
                   logo: project.logo || null,
                   description: project.description,
@@ -352,12 +351,6 @@ const Projects: React.FC = () => {
                 className="group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative"
               >
                 <div className="p-6">
-                  <ProjectVerificationToggle
-                    projectId={project.id.toString()}
-                    isVerified={project.status === 'verified'}
-                    walletAddress={walletAddress}
-                    onVerificationChange={(verified) => handleVerificationChange(project.id.toString(), verified)}
-                  />
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
@@ -379,9 +372,19 @@ const Projects: React.FC = () => {
                         )}
                       </div>
                       <div className="ml-4">
-                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
-                          {project.title || project.name}
-                        </h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
+                            {project.title || project.name}
+                          </h2>
+                          {isAdmin && (
+                            <ProjectVerificationToggle
+                              projectId={String(project.id)}
+                              isVerified={project.status === 'verified'}
+                              walletAddress={walletAddress}
+                              onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
+                            />
+                          )}
+                        </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
@@ -445,12 +448,6 @@ const Projects: React.FC = () => {
                 className="group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 <div className="p-6">
-                  <ProjectVerificationToggle
-                    projectId={project.id.toString()}
-                    isVerified={project.status === 'verified'}
-                    walletAddress={walletAddress}
-                    onVerificationChange={(verified) => handleVerificationChange(project.id.toString(), verified)}
-                  />
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
@@ -472,9 +469,19 @@ const Projects: React.FC = () => {
                         )}
                       </div>
                       <div className="ml-4">
-                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
-                          {project.title || project.name}
-                        </h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
+                            {project.title || project.name}
+                          </h2>
+                          {isAdmin && (
+                            <ProjectVerificationToggle
+                              projectId={String(project.id)}
+                              isVerified={project.status === 'verified'}
+                              walletAddress={walletAddress}
+                              onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
+                            />
+                          )}
+                        </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
@@ -501,17 +508,17 @@ const Projects: React.FC = () => {
                   
                   {/* Social Links Preview */}
                   <div className="mt-4 flex items-center space-x-3">
-                    {project.socials.website && (
+                    {project.website && (
                       <div className="flex items-center text-gray-400 hover:text-blue-600">
                         <FaGlobe className="h-4 w-4" />
                       </div>
                     )}
-                    {project.socials.twitter && (
+                    {(project.twitterLink || project.twitter) && (
                       <div className="flex items-center text-gray-400 hover:text-blue-600">
                         <FaTwitter className="h-4 w-4" />
                       </div>
                     )}
-                    {project.socials.discord && (
+                    {(project.discordLink || project.discord) && (
                       <div className="flex items-center text-gray-400 hover:text-blue-600">
                         <FaDiscord className="h-4 w-4" />
                       </div>
@@ -603,45 +610,47 @@ const Projects: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Links & Social</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {selectedProject.socials.website && (
+                      {selectedProject.website && (
                         <a 
-                          href={selectedProject.socials.website} 
+                          href={selectedProject.website} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
-                          <FaGlobe className="h-5 w-5 text-gray-600 mr-3" />
+                          <FaGlobe className="h-5 w-5 text-blue-600 mr-3" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">Website</div>
-                            <div className="text-xs text-gray-500">Visit site</div>
+                            <div className="font-medium text-gray-900">Website</div>
+                            <div className="text-sm text-gray-500">Visit project site</div>
                           </div>
                           <FaExternalLinkAlt className="h-3 w-3 text-gray-400 ml-auto" />
                         </a>
                       )}
-                      {selectedProject.socials.twitter && (
+                      {(selectedProject.twitterLink || selectedProject.twitter) && (
                         <a 
-                          href={selectedProject.socials.twitter} 
+                          href={selectedProject.twitterLink || (typeof selectedProject.twitter === 'string' ? selectedProject.twitter : '')} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           <FaTwitter className="h-5 w-5 text-blue-400 mr-3" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">X (Twitter)</div>
-                            <div className="text-xs text-gray-500">Follow us</div>
+                            <div className="font-medium text-gray-900">Twitter</div>
+                            <div className="text-sm text-gray-500">Follow updates</div>
                           </div>
                           <FaExternalLinkAlt className="h-3 w-3 text-gray-400 ml-auto" />
                         </a>
                       )}
-                      {selectedProject.socials.discord && (
+                      {(selectedProject.discordLink || selectedProject.discord) && (
                         <a 
-                          href={selectedProject.socials.discord} 
+                          href={selectedProject.discordLink || (typeof selectedProject.discord === 'string' ? selectedProject.discord : '')} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           <FaDiscord className="h-5 w-5 text-indigo-500 mr-3" />
                           <div>
+                            <div className="font-medium text-gray-900">Discord</div>
+                            <div className="text-sm text-gray-500">Join community</div>
                             <div className="text-sm font-medium text-gray-900">Discord</div>
                             <div className="text-xs text-gray-500">Join server</div>
                           </div>
