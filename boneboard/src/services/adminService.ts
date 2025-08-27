@@ -58,7 +58,7 @@ export class AdminService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
           ...settings,
@@ -86,7 +86,7 @@ export class AdminService {
       const response = await fetch(`${this.baseUrl}/projects/${projectId}`, {
         method: 'DELETE',
         headers: {
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         }
       });
 
@@ -163,7 +163,7 @@ export class AdminService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
           ...updates,
@@ -189,7 +189,7 @@ export class AdminService {
       const response = await fetch(`${this.baseUrl}/jobs/${jobId}`, {
         method: 'DELETE',
         headers: {
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         }
       });
 
@@ -214,7 +214,7 @@ export class AdminService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress
+          'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
           ...updates,
