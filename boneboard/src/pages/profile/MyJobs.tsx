@@ -547,13 +547,24 @@ const MyJobs: React.FC = () => {
                         <div className="flex items-center">
                           <FaMoneyBillWave className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                           {editingJob ? (
-                            <input
-                              type="text"
-                              value={editFormData.salary || ''}
-                              onChange={(e) => setEditFormData(prev => ({ ...prev, salary: e.target.value }))}
-                              className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-32"
-                              placeholder="Salary"
-                            />
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="text"
+                                value={editFormData.salary || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, salary: e.target.value }))}
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-32"
+                                placeholder="Salary"
+                              />
+                              <select
+                                value={editFormData.salaryType || 'FIAT'}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, salaryType: e.target.value as 'ADA' | 'FIAT' | 'Other' }))}
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
+                              >
+                                <option value="ADA">ADA</option>
+                                <option value="FIAT">FIAT</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
                           ) : (
                             <span>{selectedJob.salary}</span>
                           )}
