@@ -89,6 +89,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     switch (method) {
       case 'GET':
+        // Test database connection
+        if (req.query?.test === 'db') {
+          try {
+            console.log('Testing database connection...');
+            const testResult = await pool.query('SELECT NOW() as current_time');
+            console.log('Database test result:', testResult.rows);
+            return res.status(200).json({ 
+              success: true, 
+              message: 'Database connection working',
+              time: testResult.rows[0]?.current_time 
+            });
+          } catch (error) {
+            console.error('Database test error:', error);
+            return res.status(500).json({ 
+              error: 'Database connection failed',
+              details: error instanceof Error ? error.message : 'Unknown error'
+            });
+          }
+        }
+
+        // Test admin_activity_log table
+        if (req.query?.test === 'table') {
+          try {
+            console.log('Testing admin_activity_log table...');
+            const tableTest = await pool.query('SELECT COUNT(*) FROM admin_activity_log');
+            console.log('Table test result:', tableTest.rows);
+            return res.status(200).json({ 
+              success: true, 
+              message: 'admin_activity_log table exists',
+              count: tableTest.rows[0]?.count 
+            });
+          } catch (error) {
+            console.error('Table test error:', error);
+            return res.status(500).json({ 
+              error: 'admin_activity_log table test failed',
+              details: error instanceof Error ? error.message : 'Unknown error'
+            });
+          }
+        }
+
         // Get platform settings
         if (isSettingsRequest) {
           const result = await pool.query(
