@@ -65,13 +65,15 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // Get saved jobs with job details
+  // Get saved jobs with job details and project verification
   const query = `
     SELECT sj.*, j.title, j.company, j.description, j.salary, j.salary_type,
            j.category, j.type, j.work_arrangement, j.company_logo, j.status,
-           j.expires_at, j.created_at as job_created_at
+           j.expires_at, j.created_at as job_created_at,
+           p.is_verified as project_verified, p.status as project_status
     FROM saved_jobs sj
     INNER JOIN jobs j ON sj.job_id = j.id
+    LEFT JOIN projects p ON j.company = p.name
     WHERE sj.wallet_address = $1
     ORDER BY sj.created_at DESC
   `;
@@ -92,7 +94,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     status: row.status,
     expiresAt: row.expires_at,
     jobCreatedAt: row.job_created_at,
-    savedAt: row.created_at
+    savedAt: row.created_at,
+    isProjectVerified: row.project_verified || row.project_status === 'verified'
   }));
 
   return res.status(200).json(savedJobs);

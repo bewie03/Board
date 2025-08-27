@@ -73,7 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function handleGet(req: VercelRequest, res: VercelResponse) {
   const { id, wallet, status, category, active } = req.query;
 
-  let query = 'SELECT * FROM job_listings';
+  let query = `
+    SELECT 
+      j.*,
+      p.is_verified as project_verified,
+      p.status as project_status
+    FROM job_listings j
+    LEFT JOIN projects p ON j.company = p.name
+  `;
   const params: any[] = [];
   const conditions: string[] = [];
 
@@ -140,7 +147,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     website: row.website,
     twitter: row.twitter,
     discord: row.discord,
-    featured: row.is_featured
+    featured: row.is_featured,
+    isProjectVerified: row.project_verified || row.project_status === 'verified'
   }));
 
   return res.status(200).json(jobs);
