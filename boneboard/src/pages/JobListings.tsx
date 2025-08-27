@@ -202,18 +202,15 @@ const JobListings: React.FC = () => {
   // Get featured jobs for the featured section
   const featuredJobs = jobs.filter(job => job.featured);
 
-  const selectJob = (e: React.MouseEvent, jobId: string) => {
-    e.preventDefault();
+  const selectJob = (jobId: string) => {
     const job = jobs.find(j => j.id === jobId);
     if (job) {
       setSelectedJob(job);
-      navigate(`/jobs/${jobId}`, { replace: true });
     }
   };
 
   const clearSelectedJob = () => {
     setSelectedJob(null);
-    navigate('/jobs', { replace: true });
   };
 
   const toggleSaveJob = (jobId: string, e: React.MouseEvent) => {
@@ -484,7 +481,7 @@ const JobListings: React.FC = () => {
                       delay: index * 0.1,
                       ease: "easeOut"
                     }}
-                    onClick={(e) => selectJob(e, job.id)}
+                    onClick={() => selectJob(job.id)}
                     className={`group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative ${
                       selectedJob?.id === job.id ? 'ring-2 ring-blue-500 shadow-xl' : ''
                     } ${job.featured ? 'ring-2 ring-blue-400 bg-gradient-to-r from-blue-50 to-white' : ''}`}
@@ -626,7 +623,6 @@ const JobListings: React.FC = () => {
                           e.preventDefault();
                           e.stopPropagation();
                           setSelectedJob(job);
-                          navigate(`/jobs/${job.id}`, { replace: true });
                         }}
                         className="group cursor-pointer px-6 py-4 hover:bg-blue-50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md relative"
                       >
@@ -731,7 +727,6 @@ const JobListings: React.FC = () => {
                             e.preventDefault();
                             e.stopPropagation();
                             setSelectedJob(job);
-                            navigate(`/jobs/${job.id}`, { replace: true });
                           }}
                           className="group cursor-pointer px-6 py-4 hover:bg-gray-50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md"
                         >

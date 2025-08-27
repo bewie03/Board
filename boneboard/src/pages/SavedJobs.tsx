@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaCoins, FaDollarSign, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import PageTransition from '../components/PageTransition';
@@ -376,16 +376,28 @@ const SavedJobs: React.FC = () => {
         )}
 
         {/* Job Details Slide-out Panel */}
-        {selectedJob && (
-          <>
-            {/* Overlay */}
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-              onClick={clearSelectedJob}
-            />
-            
-            {/* Slide-out Panel */}
-            <div className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60] transform transition-transform duration-300 ease-in-out" style={{ top: '64px' }}>
+        <AnimatePresence>
+          {selectedJob && (
+            <>
+              {/* Overlay */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                onClick={clearSelectedJob}
+              />
+              
+              {/* Slide-out Panel */}
+              <motion.div 
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
+                className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60]" 
+                style={{ top: '64px' }}
+              >
               <div className="flex flex-col h-full">
                 {/* Header */}
                 <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
@@ -615,9 +627,10 @@ const SavedJobs: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
         </div>
       </div>
     </PageTransition>
