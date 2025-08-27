@@ -27,6 +27,8 @@ export interface Job {
   twitter?: string;
   discord?: string;
   featured?: boolean;
+  projectId?: string;
+  isProjectVerified?: boolean;
 }
 
 import { ApiService } from './apiService';

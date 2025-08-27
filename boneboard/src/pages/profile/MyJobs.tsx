@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEye, FaEdit, FaPause, FaPlay, FaClock, FaSave, FaTimes, FaMapMarkerAlt, FaCoins, FaDollarSign, FaLink, FaTwitter, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaClock, FaDollarSign, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaCoins, FaLink, FaTwitter } from 'react-icons/fa';
 import CustomSelect from '../../components/CustomSelect';
 import { JOB_CATEGORIES } from '../../constants/categories';
 
@@ -289,6 +289,16 @@ const MyJobs: React.FC = () => {
                               <h3 className="text-lg font-semibold flex items-center">
                                 <span className="truncate">{job.title}</span>
                                 {job.featured && <span className="ml-2 text-blue-500 text-xl flex-shrink-0" title="Featured Job">★</span>}
+                                {job.isProjectVerified && (
+                                  <div 
+                                    className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
+                                    title="Verified project"
+                                  >
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                )}
                               </h3>
                               <p className="text-sm text-gray-600 mb-2">
                                 {job.company}
@@ -296,16 +306,6 @@ const MyJobs: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedJob(job);
-                              }}
-                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                              title="View job details"
-                            >
-                              <FaEye className="h-4 w-4" />
-                            </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -459,8 +459,20 @@ const MyJobs: React.FC = () => {
                             />
                           </div>
                         ) : (
-                          <div>
-                            <h1 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h1>
+                          <div className="flex items-start space-x-4 flex-1 min-w-0">
+                            <div className="flex items-center">
+                              <h1 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h1>
+                              {selectedJob.isProjectVerified && (
+                                <div 
+                                  className="ml-2 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
+                                  title="Verified project"
+                                >
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
                             <div className="mt-2">
                               <p className="text-lg text-gray-600">{selectedJob.company}</p>
                               <div className="mt-2">
