@@ -5,7 +5,6 @@ import { JobService } from '../services/jobService';
 import { ProjectService, Project as ServiceProject } from '../services/projectService';
 import { useWallet } from '../contexts/WalletContext';
 import { ProjectVerificationToggle } from '../components/ProjectVerificationToggle';
-import { ProjectVerificationBadge } from '../components/ProjectVerificationBadge';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -383,6 +382,9 @@ const Projects: React.FC = () => {
                           <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
                             {project.title || project.name}
                           </h2>
+                          {(project.isVerified || false) && (
+                            <span className="text-blue-600 text-lg">✓</span>
+                          )}
                           {isAdmin && (
                             <ProjectVerificationToggle
                               projectId={String(project.id)}
@@ -396,9 +398,6 @@ const Projects: React.FC = () => {
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
-                          {(project.isVerified || false) && (
-                            <ProjectVerificationBadge status={project.status} isVerified={project.isVerified || false} size="sm" showText={false} />
-                          )}
                         </div>
                       </div>
                     </div>
@@ -480,6 +479,9 @@ const Projects: React.FC = () => {
                           <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600">
                             {project.title || project.name}
                           </h2>
+                          {(project.isVerified || false) && (
+                            <span className="text-blue-600 text-lg">✓</span>
+                          )}
                           {isAdmin && (
                             <ProjectVerificationToggle
                               projectId={String(project.id)}
@@ -493,9 +495,6 @@ const Projects: React.FC = () => {
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
-                          {(project.isVerified || false) && (
-                            <ProjectVerificationBadge status={project.status} isVerified={project.isVerified || false} size="sm" showText={false} />
-                          )}
                         </div>
                       </div>
                     </div>
@@ -585,14 +584,16 @@ const Projects: React.FC = () => {
                         )}
                       </div>
                       <div className="ml-4">
-                        <h2 className="text-2xl font-bold text-gray-900">{selectedProject.name}</h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-2xl font-bold text-gray-900">{selectedProject.name}</h2>
+                          {(selectedProject.isVerified || false) && (
+                            <span className="text-blue-600 text-xl">✓</span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-2 mt-1">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {selectedProject.category}
                           </span>
-                          {(selectedProject.isVerified || false) && (
-                            <ProjectVerificationBadge status={selectedProject.status} isVerified={selectedProject.isVerified || false} size="sm" />
-                          )}
                         </div>
                       </div>
                     </div>
