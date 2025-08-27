@@ -63,9 +63,9 @@ const Header: React.FC = () => {
   return (
     <>
       {/* Main Header */}
-      <header className="bg-slate-50 shadow-sm sticky top-0 z-[100]">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40" style={{ height: '80px' }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <NavLink to="/" className="flex items-center space-x-3">
               <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center">
                 <FaBone className="text-blue-600 text-xl" />

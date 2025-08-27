@@ -82,7 +82,7 @@ const AdminPanel: React.FC = () => {
         {/* Header */}
         <div className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
+            <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
                 <FaShieldAlt className="h-8 w-8 text-blue-600 mr-3" />
                 <div>
@@ -249,44 +249,52 @@ const PricingSettings: React.FC<{
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-8">
         {/* Project Listing Fees */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Project Listing Fees</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+              <FaDollarSign className="h-5 w-5 text-blue-600" />
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                BONE Price (Base Price)
+              <h3 className="text-xl font-semibold text-gray-900">Project Listing Fees</h3>
+              <p className="text-sm text-gray-600">Set pricing for project submissions</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                🦴 BONE Price (Base Price)
               </label>
-              <div className="flex">
+              <div className="relative">
                 <input
                   type="number"
                   step="1"
                   min="0"
                   value={projectFeeBone}
                   onChange={(e) => setProjectFeeBone(parseFloat(e.target.value))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                   required
                 />
-                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
-                  BONE
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500 font-medium">BONE</span>
                 </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ADA Price (Alternative)
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                ₳ ADA Price (Alternative)
               </label>
-              <div className="flex">
+              <div className="relative">
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={projectFeeAda}
                   onChange={(e) => setProjectFeeAda(parseFloat(e.target.value))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                   required
                 />
-                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
-                  ADA
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500 font-medium">ADA</span>
                 </div>
               </div>
             </div>
@@ -294,44 +302,52 @@ const PricingSettings: React.FC<{
         </div>
 
         {/* Job Listing Fees */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Job Listing Fees</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+              <FaDollarSign className="h-5 w-5 text-green-600" />
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                BONE Price (Base Price)
+              <h3 className="text-xl font-semibold text-gray-900">Job Listing Fees</h3>
+              <p className="text-sm text-gray-600">Set pricing for job postings</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                🦴 BONE Price (Base Price)
               </label>
-              <div className="flex">
+              <div className="relative">
                 <input
                   type="number"
                   step="1"
                   min="0"
                   value={jobFeeBone}
                   onChange={(e) => setJobFeeBone(parseFloat(e.target.value))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                   required
                 />
-                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
-                  BONE
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500 font-medium">BONE</span>
                 </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ADA Price (Alternative)
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                ₳ ADA Price (Alternative)
               </label>
-              <div className="flex">
+              <div className="relative">
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={jobFeeAda}
                   onChange={(e) => setJobFeeAda(parseFloat(e.target.value))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                   required
                 />
-                <div className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700">
-                  ADA
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500 font-medium">ADA</span>
                 </div>
               </div>
             </div>
@@ -339,23 +355,55 @@ const PricingSettings: React.FC<{
         </div>
 
         {/* Pricing Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Pricing Structure</h4>
-          <div className="text-sm text-blue-800 space-y-1">
-            <p>• Base price is for 1-month listings</p>
-            <p>• Duration discounts: 2mo (5%), 3mo (10%), 6mo (15%), 12mo (20%)</p>
-            <p>• Project listings get 20% discount</p>
-            <p>• Featured listings cost +50%</p>
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+              <FaChartBar className="h-4 w-4 text-purple-600" />
+            </div>
+            <h4 className="text-lg font-semibold text-purple-900">Pricing Structure</h4>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-purple-800">
+                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                <span>Base price is for 1-month listings</span>
+              </div>
+              <div className="flex items-center text-sm text-purple-800">
+                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                <span>Project listings get 20% discount</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-purple-800">
+                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                <span>Duration discounts: 2mo (5%), 3mo (10%), 6mo (15%), 12mo (20%)</span>
+              </div>
+              <div className="flex items-center text-sm text-purple-800">
+                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                <span>Featured listings cost +50%</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Current Settings Info */}
-      <div className="bg-gray-50 p-4 rounded-md">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Current Settings</h4>
-        <div className="text-sm text-gray-600 space-y-1">
-          <p>Last updated: {new Date(settings.lastUpdated).toLocaleString()}</p>
-          <p>Updated by: {settings.updatedBy}</p>
+      <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl border border-gray-200">
+        <div className="flex items-center mb-3">
+          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+            <FaShieldAlt className="h-4 w-4 text-gray-600" />
+          </div>
+          <h4 className="text-lg font-semibold text-gray-900">Current Settings</h4>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center text-sm text-gray-600">
+            <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
+            <span><strong>Last updated:</strong> {new Date(settings.lastUpdated).toLocaleString()}</span>
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
+            <span><strong>Updated by:</strong> {settings.updatedBy}</span>
+          </div>
         </div>
       </div>
 
@@ -364,9 +412,16 @@ const PricingSettings: React.FC<{
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 shadow-lg"
         >
-          {loading ? 'Updating...' : 'Update Pricing'}
+          {loading ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Updating...
+            </div>
+          ) : (
+            'Update Pricing'
+          )}
         </button>
       </div>
     </form>
