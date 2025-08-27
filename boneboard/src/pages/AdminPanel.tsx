@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaShieldAlt, FaChartBar, FaDollarSign, FaBug, FaExclamationTriangle } from 'react-icons/fa';
+import { FaShieldAlt, FaChartBar, FaDollarSign, FaBug, FaExclamationTriangle, FaProjectDiagram, FaBriefcase } from 'react-icons/fa';
 import { AdminService, PlatformSettings } from '../services/adminService';
 import { useWallet } from '../contexts/WalletContext';
 import { isAdminWallet } from '../utils/adminAuth';
@@ -81,7 +81,7 @@ const AdminPanel: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
@@ -100,7 +100,7 @@ const AdminPanel: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
           <div className="bg-white rounded-xl shadow-sm border border-blue-100">
             <nav className="flex space-x-1 p-2">
               <button
@@ -141,7 +141,7 @@ const AdminPanel: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
               <div className="flex">
@@ -276,10 +276,10 @@ const PricingSettings: React.FC<{
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-8">
         {/* Project Listing Fees */}
-        <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+        <div className="bg-white rounded-xl p-6 border border-blue-200">
           <div className="flex items-center mb-6">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mr-4 shadow-sm">
-              <FaShieldAlt className="h-6 w-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+              <FaProjectDiagram className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Project Listing Fees</h3>
@@ -332,7 +332,7 @@ const PricingSettings: React.FC<{
         <div className="bg-white rounded-xl p-6 border border-blue-200">
           <div className="flex items-center mb-6">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-              <FaChartBar className="h-6 w-6 text-blue-600" />
+              <FaBriefcase className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Job Listing Fees</h3>
@@ -435,9 +435,9 @@ const PricingSettings: React.FC<{
             <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
             <span className="text-sm text-gray-700"><strong>Last updated:</strong> {new Date(settings.lastUpdated).toLocaleString()}</span>
           </div>
-          <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-            <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-            <span className="text-sm text-gray-700"><strong>Updated by:</strong> {settings.updatedBy}</span>
+          <div className="flex items-start p-3 bg-blue-50 rounded-lg">
+            <div className="w-3 h-3 bg-blue-600 rounded-full mr-3 mt-1 flex-shrink-0"></div>
+            <span className="text-sm text-gray-700 break-all"><strong>Updated by:</strong> {settings.updatedBy}</span>
           </div>
         </div>
       </div>
