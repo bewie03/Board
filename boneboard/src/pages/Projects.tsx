@@ -154,7 +154,7 @@ const Projects: React.FC = () => {
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8 flex justify-between items-start">
-            <div className="text-center flex-1">
+            <div className="text-left flex-1">
               <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 Explore Projects
               </h1>
@@ -164,7 +164,7 @@ const Projects: React.FC = () => {
             </div>
             <Link
               to="/create-project"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ml-4"
+              className="inline-flex items-right px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ml-4"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
