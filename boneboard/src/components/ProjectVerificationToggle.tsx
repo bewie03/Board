@@ -48,7 +48,7 @@ export const ProjectVerificationToggle: React.FC<ProjectVerificationToggleProps>
     <button
       onClick={handleToggleVerification}
       disabled={isLoading}
-      className={`absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
+      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
         isVerified
           ? 'bg-blue-500 text-white hover:bg-blue-600'
           : 'bg-gray-200 text-gray-400 hover:bg-gray-300'

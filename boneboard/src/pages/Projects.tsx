@@ -49,7 +49,13 @@ const Projects: React.FC = () => {
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   
   // Check if current user is admin
-  const isAdmin = walletAddress === process.env.REACT_APP_ADMIN_WALLET_ADDRESS;
+  const ADMIN_WALLET = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
+  const isAdmin = walletAddress === ADMIN_WALLET;
+  
+  // Debug logging
+  console.log('Current wallet:', walletAddress);
+  console.log('Admin wallet:', ADMIN_WALLET);
+  console.log('Is admin:', isAdmin);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -384,6 +390,8 @@ const Projects: React.FC = () => {
                               onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
                             />
                           )}
+                          {/* Temporary debug - remove after confirming it works */}
+                          {isAdmin && <span className="text-xs text-green-600 ml-2">ADMIN</span>}
                         </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -481,6 +489,8 @@ const Projects: React.FC = () => {
                               onVerificationChange={(verified) => handleVerificationChange(String(project.id), verified)}
                             />
                           )}
+                          {/* Temporary debug - remove after confirming it works */}
+                          {isAdmin && <span className="text-xs text-green-600 ml-2">ADMIN</span>}
                         </div>
                         <div className="flex items-center mt-2 space-x-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
