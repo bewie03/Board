@@ -145,24 +145,29 @@ const Projects: React.FC = () => {
     <PageTransition>
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8 flex justify-between items-start">
-            <div className="text-left flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                Explore Projects
-              </h1>
-              <p className="mt-2 text-sm text-gray-500">
-                Discover exciting projects in the Cardano ecosystem
-              </p>
+          {/* Header in White Container */}
+          <div className="bg-white shadow rounded-lg mb-6">
+            <div className="px-6 py-8 sm:p-10">
+              <div className="flex justify-between items-start">
+                <div className="text-left flex-1">
+                  <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                    Explore Projects
+                  </h1>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Discover exciting projects in the Cardano ecosystem
+                  </p>
+                </div>
+                <Link
+                  to="/create-project"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ml-4"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Create Project
+                </Link>
+              </div>
             </div>
-            <Link
-              to="/create-project"
-              className="inline-flex items-right px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ml-4"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Create Project
-            </Link>
           </div>
 
           {/* Search and Filters */}
