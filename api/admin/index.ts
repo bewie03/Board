@@ -282,12 +282,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const currentProject = projectCheck.rows[0];
             console.log('Current project state:', currentProject);
             
-            // Check if project has null user_id which would cause constraint violation
+            // Handle projects with null user_id (legacy/migrated projects)
             if (!currentProject.user_id) {
-              console.log('ERROR: Project has null user_id, cannot update');
-              return res.status(400).json({ 
-                error: 'Project has invalid user_id and cannot be verified. Please contact support.' 
-              });
+              console.log('WARNING: Project has null user_id, will verify without user constraint');
             }
 
             // Check if already verified
