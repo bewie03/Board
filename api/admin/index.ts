@@ -186,9 +186,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(404).json({ error: 'Endpoint not found' });
 
       case 'POST':
-        try {
-          // Verify project
-          if (req.query?.action === 'verify') {
+        // Verify project
+        if (req.query?.action === 'verify') {
+          try {
             const adminWallet = requireAdmin(req);
             const projectId = req.query.projectId as string;
 
@@ -218,10 +218,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
 
             return res.status(200).json({ success: true });
+          } catch (error) {
+            console.error('Admin POST verify error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error('Error details:', errorMessage);
+            return res.status(500).json({ 
+              error: 'Internal server error',
+              details: errorMessage 
+            });
           }
+        }
 
-          // Unverify project
-          if (req.query?.action === 'unverify') {
+        // Unverify project
+        if (req.query?.action === 'unverify') {
+          try {
             const adminWallet = requireAdmin(req);
             const projectId = req.query.projectId as string;
 
@@ -251,17 +261,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
 
             return res.status(200).json({ success: true });
+          } catch (error) {
+            console.error('Admin POST unverify error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error('Error details:', errorMessage);
+            return res.status(500).json({ 
+              error: 'Internal server error',
+              details: errorMessage 
+            });
           }
-        } catch (error) {
-          console.error('Admin POST error:', error);
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          const errorStack = error instanceof Error ? error.stack : '';
-          console.error('Error details:', errorMessage);
-          console.error('Error stack:', errorStack);
-          return res.status(500).json({ 
-            error: 'Internal server error',
-            details: errorMessage 
-          });
         }
 
         return res.status(404).json({ error: 'Endpoint not found' });
