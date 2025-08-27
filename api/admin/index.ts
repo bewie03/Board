@@ -288,14 +288,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
 
             // Check if already verified
-            if (currentProject.status === 'verified' && currentProject.is_verified) {
+            if (currentProject.is_verified) {
               console.log('Project already verified, returning success');
               return res.status(200).json({ success: true, message: 'Project already verified' });
             }
 
             console.log('Executing UPDATE query...');
             console.log('Query parameters:', {
-              status: 'verified',
               verified_by: adminWallet,
               project_id: projectId,
               is_verified: true
@@ -303,13 +302,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             
             const updateResult = await pool.query(
               `UPDATE projects SET 
-                status = $1, 
-                verified_by = $2, 
+                verified_by = $1, 
                 verified_at = NOW(), 
                 updated_at = NOW(),
-                is_verified = $4
+                is_verified = $2
               WHERE id = $3`,
-              ['verified', adminWallet, projectId, true]
+              [adminWallet, true, projectId]
             );
             console.log('Update result:', updateResult);
 
