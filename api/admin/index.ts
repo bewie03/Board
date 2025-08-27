@@ -196,9 +196,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               return res.status(400).json({ error: 'Project ID is required' });
             }
 
+            console.log('Verifying project:', projectId, 'by admin:', adminWallet);
+
+            // First check if project exists
+            const projectCheck = await pool.query('SELECT id FROM projects WHERE id = $1', [projectId]);
+            if (projectCheck.rows.length === 0) {
+              return res.status(404).json({ error: 'Project not found' });
+            }
+
             await pool.query(
-              `UPDATE projects SET status = 'verified', verified_by = $1, verified_at = NOW(), updated_at = NOW() WHERE id = $2`,
-              [adminWallet, projectId]
+              `UPDATE projects SET 
+                status = $1, 
+                verified_by = $2, 
+                verified_at = NOW(), 
+                updated_at = NOW(),
+                is_verified = true
+              WHERE id = $3`,
+              ['verified', adminWallet, projectId]
             );
 
             await logAdminActivity(adminWallet, 'VERIFY_PROJECT', 'project', projectId);
@@ -215,9 +229,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               return res.status(400).json({ error: 'Project ID is required' });
             }
 
+            console.log('Unverifying project:', projectId, 'by admin:', adminWallet);
+
+            // First check if project exists
+            const projectCheck = await pool.query('SELECT id FROM projects WHERE id = $1', [projectId]);
+            if (projectCheck.rows.length === 0) {
+              return res.status(404).json({ error: 'Project not found' });
+            }
+
             await pool.query(
-              `UPDATE projects SET status = 'active', verified_by = NULL, verified_at = NULL, updated_at = NOW() WHERE id = $1`,
-              [projectId]
+              `UPDATE projects SET 
+                status = $1, 
+                verified_by = NULL, 
+                verified_at = NULL, 
+                updated_at = NOW(),
+                is_verified = false
+              WHERE id = $2`,
+              ['active', projectId]
             );
 
             await logAdminActivity(adminWallet, 'UNVERIFY_PROJECT', 'project', projectId);
@@ -226,7 +254,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         } catch (error) {
           console.error('Admin POST error:', error);
-          return res.status(500).json({ error: 'Internal server error' });
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorStack = error instanceof Error ? error.stack : '';
+          console.error('Error details:', errorMessage);
+          console.error('Error stack:', errorStack);
+          return res.status(500).json({ 
+            error: 'Internal server error',
+            details: errorMessage 
+          });
         }
 
         return res.status(404).json({ error: 'Endpoint not found' });
