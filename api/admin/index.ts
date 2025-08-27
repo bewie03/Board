@@ -82,7 +82,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { method } = req;
+    
+    // Log environment check
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    console.log('ADMIN_WALLET_ADDRESS:', process.env.ADMIN_WALLET_ADDRESS);
+    
     const pool = getPool();
+    console.log('Pool created successfully');
 
     // Check if this is a settings request based on query parameter
     const isSettingsRequest = req.query?.type === 'settings' || req.url?.includes('settings');
@@ -374,11 +380,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error: any) {
     console.error('Admin API error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     
-    if (error.message.includes('Unauthorized')) {
+    if (error.message && error.message.includes('Unauthorized')) {
       return res.status(403).json({ error: error.message });
     }
     
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message || 'Unknown error',
+      stack: error.stack
+    });
   }
 }
