@@ -290,8 +290,8 @@ const MyJobs: React.FC = () => {
                                 <span className="truncate">{job.title}</span>
                                 {job.featured && <span className="ml-2 text-blue-500 text-xl flex-shrink-0" title="Featured Job">★</span>}
                               </h3>
-                              <p className="text-sm text-gray-600 mb-2 flex items-center">
-                                {job.company}
+                              <div className="text-sm text-gray-600 mb-2 flex items-center">
+                                <span>{job.company}</span>
                                 {job.isProjectVerified && (
                                   <div 
                                     className="ml-2 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
@@ -302,7 +302,7 @@ const MyJobs: React.FC = () => {
                                     </svg>
                                   </div>
                                 )}
-                              </p>
+                              </div>
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">

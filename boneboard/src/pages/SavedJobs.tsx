@@ -295,25 +295,25 @@ const SavedJobs: React.FC = () => {
                         <h3 className="text-lg leading-6 font-medium text-gray-900">
                           {job.title}
                         </h3>
-                        <div className="mt-1">
-                          <p className="text-sm text-gray-500 flex items-center">
+                        <div className="mt-1 flex items-center">
+                          <span className="text-sm text-gray-500">
                             {job.company}
-                            {job.isProjectVerified && (
-                              <div 
-                                className="ml-2 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
-                                title="Verified project"
-                              >
-                                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
-                          </p>
-                          <div className="mt-1">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                              {JOB_CATEGORIES.find(cat => cat.id === job.category)?.name || job.category}
-                            </span>
-                          </div>
+                          </span>
+                          {job.isProjectVerified && (
+                            <div 
+                              className="ml-2 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
+                              title="Verified project"
+                            >
+                              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-1">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                            {JOB_CATEGORIES.find(cat => cat.id === job.category)?.name || job.category}
+                          </span>
                         </div>
                       </div>
                       <div className="ml-4 flex-shrink-0">
