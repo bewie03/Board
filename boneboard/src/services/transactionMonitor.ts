@@ -134,7 +134,7 @@ class TransactionMonitor {
       company: jobData.company,
       description: jobData.description,
       salary: jobData.salary,
-      salaryType: jobData.salaryType as 'ADA' | 'FIAT' | 'Custom',
+      salaryType: jobData.salaryType as 'ADA' | 'FIAT' | 'Other',
       category: jobData.category,
       type: jobData.type,
       contactEmail: jobData.contactEmail,

@@ -555,7 +555,7 @@ const MyJobs: React.FC = () => {
                               placeholder="Salary"
                             />
                           ) : (
-                            <span>{selectedJob.salary} {selectedJob.salaryType === 'ADA' ? '₳' : selectedJob.salaryType === 'FIAT' ? 'FIAT' : selectedJob.customCurrency || ''}</span>
+                            <span>{selectedJob.salary}</span>
                           )}
                         </div>
                       </div>

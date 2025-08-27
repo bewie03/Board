@@ -7,8 +7,6 @@ export interface JobDetailPreviewProps {
   type: string;
   category: string;
   salary: string;
-  salaryType: 'ADA' | 'FIAT' | 'Custom';
-  customCurrency?: string;
   logo?: string;
   workArrangement: 'remote' | 'hybrid' | 'onsite';
   description: string;
@@ -53,18 +51,16 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
   type,
   category,
   salary,
-  salaryType,
-  customCurrency,
   logo,
   workArrangement,
   description,
-  requiredSkills = [],
-  additionalInfo = [],
-  howToApply = '',
-  twitter = '',
-  discord = '',
-  website = '',
-  contactEmail = '',
+  requiredSkills,
+  additionalInfo,
+  howToApply,
+  twitter,
+  discord,
+  website,
+  contactEmail
 }) => {
   return (
     <div className="w-full">
@@ -113,7 +109,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
             </span>
             <span className="flex items-center">
               <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              {salary || 'Salary'} {salaryType === 'ADA' ? '₳' : salaryType === 'FIAT' ? 'FIAT' : customCurrency || ''}
+              {salary || 'Salary'}
             </span>
             <span className="flex items-center">
               <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />

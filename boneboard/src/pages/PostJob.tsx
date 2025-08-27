@@ -52,7 +52,7 @@ const PostJob: React.FC = () => {
     type: 'Full-time',
     category: 'development',
     salary: '',
-    salaryType: 'ADA' as 'ADA' | 'FIAT' | 'Custom',
+    salaryType: 'ADA' as 'ADA' | 'FIAT' | 'Other',
     customCurrency: '',
     description: '',
     requiredSkills: [] as string[],
@@ -585,31 +585,15 @@ const PostJob: React.FC = () => {
                         <CustomSelect
                           name="salaryType"
                           options={[
-                            { value: 'ADA', label: '₳ ADA' },
-                            { value: 'FIAT', label: '$ FIAT' },
-                            { value: 'Custom', label: 'Custom' }
+                            { value: 'ADA', label: 'Paid in ADA' },
+                            { value: 'FIAT', label: 'Paid in Fiat' },
+                            { value: 'Other', label: 'Other' }
                           ]}
                           value={formData.salaryType}
-                          onChange={(value) => setFormData(prev => ({ ...prev, salaryType: value as 'ADA' | 'FIAT' | 'Custom' }))}
+                          onChange={(value) => setFormData(prev => ({ ...prev, salaryType: value as 'ADA' | 'FIAT' | 'Other' }))}
                         />
                       </div>
                     </div>
-                    {formData.salaryType === 'Custom' && (
-                      <div className="mt-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Custom Currency * <span className="text-xs text-gray-500">({(formData.customCurrency || '').length}/10)</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="customCurrency"
-                          value={formData.customCurrency || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, customCurrency: e.target.value }))}
-                          maxLength={10}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="e.g. USD, EUR, AUD"
-                        />
-                      </div>
-                    )}
                   </div>
 
                   {/* Company Logo Upload - Only show when no project selected */}
@@ -1293,8 +1277,6 @@ const PostJob: React.FC = () => {
                   category={formData.category}
                   workArrangement={formData.workArrangement}
                   salary={formData.salary}
-                  salaryType={formData.salaryType}
-                  customCurrency={formData.customCurrency}
                   logo={formData.companyLogo || undefined}
                   description={formData.description}
                   requiredSkills={formData.requiredSkills}

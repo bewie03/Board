@@ -7,10 +7,8 @@ export interface JobCardPreviewProps {
   location: string;
   type: string;
   salary: string;
-  salaryType: 'ADA' | 'FIAT' | 'Custom';
-  customCurrency?: string;
+  category: string;
   logo?: string;
-  category?: string;
 }
 
 const JobCardPreview: React.FC<JobCardPreviewProps> = ({
@@ -19,10 +17,8 @@ const JobCardPreview: React.FC<JobCardPreviewProps> = ({
   location,
   type,
   salary,
-  salaryType,
-  customCurrency,
-  logo = '/Logo.png',
-  category = 'Development'
+  category,
+  logo
 }) => {
   return (
     <div className="bg-white shadow rounded-xl hover:shadow-md transition-shadow duration-200 cursor-pointer border border-gray-100 overflow-hidden">
@@ -59,7 +55,7 @@ const JobCardPreview: React.FC<JobCardPreviewProps> = ({
           
           <div className="flex items-center text-sm text-gray-600">
             <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-            <span className="truncate">{salary || 'Salary'} {salaryType === 'ADA' ? '₳' : salaryType === 'FIAT' ? 'FIAT' : customCurrency || ''}</span>
+            <span className="truncate">{salary}</span>
           </div>
           
           <div className="flex items-center text-sm text-gray-600">
