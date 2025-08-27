@@ -462,8 +462,10 @@ const MyJobs: React.FC = () => {
                           <div className="flex-1 min-w-0">
                             <h1 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h1>
                             <div className="mt-2">
-                              <p className="text-lg text-gray-600 flex items-center">
-                                {selectedJob.company}
+                              <div className="flex items-center">
+                                <span className="text-lg text-gray-600">
+                                  {selectedJob.company}
+                                </span>
                                 {selectedJob.isProjectVerified && (
                                   <div 
                                     className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
@@ -474,7 +476,7 @@ const MyJobs: React.FC = () => {
                                     </svg>
                                   </div>
                                 )}
-                              </p>
+                              </div>
                               <div className="mt-2">
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
                                   {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
