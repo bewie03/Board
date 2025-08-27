@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaUpload, FaTwitter, FaDiscord, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaUpload, FaDiscord, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import { useWallet } from '../contexts/WalletContext';
@@ -332,11 +333,19 @@ const CreateProject: React.FC = () => {
             title: formData.name,
             name: formData.name,
             description: formData.description,
-            website: formData.website,
+            website: formData.website || '',
             category: formData.category,
             logo: logoDataUrl,
-            twitter: formData.twitter,
-            discord: formData.discord,
+            twitter: formData.twitter.verified ? {
+              username: formData.twitter.username,
+              verified: formData.twitter.verified,
+              id: formData.twitter.id
+            } : undefined,
+            discord: formData.discord.verified ? {
+              serverName: formData.discord.serverName,
+              verified: formData.discord.verified,
+              inviteUrl: formData.discord.inviteUrl
+            } : undefined,
             paymentAmount: totalCost.amount,
             paymentCurrency: formData.paymentMethod as 'BONE' | 'ADA',
             walletAddress: walletAddress!,
@@ -545,18 +554,25 @@ const CreateProject: React.FC = () => {
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                     Project Name *
                   </label>
-                  <div className="mt-1">
+                  <div className="mt-1 relative">
                     <input
                       type="text"
                       name="name"
                       id="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      maxLength={50}
+                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3 pr-16 border transition-colors duration-200"
                       placeholder="e.g. BoneSwap"
                       required
                     />
+                    <div className={`absolute bottom-2 right-3 text-xs ${formData.name.length >= 45 ? 'text-red-500' : 'text-gray-400'}`}>
+                      {formData.name.length}/50
+                    </div>
                   </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Choose a memorable name for your project
+                  </p>
                 </div>
 
                 {/* Project Description */}
@@ -572,11 +588,12 @@ const CreateProject: React.FC = () => {
                         rows={4}
                         value={formData.description}
                         onChange={handleDescriptionChange}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2 pr-16"
+                        maxLength={300}
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-3 pr-16 transition-colors duration-200"
                         placeholder="Tell us about your project..."
                         required
                       />
-                      <div className={`absolute bottom-2 right-2 text-xs ${formData.description.length >= 280 ? 'text-red-500' : 'text-gray-400'}`}>
+                      <div className={`absolute bottom-2 right-3 text-xs ${formData.description.length >= 280 ? 'text-red-500' : 'text-gray-400'}`}>
                         {formData.description.length}/300
                       </div>
                     </div>
@@ -621,17 +638,24 @@ const CreateProject: React.FC = () => {
                   <label htmlFor="website" className="block text-sm font-medium text-gray-700">
                     Website
                   </label>
-                  <div className="mt-1">
+                  <div className="mt-1 relative">
                     <input
                       type="url"
                       name="website"
                       id="website"
                       value={formData.website}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                      maxLength={200}
+                      className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3 pr-16 border transition-colors duration-200"
                       placeholder="https://example.com"
                     />
+                    <div className={`absolute bottom-2 right-3 text-xs ${formData.website.length >= 180 ? 'text-red-500' : 'text-gray-400'}`}>
+                      {formData.website.length}/200
+                    </div>
                   </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Your project's main website or landing page
+                  </p>
                 </div>
 
                 {/* Social Links */}
@@ -643,7 +667,7 @@ const CreateProject: React.FC = () => {
                     {formData.twitter.verified ? (
                       <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
                         <div className="flex items-center">
-                          <FaTwitter className="h-5 w-5 text-blue-400 mr-2" />
+                          <FaXTwitter className="h-5 w-5 text-gray-900 mr-2" />
                           <span className="text-sm font-medium text-gray-900">
                             Connected as @{formData.twitter.username}
                           </span>
@@ -665,7 +689,7 @@ const CreateProject: React.FC = () => {
                           disabled={isAuthenticating === 'twitter'}
                           className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <FaTwitter className="w-5 h-5 mr-2 text-blue-400" />
+                          <FaXTwitter className="w-5 h-5 mr-2 text-gray-900" />
                           {isAuthenticating === 'twitter' ? 'Connecting...' : 'Connect with Twitter'}
                         </button>
                         <p className="mt-1 text-xs text-gray-500">
