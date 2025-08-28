@@ -824,21 +824,21 @@ const ReportCard: React.FC<{
 }> = ({ report, onProcess, loading, isArchived = false, onSelectProject, onSelectJob }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm';
-      case 'medium': return 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-sm';
-      case 'low': return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm';
-      case 'critical': return 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-sm';
-      default: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-sm';
+      case 'high': return 'bg-red-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-green-500 text-white';
+      case 'critical': return 'bg-purple-600 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-sm';
-      case 'verified': return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm';
-      case 'rejected': return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm';
-      case 'resolved': return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm';
-      default: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-sm';
+      case 'pending': return 'bg-yellow-500 text-white';
+      case 'verified': return 'bg-green-500 text-white';
+      case 'rejected': return 'bg-red-500 text-white';
+      case 'resolved': return 'bg-blue-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
@@ -969,14 +969,9 @@ const ReportCard: React.FC<{
         </div>
         <div className="flex items-center gap-2">
           {isArchived ? (
-            <button
-              onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
-              disabled={loading}
-              className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
-            >
-              <FaPlay className="h-3 w-3" />
-              Resume
-            </button>
+            <div className="text-xs text-gray-500">
+              Archived - No actions available
+            </div>
           ) : (
             <>
               <button
@@ -1052,10 +1047,10 @@ const PausedItemCard: React.FC<{
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500 text-white">
               {item.type.toUpperCase()}
             </span>
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500 text-white">
               PAUSED
             </span>
           </div>

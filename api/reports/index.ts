@@ -316,6 +316,11 @@ async function handleUpdateReport(req: any, res: any) {
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
             break;
+          case 'archive':
+            // Archive only affects the report, not the job/project
+            updateQuery = '';
+            updateValues = [];
+            break;
         }
 
         if (updateQuery) {
