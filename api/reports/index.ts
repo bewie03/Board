@@ -183,10 +183,6 @@ async function handleGetReports(req: any, res: any) {
         LEFT JOIN projects p ON (r.scam_identifier ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND CAST(r.scam_identifier AS UUID) = p.id AND r.scam_type = 'project')
         LEFT JOIN job_listings j ON (r.scam_identifier ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND CAST(r.scam_identifier AS UUID) = j.id AND r.scam_type = 'user')
         WHERE r.status = 'verified'
-        AND (
-          (r.scam_type = 'project' AND p.status = 'paused')
-          OR (r.scam_type = 'user' AND j.status = 'paused')
-        )
         ORDER BY r.updated_at DESC
       `;
       console.log('Paused reports query:', query);
