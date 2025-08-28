@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay } from 'react-icons/fa';
+import { FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay, FaCoins, FaInfoCircle } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -1249,7 +1249,7 @@ const PricingSettings: React.FC<{
         <div className="bg-white rounded-xl p-6 border border-blue-200">
           <div className="flex items-center mb-6">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
-              <FaProjectDiagram className="h-6 w-6 text-blue-600" />
+              <FaCoins className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Project Listing Fees</h3>
@@ -1355,7 +1355,7 @@ const PricingSettings: React.FC<{
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
           <div className="flex items-center mb-6">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 shadow-sm">
-              <FaBug className="h-5 w-5 text-blue-600" />
+              <FaInfoCircle className="h-5 w-5 text-blue-600" />
             </div>
             <h4 className="text-lg font-semibold text-gray-900">Pricing Structure</h4>
           </div>
