@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck, FaFlag } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
+import { ReportModal, ReportData } from '../components/ReportModal';
 import PageTransition from '../components/PageTransition';
 import { JOB_CATEGORIES } from '../constants/categories';
 
@@ -68,6 +69,8 @@ const SavedJobs: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [emailCopied, setEmailCopied] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportingJob, setReportingJob] = useState<Job | null>(null);
 
   // Load saved jobs for the connected wallet
   useEffect(() => {
@@ -181,6 +184,41 @@ const SavedJobs: React.FC = () => {
       setSavedJobs([]);
       setSavedJobsData([]);
       localStorage.removeItem(`savedJobs_${walletAddress}`);
+    }
+  };
+
+  const handleReportJob = (job: Job) => {
+    setReportingJob(job);
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmit = async (reportData: ReportData) => {
+    if (!walletAddress || !reportingJob) return;
+
+    try {
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          ...reportData,
+          reporter_id: walletAddress,
+          scam_identifier: reportingJob.id.toString()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit report');
+      }
+
+      alert('Report submitted successfully. Thank you for helping keep the platform safe.');
+      setShowReportModal(false);
+      setReportingJob(null);
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      throw error;
     }
   };
 
@@ -399,6 +437,18 @@ const SavedJobs: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-medium text-gray-900">Job Details</h2>
                     <div className="flex items-center gap-2">
+                      {/* Report Button */}
+                      <button
+                        onClick={() => {
+                          handleReportJob(selectedJob);
+                          clearSelectedJob();
+                        }}
+                        className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Report this job"
+                      >
+                        <FaFlag className="h-4 w-4" />
+                        Report
+                      </button>
                       {/* Bookmark Button */}
                       <button
                         onClick={(e) => toggleSaveJob(selectedJob.id, e)}
@@ -628,6 +678,18 @@ const SavedJobs: React.FC = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => {
+            setShowReportModal(false);
+            setReportingJob(null);
+          }}
+          projectId={reportingJob?.id.toString() || ''}
+          projectName={reportingJob?.title || ''}
+          onSubmit={handleReportSubmit}
+        />
         </div>
       </div>
     </PageTransition>

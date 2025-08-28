@@ -640,21 +640,7 @@ const JobListings: React.FC = () => {
                       
                       <div className="mt-4 pt-3 border-t border-gray-100">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs text-gray-500">Posted {formatRelativeTime(job.timestamp)}</span>
-                            {/* Report Button */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleReportJob(job);
-                              }}
-                              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                              title="Report this job"
-                            >
-                              <FaFlag className="h-3 w-3" />
-                              Report
-                            </button>
-                          </div>
+                          <span className="text-xs text-gray-500">Posted {formatRelativeTime(job.timestamp)}</span>
                           <span className="text-xs text-blue-600 font-medium">Click to view details →</span>
                         </div>
                       </div>
@@ -894,6 +880,18 @@ const JobListings: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-medium text-gray-900">Job Details</h2>
                     <div className="flex items-center gap-2">
+                      {/* Report Button */}
+                      <button
+                        onClick={() => {
+                          handleReportJob(selectedJob);
+                          clearSelectedJob();
+                        }}
+                        className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Report this job"
+                      >
+                        <FaFlag className="h-4 w-4" />
+                        Report
+                      </button>
                       {/* Bookmark Button */}
                       <button
                         onClick={(e) => toggleSaveJob(selectedJob.id, e)}
@@ -1116,19 +1114,6 @@ const JobListings: React.FC = () => {
                               )}
                             </button>
                           )}
-                          
-                          {/* Report Button */}
-                          <button
-                            onClick={() => {
-                              handleReportJob(selectedJob);
-                              clearSelectedJob();
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Report this job"
-                          >
-                            <FaFlag className="h-4 w-4" />
-                            Report
-                          </button>
                         </div>
                       </div>
                     )}
