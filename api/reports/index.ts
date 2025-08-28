@@ -183,7 +183,7 @@ async function handleGetReports(req: any, res: any) {
         FROM scam_reports r
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status IN ('resolved', 'rejected', 'archived')
+        WHERE r.status IN ('archived', 'rejected')
         AND (
           (r.scam_type = 'project' AND (p.status IS NULL OR p.status != 'paused'))
           OR (r.scam_type = 'user' AND (j.status IS NULL OR j.status != 'paused'))
@@ -243,20 +243,20 @@ async function handleUpdateReport(req: any, res: any) {
     }
 
     let reportStatus = 'pending';
-    let projectStatus = 'active';
+    let projectStatus: string | null = 'active';
     
     switch (action) {
       case 'pause':
-        reportStatus = 'resolved';
-        projectStatus = 'paused';
+        reportStatus = 'resolved'; // Remove from reports menu
+        projectStatus = 'paused'; // Hide from public view
         break;
       case 'delete':
-        reportStatus = 'verified';
-        projectStatus = 'cancelled';
+        reportStatus = 'verified'; // Just delete the report
+        projectStatus = null; // Don't change job/project status
         break;
       case 'archive':
-        reportStatus = 'resolved';
-        projectStatus = 'active';
+        reportStatus = 'archived'; // Move to archive section
+        projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
         reportStatus = 'pending';
@@ -305,7 +305,7 @@ async function handleUpdateReport(req: any, res: any) {
       }
 
       // Take action on the project/job if needed
-      if (action && projectId) {
+      if (action && projectId && projectStatus !== null) {
         // First, determine if this is a project or job by checking the report
         const reportData = reportResult.rows[0];
         const scamType = reportData.scam_type;
@@ -319,20 +319,17 @@ async function handleUpdateReport(req: any, res: any) {
 
         switch (action) {
           case 'pause':
+            // Pause: Hide job/project from public view AND move report to pause menu
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             updateValues = ['paused', projectId];
             break;
-          case 'delete':
-            // Delete actually deletes the report, not the job/project
-            updateQuery = '';
-            updateValues = [];
-            break;
           case 'restore':
+            // Restore: Make job/project visible again
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
             break;
-          case 'archive':
-            // Archive only affects the report, not the job/project
+          default:
+            // Archive and delete don't affect job/project status
             updateQuery = '';
             updateValues = [];
             break;
