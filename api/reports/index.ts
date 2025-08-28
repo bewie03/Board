@@ -238,23 +238,24 @@ async function handleUpdateReport(req: any, res: any) {
     }
 
     let reportStatus = 'pending';
-    let projectAction = null;
-
+    let projectStatus = 'active';
+    
     switch (action) {
       case 'pause':
-        reportStatus = 'resolved';
-        projectAction = 'pause';
+        reportStatus = 'verified';
+        projectStatus = 'paused';
         break;
       case 'delete':
-        reportStatus = 'resolved';
-        projectAction = 'delete';
+        reportStatus = 'verified';
+        projectStatus = 'cancelled';
         break;
       case 'archive':
-        reportStatus = 'archived';
+        reportStatus = 'resolved';
+        projectStatus = 'active';
         break;
       case 'restore':
         reportStatus = 'pending';
-        projectAction = 'restore';
+        projectStatus = 'active';
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -289,29 +290,34 @@ async function handleUpdateReport(req: any, res: any) {
         throw new Error('Report not found');
       }
 
-      // Take action on the project if needed
-      if (projectAction && projectId) {
-        let projectQuery = '';
-        let projectValues: any[] = [];
+      // Take action on the project/job if needed
+      if (action && projectId) {
+        // First, determine if this is a project or job by checking the report
+        const reportData = reportResult.rows[0];
+        const itemType = reportData.item_type || 'project';
+        
+        let updateQuery = '';
+        let updateValues: any[] = [];
+        let tableName = itemType === 'project' ? 'projects' : 'job_listings';
 
-        switch (projectAction) {
+        switch (action) {
           case 'pause':
-            projectQuery = 'UPDATE projects SET status = $1, updated_at = NOW() WHERE id = $2';
-            projectValues = ['paused', projectId];
+            updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
+            updateValues = ['paused', projectId];
             break;
           case 'delete':
-            projectQuery = 'UPDATE projects SET status = $1, updated_at = NOW() WHERE id = $2';
-            projectValues = ['deleted', projectId];
+            updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
+            updateValues = itemType === 'project' ? ['deleted', projectId] : ['cancelled', projectId];
             break;
           case 'restore':
-            projectQuery = 'UPDATE projects SET status = $1, updated_at = NOW() WHERE id = $2';
-            projectValues = ['active', projectId];
+            updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
+            updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
             break;
         }
 
-        if (projectQuery) {
-          await client.query(projectQuery, projectValues);
-          console.log(`Project ${projectId} ${projectAction}d by admin ${walletAddress}`);
+        if (updateQuery) {
+          await client.query(updateQuery, updateValues);
+          console.log(`${itemType} ${projectId} ${action}d by admin ${walletAddress}`);
         }
       }
 
