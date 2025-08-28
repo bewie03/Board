@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaFlag } from 'react-icons/fa';
+import { FaGlobe, FaTwitter,FaLink, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaFlag } from 'react-icons/fa';
 import { JobService } from '../services/jobService';
 import { ProjectService, Project as ServiceProject } from '../services/projectService';
 import { useWallet } from '../contexts/WalletContext';
