@@ -78,13 +78,29 @@ async function handleSubmitReport(req: any, res: any) {
       RETURNING *
     `;
 
+    // Convert evidence_urls to proper PostgreSQL array format
+    let evidenceUrlsArray = null;
+    if (evidence_urls) {
+      if (Array.isArray(evidence_urls)) {
+        evidenceUrlsArray = evidence_urls;
+      } else if (typeof evidence_urls === 'string') {
+        try {
+          // Try to parse as JSON array first
+          evidenceUrlsArray = JSON.parse(evidence_urls);
+        } catch {
+          // If not JSON, treat as single URL
+          evidenceUrlsArray = [evidence_urls];
+        }
+      }
+    }
+
     const values = [
       reportId,
       title,
       description,
       scam_type,
       severity,
-      evidence_urls || null,
+      evidenceUrlsArray,
       scam_identifier,
       reporter_id || walletAddress
     ];

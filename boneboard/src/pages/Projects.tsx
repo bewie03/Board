@@ -452,38 +452,23 @@ const Projects: React.FC = () => {
                     {project.description}
                   </p>
                   
-                  {/* Social Links Preview and Report Button */}
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {project.website && (
-                        <div className="flex items-center text-gray-400 hover:text-blue-600">
-                          <FaGlobe className="h-4 w-4" />
-                        </div>
-                      )}
-                      {(project.twitterLink || ((typeof project.twitter === 'string' && project.twitter) || (typeof project.twitter === 'object' && project.twitter?.verified))) && (
-                        <div className="flex items-center text-gray-400 hover:text-blue-600">
-                          <FaTwitter className="h-4 w-4" />
-                        </div>
-                      )}
-                      {(project.discordLink || ((typeof project.discord === 'string' && project.discord) || (typeof project.discord === 'object' && project.discord?.verified))) && (
-                        <div className="flex items-center text-gray-400 hover:text-indigo-600">
-                          <FaDiscord className="h-4 w-4" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Report Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleReportProject(project);
-                      }}
-                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Report this project"
-                    >
-                      <FaFlag className="h-3 w-3" />
-                      Report
-                    </button>
+                  {/* Social Links Preview */}
+                  <div className="mt-4 flex items-center space-x-3">
+                    {project.website && (
+                      <div className="flex items-center text-gray-400 hover:text-blue-600">
+                        <FaGlobe className="h-4 w-4" />
+                      </div>
+                    )}
+                    {(project.twitterLink || ((typeof project.twitter === 'string' && project.twitter) || (typeof project.twitter === 'object' && project.twitter?.verified))) && (
+                      <div className="flex items-center text-gray-400 hover:text-blue-600">
+                        <FaTwitter className="h-4 w-4" />
+                      </div>
+                    )}
+                    {(project.discordLink || ((typeof project.discord === 'string' && project.discord) || (typeof project.discord === 'object' && project.discord?.verified))) && (
+                      <div className="flex items-center text-gray-400 hover:text-indigo-600">
+                        <FaDiscord className="h-4 w-4" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
