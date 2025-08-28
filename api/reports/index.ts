@@ -167,7 +167,7 @@ async function handleGetReports(req: any, res: any) {
     let values: any[] = [];
 
     if (paused === 'true') {
-      // Get reports for paused items
+      // Get reports for paused items - only reports where the associated project/job is actually paused
       query = `
         SELECT r.*, 
                CASE 
@@ -181,14 +181,14 @@ async function handleGetReports(req: any, res: any) {
                  ELSE r.scam_type
                END as item_type
         FROM scam_reports r
-        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
-        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status = 'verified'
-        AND (
-          (r.scam_type = 'project' AND p.status = 'paused')
-          OR (r.scam_type = 'user' AND j.status = 'paused')
-        )
-        ORDER BY r.updated_at DESC
+        INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project' AND p.status = 'paused'
+        UNION ALL
+        SELECT r.*, 
+               j.title as project_name,
+               'job' as item_type
+        FROM scam_reports r
+        INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user' AND j.status = 'paused'
+        ORDER BY updated_at DESC
       `;
     } else if (archived === 'true') {
       // Get archived/resolved reports (excluding paused items)
@@ -216,7 +216,7 @@ async function handleGetReports(req: any, res: any) {
         ORDER BY r.updated_at DESC
       `;
     } else {
-      // Get active/pending reports
+      // Get active/pending reports (exclude paused and archived)
       query = `
         SELECT r.*, 
                CASE 
@@ -232,7 +232,12 @@ async function handleGetReports(req: any, res: any) {
         FROM scam_reports r
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status IN ('pending', 'verified')
+        WHERE r.status = 'pending'
+        AND (
+          (r.scam_type = 'project' AND (p.status IS NULL OR p.status != 'paused'))
+          OR (r.scam_type = 'user' AND (j.status IS NULL OR j.status != 'paused'))
+          OR r.scam_type NOT IN ('project', 'user')
+        )
         ORDER BY r.created_at DESC
       `;
     }
