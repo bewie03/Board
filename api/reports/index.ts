@@ -183,7 +183,7 @@ async function handleGetReports(req: any, res: any) {
         FROM scam_reports r
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status = 'resolved'
+        WHERE r.status = 'verified'
         AND (
           (r.scam_type = 'project' AND p.status = 'paused')
           OR (r.scam_type = 'user' AND j.status = 'paused')
@@ -271,7 +271,7 @@ async function handleUpdateReport(req: any, res: any) {
     
     switch (action) {
       case 'pause':
-        reportStatus = 'resolved'; // Remove from reports menu
+        reportStatus = 'verified'; // Remove from reports menu (use different status than archive)
         projectStatus = 'paused'; // Hide from public view
         break;
       case 'delete':
