@@ -120,7 +120,7 @@ const JobListings: React.FC = () => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const jobsData = await JobService.getAllJobs();
+        const jobsData = await JobService.getActiveJobs();
         
         // Transform jobs to include display properties
         const transformedJobs: JobWithDisplayProps[] = jobsData.map(job => ({

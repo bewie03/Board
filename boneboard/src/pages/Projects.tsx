@@ -63,7 +63,7 @@ const Projects: React.FC = () => {
         console.log('Fetched jobs:', fetchedJobs);
         setAllJobs(fetchedJobs);
         
-        const fetchedProjects = await ProjectService.getAllProjects();
+        const fetchedProjects = await ProjectService.getActiveProjects();
         console.log('Fetched projects:', fetchedProjects);
         setCreatedProjects(fetchedProjects);
       } catch (error) {

@@ -146,7 +146,7 @@ const AdminPanel: React.FC = () => {
       
       const combined = [
         ...(pausedProjects.projects || []).map((p: any) => ({ ...p, type: 'project' })),
-        ...(pausedJobs.jobs || []).map((j: any) => ({ ...j, type: 'job' }))
+        ...(Array.isArray(pausedJobs) ? pausedJobs : []).map((j: any) => ({ ...j, type: 'job' }))
       ];
       
       setPausedItems(combined);
@@ -853,27 +853,43 @@ const ReportCard: React.FC<{
   };
 
   const handleCardClick = async (e: React.MouseEvent) => {
+    console.log('Report card clicked:', report);
+    
     // Don't trigger if clicking on action buttons
     if ((e.target as HTMLElement).closest('button')) {
+      console.log('Clicked on button, ignoring');
       return;
     }
     
     if (report.project_name && report.scam_identifier) {
       const itemType = report.item_type || (report.scam_type === 'project' ? 'project' : 'job');
+      console.log('Fetching details for:', { itemType, id: report.scam_identifier });
       
       try {
         // Fetch the full project/job data for the modal
         if (itemType === 'project') {
           const response = await fetch(`/api/projects?id=${report.scam_identifier}`);
           const data = await response.json();
-          if (data.projects && data.projects.length > 0) {
-            onSelectProject(data.projects[0]);
+          console.log('Project API response:', data);
+          // Handle both array and object response formats
+          const projects = Array.isArray(data) ? data : (data.projects || []);
+          if (projects.length > 0) {
+            console.log('Opening project modal with:', projects[0]);
+            onSelectProject(projects[0]);
+          } else {
+            console.log('No projects found in response');
           }
         } else {
           const response = await fetch(`/api/jobs?id=${report.scam_identifier}`);
           const data = await response.json();
-          if (data.jobs && data.jobs.length > 0) {
-            onSelectJob(data.jobs[0]);
+          console.log('Jobs API response:', data);
+          // Handle both array and object response formats
+          const jobs = Array.isArray(data) ? data : (data.jobs || []);
+          if (jobs.length > 0) {
+            console.log('Opening job modal with:', jobs[0]);
+            onSelectJob(jobs[0]);
+          } else {
+            console.log('No jobs found in response');
           }
         }
       } catch (error) {
@@ -885,6 +901,11 @@ const ReportCard: React.FC<{
           window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
         }
       }
+    } else {
+      console.log('Missing project_name or scam_identifier:', { 
+        project_name: report.project_name, 
+        scam_identifier: report.scam_identifier 
+      });
     }
   };
 

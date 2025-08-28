@@ -50,10 +50,12 @@ export class ProjectService {
     }
   }
 
+  // Get active projects (excluding paused ones)
   static async getActiveProjects(): Promise<Project[]> {
     try {
-      const projects = await this.getAllProjects();
-      return projects.filter(project => project.status === 'confirmed');
+      const projects = await ApiService.getProjects();
+      // Filter out paused projects on the client side for now
+      return projects.filter(project => project.status !== 'paused');
     } catch (error) {
       console.error('Error getting active projects:', error);
       return [];
