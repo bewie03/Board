@@ -200,6 +200,8 @@ const AdminPanel: React.FC = () => {
     
     try {
       setLoading(true);
+      console.log(`Processing report ${reportId} with action: ${action}, projectId: ${projectId}`);
+      
       const response = await fetch('/api/reports', {
         method: 'PUT',
         headers: {
@@ -214,13 +216,20 @@ const AdminPanel: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
+      const result = await response.json();
+      console.log('API Response:', result);
+      
       // Reload all relevant data
+      console.log('Reloading data...');
       await loadReports();
       await loadArchivedReports();
       await loadPausedItems();
+      console.log('Data reloaded successfully');
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
       console.error('Error processing report:', err);
@@ -1066,7 +1075,6 @@ const ReportCard: React.FC<{
     
     // Don't trigger if clicking on action buttons
     if ((e.target as HTMLElement).closest('button')) {
-      console.log('Clicked on button, ignoring');
       return;
     }
     
@@ -1222,7 +1230,10 @@ const ReportCard: React.FC<{
           ) : (
             <>
               <button
-                onClick={() => onProcess(report.id, 'pause', report.scam_identifier)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProcess(report.id, 'pause', report.scam_identifier);
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 flex items-center gap-1"
               >
@@ -1230,7 +1241,10 @@ const ReportCard: React.FC<{
                 Pause
               </button>
               <button
-                onClick={() => onProcess(report.id, 'archive', report.scam_identifier)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProcess(report.id, 'archive', report.scam_identifier);
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
               >
