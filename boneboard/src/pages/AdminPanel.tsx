@@ -250,7 +250,7 @@ const AdminPanel: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Find the related report and restore it (which will archive it)
+      // Find the related report and archive it when resuming from pause menu
       const relatedReport = pausedItems.find(item => item.id === itemId);
       if (relatedReport && relatedReport.report) {
         await fetch('/api/reports', {
@@ -261,7 +261,7 @@ const AdminPanel: React.FC = () => {
           },
           body: JSON.stringify({
             reportId: relatedReport.report.id,
-            action: 'restore',
+            action: 'archive',
             projectId: itemId
           })
         });

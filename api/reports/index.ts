@@ -287,9 +287,9 @@ async function handleUpdateReport(req: any, res: any) {
         projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
-        // When restoring from pause menu, move report to archive and make project/job active
-        reportStatus = 'resolved'; // Move to archive section
-        projectStatus = 'active'; // Make project/job visible again
+        // When restoring from archive menu, move report back to reports menu
+        reportStatus = 'pending'; // Move back to reports menu
+        projectStatus = null; // Don't change job/project status when unarchiving
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -353,9 +353,11 @@ async function handleUpdateReport(req: any, res: any) {
             updateValues = ['paused', projectId];
             break;
           case 'restore':
-            // Restore: Make job/project visible again
-            updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
+            // Restore: Only update status if coming from pause menu (has projectStatus)
+            if (projectStatus === 'active') {
+              updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
+              updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
+            }
             break;
           case 'permanent_delete':
             // Permanent delete: Remove job/project from database completely
