@@ -167,25 +167,25 @@ async function handleGetReports(req: any, res: any) {
     let values: any[] = [];
 
     if (paused === 'true') {
-      // Get reports where associated project/job is paused
+      // Get reports where associated project/job is paused AND report status is 'verified'
       query = `
         (SELECT r.*, 
                p.title as project_name,
                'project' as item_type
         FROM scam_reports r
         INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
-        WHERE p.status = 'paused')
+        WHERE p.status = 'paused' AND r.status = 'verified')
         UNION ALL
         (SELECT r.*, 
                j.title as project_name,
                'job' as item_type
         FROM scam_reports r
         INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE j.status = 'paused')
+        WHERE j.status = 'paused' AND r.status = 'verified')
         ORDER BY updated_at DESC
       `;
     } else if (archived === 'true') {
-      // Get archived/resolved reports (excluding paused items)
+      // Get archived/resolved reports (status = 'resolved')
       query = `
         SELECT r.*, 
                CASE 
@@ -201,16 +201,11 @@ async function handleGetReports(req: any, res: any) {
         FROM scam_reports r
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status IN ('resolved', 'rejected')
-        AND (
-          (r.scam_type = 'project' AND (p.status IS NULL OR p.status != 'paused'))
-          OR (r.scam_type = 'user' AND (j.status IS NULL OR j.status != 'paused'))
-          OR r.scam_type NOT IN ('project', 'user')
-        )
+        WHERE r.status = 'resolved'
         ORDER BY r.updated_at DESC
       `;
     } else {
-      // Get active/pending reports (exclude paused and archived)
+      // Get active/pending reports (status = 'pending')
       query = `
         SELECT r.*, 
                CASE 
@@ -227,11 +222,6 @@ async function handleGetReports(req: any, res: any) {
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
         WHERE r.status = 'pending'
-        AND (
-          (r.scam_type = 'project' AND (p.status IS NULL OR p.status != 'paused'))
-          OR (r.scam_type = 'user' AND (j.status IS NULL OR j.status != 'paused'))
-          OR r.scam_type NOT IN ('project', 'user')
-        )
         ORDER BY r.created_at DESC
       `;
     }
@@ -270,25 +260,26 @@ async function handleUpdateReport(req: any, res: any) {
     
     switch (action) {
       case 'pause':
-        reportStatus = 'verified'; // Use allowed status
-        projectStatus = 'paused'; // Hide from public view
+        reportStatus = 'verified'; // Mark report as verified but keep it linked to paused item
+        projectStatus = 'paused'; // Hide project/job from public view
         break;
       case 'delete':
-        // Remove report only - delete from database
+        // Remove report only - delete report from database but keep project/job active
         reportStatus = null; // Will delete the report
         projectStatus = null; // Don't change job/project status
         break;
       case 'permanent_delete':
+        // Delete both report and project/job entirely
         reportStatus = null; // Will delete the report
-        projectStatus = 'deleted'; // Mark for permanent deletion
+        projectStatus = 'deleted'; // Mark project/job for permanent deletion
         break;
       case 'archive':
-        reportStatus = 'resolved'; // Move to archive menu
+        reportStatus = 'resolved'; // Move report to archive menu
         projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
-        reportStatus = 'resolved'; // Move to archive menu
-        projectStatus = null; // Don't change job/project status when restoring
+        reportStatus = 'pending'; // Move report back to active reports
+        projectStatus = null; // Don't change job/project status when restoring from archive
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -347,12 +338,12 @@ async function handleUpdateReport(req: any, res: any) {
 
         switch (action) {
           case 'pause':
-            // Pause: Hide job/project from public view AND move report to pause menu
+            // Pause: Hide job/project from public view
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             updateValues = ['paused', projectId];
             break;
           case 'restore':
-            // Restore: Update project/job status to active when resuming
+            // Restore: Update project/job status to active when resuming from pause
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
             break;
@@ -361,8 +352,17 @@ async function handleUpdateReport(req: any, res: any) {
             updateQuery = `DELETE FROM ${tableName} WHERE id = $1`;
             updateValues = [projectId];
             break;
+          case 'delete':
+            // Delete report only: Don't affect project/job status
+            updateQuery = '';
+            updateValues = [];
+            break;
+          case 'archive':
+            // Archive report only: Don't affect project/job status
+            updateQuery = '';
+            updateValues = [];
+            break;
           default:
-            // Archive and delete don't affect job/project status
             updateQuery = '';
             updateValues = [];
             break;

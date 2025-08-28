@@ -177,8 +177,8 @@ const AdminPanel: React.FC = () => {
       ];
       
       // Add reports for paused items to show in pause menu
-      if (pausedReports && pausedReports.length > 0) {
-        pausedReports.forEach((report: any) => {
+      if (pausedReports.reports && pausedReports.reports.length > 0) {
+        pausedReports.reports.forEach((report: any) => {
           const existingItem = combined.find(item => item.id === report.scam_identifier);
           if (existingItem) {
             existingItem.report = report;
@@ -243,28 +243,32 @@ const AdminPanel: React.FC = () => {
     
     try {
       setLoading(true);
-      const endpoint = itemType === 'project' ? '/api/projects' : '/api/jobs';
-      const response = await fetch(`${endpoint}?id=${itemId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          status: itemType === 'project' ? 'active' : 'confirmed'
-        })
-      });
+      
+      // Find the related report first
+      const relatedItem = pausedItems.find(item => item.id === itemId);
+      if (relatedItem && relatedItem.report) {
+        // Use the reports API to restore both the report and the project/job
+        await handleProcessReport(relatedItem.report.id, 'restore', itemId);
+      } else {
+        // If no report found, directly update the project/job status
+        const endpoint = itemType === 'project' ? '/api/projects' : '/api/jobs';
+        const response = await fetch(`${endpoint}?id=${itemId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress
+          },
+          body: JSON.stringify({
+            status: itemType === 'project' ? 'active' : 'confirmed'
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
       
-      // Find the related report and restore it when resuming from pause menu
-      const relatedReport = pausedItems.find(item => item.id === itemId);
-      if (relatedReport && relatedReport.report) {
-        await handleProcessReport(relatedReport.report.id, 'restore', itemId);
-      }
-      
+      // Reload all data to reflect changes
       await loadPausedItems();
       await loadArchivedReports();
       await loadReports();
@@ -1198,10 +1202,10 @@ const ReportCard: React.FC<{
                   onProcess(report.id, 'restore', report.scam_identifier);
                 }}
                 disabled={loading}
-                className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
+                className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
               >
-                <FaArchive className="h-3 w-3" />
-                Unarchive
+                <FaPlay className="h-3 w-3" />
+                Restore
               </button>
               <button
                 onClick={(e) => {
