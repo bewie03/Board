@@ -161,12 +161,36 @@ async function handleGetReports(req: any, res: any) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    const { archived = 'false' } = req.query;
+    const { archived = 'false', paused = 'false' } = req.query;
 
     let query: string;
     let values: any[] = [];
 
-    if (archived === 'true') {
+    if (paused === 'true') {
+      // Get reports for paused items
+      query = `
+        SELECT r.*, 
+               CASE 
+                 WHEN r.scam_type = 'project' THEN p.title
+                 WHEN r.scam_type = 'user' THEN j.title
+                 ELSE r.scam_identifier
+               END as project_name,
+               CASE 
+                 WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'user' THEN 'job'
+                 ELSE r.scam_type
+               END as item_type
+        FROM scam_reports r
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
+        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
+        WHERE r.status = 'resolved'
+        AND (
+          (r.scam_type = 'project' AND p.status = 'paused')
+          OR (r.scam_type = 'user' AND j.status = 'paused')
+        )
+        ORDER BY r.updated_at DESC
+      `;
+    } else if (archived === 'true') {
       // Get archived/resolved reports (excluding paused items)
       query = `
         SELECT r.*, 
@@ -183,7 +207,7 @@ async function handleGetReports(req: any, res: any) {
         FROM scam_reports r
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status IN ('archived', 'rejected')
+        WHERE r.status IN ('resolved', 'rejected')
         AND (
           (r.scam_type = 'project' AND (p.status IS NULL OR p.status != 'paused'))
           OR (r.scam_type = 'user' AND (j.status IS NULL OR j.status != 'paused'))
@@ -259,12 +283,13 @@ async function handleUpdateReport(req: any, res: any) {
         projectStatus = 'deleted'; // Mark for permanent deletion
         break;
       case 'archive':
-        reportStatus = 'archived'; // Move to archive section
+        reportStatus = 'resolved'; // Move to archive section (using 'resolved' since 'archived' not allowed)
         projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
-        reportStatus = 'pending';
-        projectStatus = 'active';
+        // When restoring from pause menu, move report to archive and make project/job active
+        reportStatus = 'resolved'; // Move to archive section
+        projectStatus = 'active'; // Make project/job visible again
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });

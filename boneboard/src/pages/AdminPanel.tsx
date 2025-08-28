@@ -158,12 +158,15 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      // Fetch paused projects and jobs
-      const [pausedProjects, pausedJobs] = await Promise.all([
+      // Fetch paused projects and jobs, plus reports for paused items
+      const [pausedProjects, pausedJobs, pausedReports] = await Promise.all([
         fetch('/api/projects?status=paused', {
           headers: { 'x-wallet-address': walletAddress }
         }).then(res => res.json()),
         fetch('/api/jobs?status=paused', {
+          headers: { 'x-wallet-address': walletAddress }
+        }).then(res => res.json()),
+        fetch('/api/reports?paused=true', {
           headers: { 'x-wallet-address': walletAddress }
         }).then(res => res.json())
       ]);
@@ -172,6 +175,16 @@ const AdminPanel: React.FC = () => {
         ...(pausedProjects.projects || []).map((p: any) => ({ ...p, type: 'project' })),
         ...(Array.isArray(pausedJobs) ? pausedJobs : []).map((j: any) => ({ ...j, type: 'job' }))
       ];
+      
+      // Add reports for paused items to show in pause menu
+      if (pausedReports && pausedReports.length > 0) {
+        pausedReports.forEach((report: any) => {
+          const existingItem = combined.find(item => item.id === report.scam_identifier);
+          if (existingItem) {
+            existingItem.report = report;
+          }
+        });
+      }
       
       setPausedItems(combined);
     } catch (err: any) {
@@ -237,9 +250,9 @@ const AdminPanel: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Find the related report and archive it
+      // Find the related report and restore it (which will archive it)
       const relatedReport = pausedItems.find(item => item.id === itemId);
-      if (relatedReport && relatedReport.reportId) {
+      if (relatedReport && relatedReport.report) {
         await fetch('/api/reports', {
           method: 'PUT',
           headers: {
@@ -247,8 +260,9 @@ const AdminPanel: React.FC = () => {
             'x-wallet-address': walletAddress
           },
           body: JSON.stringify({
-            reportId: relatedReport.reportId,
-            action: 'archive'
+            reportId: relatedReport.report.id,
+            action: 'restore',
+            projectId: itemId
           })
         });
       }
