@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -824,21 +824,21 @@ const ReportCard: React.FC<{
 }> = ({ report, onProcess, loading, isArchived = false, onSelectProject, onSelectJob }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'critical': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm';
+      case 'medium': return 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-sm';
+      case 'low': return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm';
+      case 'critical': return 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-sm';
+      default: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-sm';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'verified': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'resolved': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white shadow-sm';
+      case 'verified': return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm';
+      case 'rejected': return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm';
+      case 'resolved': return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm';
+      default: return 'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-sm';
     }
   };
 
@@ -894,12 +894,8 @@ const ReportCard: React.FC<{
         }
       } catch (error) {
         console.error('Error fetching item details:', error);
-        // Fallback to opening in new tab
-        if (itemType === 'project') {
-          window.open(`/projects?id=${report.scam_identifier}`, '_blank');
-        } else {
-          window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
-        }
+        // Don't open new tab - just show error in console
+        alert('Unable to load details for this item. Please try again.');
       }
     } else {
       console.log('Missing project_name or scam_identifier:', { 
@@ -927,7 +923,7 @@ const ReportCard: React.FC<{
           </div>
           {report.project_name && (
             <div className="mb-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
                 {report.item_type === 'project' ? '📋' : '💼'} {report.project_name}
               </span>
             </div>
@@ -938,7 +934,7 @@ const ReportCard: React.FC<{
               {formatDate(report.created_at)}
             </span>
             <span className="capitalize">{report.scam_type.replace('_', ' ')}</span>
-            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+            <span className="font-mono text-xs bg-gradient-to-r from-gray-500 to-gray-600 text-white px-3 py-1 rounded-full shadow-sm">
               ID: {report.scam_identifier.slice(0, 8)}...
             </span>
           </div>
@@ -976,25 +972,25 @@ const ReportCard: React.FC<{
             <button
               onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
               disabled={loading}
-              className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 flex items-center gap-1"
+              className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
             >
-              <FaClock className="h-3 w-3" />
-              Restore
+              <FaPlay className="h-3 w-3" />
+              Resume
             </button>
           ) : (
             <>
               <button
                 onClick={() => onProcess(report.id, 'pause', report.scam_identifier)}
                 disabled={loading}
-                className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50 flex items-center gap-1"
+                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
               >
                 <FaClock className="h-3 w-3" />
-                Pause Project
+                Pause
               </button>
               <button
                 onClick={() => onProcess(report.id, 'archive', report.scam_identifier)}
                 disabled={loading}
-                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 flex items-center gap-1"
+                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
               >
                 <FaArchive className="h-3 w-3" />
                 Archive
@@ -1002,10 +998,10 @@ const ReportCard: React.FC<{
               <button
                 onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
                 disabled={loading}
-                className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 flex items-center gap-1"
+                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
               >
                 <FaTrash className="h-3 w-3" />
-                Delete Project
+                Delete
               </button>
             </>
           )}

@@ -314,7 +314,7 @@ async function handleUpdateReport(req: any, res: any) {
             break;
           case 'restore':
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['active', projectId] : ['active', projectId];
+            updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
             break;
         }
 
