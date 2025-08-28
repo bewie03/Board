@@ -31,7 +31,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const [formData, setFormData] = useState<ReportData>({
     title: '',
     description: '',
-    scam_type: 'malicious_project',
+    scam_type: 'project',
     severity: 'medium',
     evidence_urls: '',
     scam_identifier: projectId
@@ -52,7 +52,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       setFormData({
         title: '',
         description: '',
-        scam_type: 'malicious_project',
+        scam_type: 'project',
         severity: 'medium',
         evidence_urls: '',
         scam_identifier: projectId
@@ -130,11 +130,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                 onChange={(e) => setFormData({ ...formData, scam_type: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
-                <option value="malicious_project">Malicious/Scam Project</option>
-                <option value="fake_project">Fake/Impersonation</option>
-                <option value="inappropriate_content">Inappropriate Content</option>
-                <option value="spam">Spam</option>
-                <option value="copyright_violation">Copyright Violation</option>
+                <option value="project">Malicious/Scam Project</option>
+                <option value="user">Fake/Impersonation User</option>
+                <option value="website">Malicious Website</option>
+                <option value="wallet_address">Suspicious Wallet Address</option>
                 <option value="other">Other</option>
               </select>
             </div>
