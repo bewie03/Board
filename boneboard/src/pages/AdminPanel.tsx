@@ -247,7 +247,7 @@ const AdminPanel: React.FC = () => {
       // Find the related report first
       const relatedItem = pausedItems.find(item => item.id === itemId);
       if (relatedItem && relatedItem.report) {
-        // Use the reports API to restore both the report and the project/job
+        // Use the reports API to restore the project/job and archive the report
         await handleProcessReport(relatedItem.report.id, 'restore', itemId);
       } else {
         // If no report found, directly update the project/job status
@@ -1293,6 +1293,16 @@ const PausedItemCard: React.FC<{
   onSelectJob: (job: any) => void;
   onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
 }> = ({ item, onRestore, loading, onSelectProject, onSelectJob, onDeleteConfirm }) => {
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'bg-red-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-green-500 text-white';
+      case 'critical': return 'bg-purple-600 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -1343,13 +1353,22 @@ const PausedItemCard: React.FC<{
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500 text-white">
-              {item.type.toUpperCase()}
-            </span>
+            {item.report && (
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(item.report.severity)}`}>
+                {item.report.severity.toUpperCase()}
+              </span>
+            )}
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500 text-white">
               PAUSED
             </span>
           </div>
+          {item.report && (
+            <div className="mb-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500 text-white">
+                {item.type === 'project' ? '📋' : '💼'} Report: {item.report.title}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
             <span className="flex items-center gap-1">
               <FaClock className="h-3 w-3" />
@@ -1366,12 +1385,18 @@ const PausedItemCard: React.FC<{
             </span>
           </div>
           <p className="text-gray-700 text-sm mb-4 line-clamp-2">{item.description}</p>
+          {item.report && item.report.description && (
+            <div className="mb-4">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Report Details:</span>
+              <p className="text-gray-700 text-sm mt-1 line-clamp-2">{item.report.description}</p>
+            </div>
+          )}
         </div>
       </div>
       
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="text-xs text-gray-500">
-          {item.type === 'project' ? 'Project' : 'Job'} ID: {item.id.slice(0, 8)}...
+          {item.report ? `Report ID: ${item.report.id.slice(0, 8)}...` : `${item.type === 'project' ? 'Project' : 'Job'} ID: ${item.id.slice(0, 8)}...`}
         </div>
         <div className="flex items-center gap-2">
           <button
