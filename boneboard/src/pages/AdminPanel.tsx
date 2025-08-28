@@ -522,8 +522,28 @@ const ReportCard: React.FC<{
     });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on action buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    
+    if (report.project_name && report.scam_identifier) {
+      // Open the project/job in a new tab for review
+      const itemType = report.item_type || 'project';
+      if (itemType === 'project') {
+        window.open(`/projects?id=${report.scam_identifier}`, '_blank');
+      } else if (itemType === 'job') {
+        window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
+      }
+    }
+  };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer hover:border-blue-300"
+      onClick={handleCardClick}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -641,8 +661,27 @@ const PausedItemCard: React.FC<{
     });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on action buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    
+    if (item.id) {
+      // Open the project/job in a new tab for review
+      if (item.type === 'project') {
+        window.open(`/projects?id=${item.id}`, '_blank');
+      } else if (item.type === 'job') {
+        window.open(`/jobs?id=${item.id}`, '_blank');
+      }
+    }
+  };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer hover:border-blue-300"
+      onClick={handleCardClick}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
