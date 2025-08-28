@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaBuilding, FaBookmark, FaRegBookmark, FaTimes, FaLink, FaTwitter, FaDiscord, FaCheck, FaEnvelope } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaBuilding, FaBookmark, FaRegBookmark, FaTimes, FaLink, FaTwitter, FaDiscord, FaCheck, FaEnvelope, FaFlag } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
+import { ReportModal, ReportData } from '../components/ReportModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Job {
@@ -81,6 +82,8 @@ const JobListings: React.FC = () => {
   const [selectedVerificationFilter, setSelectedVerificationFilter] = useState<VerificationFilter>('all');
   const [emailCopied, setEmailCopied] = useState(false);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportingJob, setReportingJob] = useState<JobWithDisplayProps | null>(null);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
   // Load saved jobs for the connected wallet
   useEffect(() => {
@@ -233,6 +236,41 @@ const JobListings: React.FC = () => {
     
     setSavedJobs(newSavedJobs);
     localStorage.setItem(`savedJobs_${walletAddress}`, JSON.stringify(newSavedJobs));
+  };
+
+  const handleReportJob = (job: JobWithDisplayProps) => {
+    setReportingJob(job);
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmit = async (reportData: ReportData) => {
+    if (!walletAddress || !reportingJob) return;
+
+    try {
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          ...reportData,
+          reporter_id: walletAddress,
+          scam_identifier: reportingJob.id.toString()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit report');
+      }
+
+      alert('Report submitted successfully. Thank you for helping keep the platform safe.');
+      setShowReportModal(false);
+      setReportingJob(null);
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      throw error;
+    }
   };
 
   if (loading) {
@@ -602,7 +640,21 @@ const JobListings: React.FC = () => {
                       
                       <div className="mt-4 pt-3 border-t border-gray-100">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Posted {formatRelativeTime(job.timestamp)}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-xs text-gray-500">Posted {formatRelativeTime(job.timestamp)}</span>
+                            {/* Report Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReportJob(job);
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Report this job"
+                            >
+                              <FaFlag className="h-3 w-3" />
+                              Report
+                            </button>
+                          </div>
                           <span className="text-xs text-blue-600 font-medium">Click to view details →</span>
                         </div>
                       </div>
@@ -1064,6 +1116,19 @@ const JobListings: React.FC = () => {
                               )}
                             </button>
                           )}
+                          
+                          {/* Report Button */}
+                          <button
+                            onClick={() => {
+                              handleReportJob(selectedJob);
+                              clearSelectedJob();
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Report this job"
+                          >
+                            <FaFlag className="h-4 w-4" />
+                            Report
+                          </button>
                         </div>
                       </div>
                     )}
@@ -1074,6 +1139,18 @@ const JobListings: React.FC = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => {
+            setShowReportModal(false);
+            setReportingJob(null);
+          }}
+          projectId={reportingJob?.id.toString() || ''}
+          projectName={reportingJob?.title || ''}
+          onSubmit={handleReportSubmit}
+        />
         </div>
       </div>
     </>

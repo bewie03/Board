@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch } from 'react-icons/fa';
+import { FaGlobe, FaTwitter, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaFlag } from 'react-icons/fa';
 import { JobService } from '../services/jobService';
 import { ProjectService, Project as ServiceProject } from '../services/projectService';
 import { useWallet } from '../contexts/WalletContext';
 import { ProjectVerificationToggle } from '../components/ProjectVerificationToggle';
+import { ReportModal, ReportData } from '../components/ReportModal';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PROJECT_CATEGORIES } from '../constants/categories';
@@ -38,6 +39,8 @@ const Projects: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showActiveJobsOnly, setShowActiveJobsOnly] = useState(false);
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportingProject, setReportingProject] = useState<Project | null>(null);
   
   // Check if current user is admin
   const ADMIN_WALLET = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
@@ -118,6 +121,41 @@ const Projects: React.FC = () => {
         ...prev,
         isVerified: verified
       } : null);
+    }
+  };
+
+  const handleReportProject = (project: Project) => {
+    setReportingProject(project);
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmit = async (reportData: ReportData) => {
+    if (!walletAddress || !reportingProject) return;
+
+    try {
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          ...reportData,
+          reporter_id: walletAddress,
+          scam_identifier: reportingProject.id.toString()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit report');
+      }
+
+      alert('Report submitted successfully. Thank you for helping keep the platform safe.');
+      setShowReportModal(false);
+      setReportingProject(null);
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      throw error;
     }
   };
 
@@ -414,23 +452,38 @@ const Projects: React.FC = () => {
                     {project.description}
                   </p>
                   
-                  {/* Social Links Preview */}
-                  <div className="mt-4 flex items-center space-x-3">
-                    {project.website && (
-                      <div className="flex items-center text-gray-400 hover:text-blue-600">
-                        <FaGlobe className="h-4 w-4" />
-                      </div>
-                    )}
-                    {(project.twitterLink || ((typeof project.twitter === 'string' && project.twitter) || (typeof project.twitter === 'object' && project.twitter?.verified))) && (
-                      <div className="flex items-center text-gray-400 hover:text-blue-600">
-                        <FaTwitter className="h-4 w-4" />
-                      </div>
-                    )}
-                    {(project.discordLink || ((typeof project.discord === 'string' && project.discord) || (typeof project.discord === 'object' && project.discord?.verified))) && (
-                      <div className="flex items-center text-gray-400 hover:text-indigo-600">
-                        <FaDiscord className="h-4 w-4" />
-                      </div>
-                    )}
+                  {/* Social Links Preview and Report Button */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {project.website && (
+                        <div className="flex items-center text-gray-400 hover:text-blue-600">
+                          <FaGlobe className="h-4 w-4" />
+                        </div>
+                      )}
+                      {(project.twitterLink || ((typeof project.twitter === 'string' && project.twitter) || (typeof project.twitter === 'object' && project.twitter?.verified))) && (
+                        <div className="flex items-center text-gray-400 hover:text-blue-600">
+                          <FaTwitter className="h-4 w-4" />
+                        </div>
+                      )}
+                      {(project.discordLink || ((typeof project.discord === 'string' && project.discord) || (typeof project.discord === 'object' && project.discord?.verified))) && (
+                        <div className="flex items-center text-gray-400 hover:text-indigo-600">
+                          <FaDiscord className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Report Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReportProject(project);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Report this project"
+                    >
+                      <FaFlag className="h-3 w-3" />
+                      Report
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -513,24 +566,38 @@ const Projects: React.FC = () => {
                     {project.description}
                   </p>
                   
-                  {/* Social Links Preview */}
-                  <div className="mt-4 flex items-center space-x-3">
-                    {project.website && (
-                      <div className="flex items-center text-gray-400 hover:text-blue-600">
-                        <FaGlobe className="h-4 w-4" />
-                      </div>
-                    )}
-                    {(project.twitterLink || project.twitter) && (
-                      <div className="flex items-center text-gray-400 hover:text-blue-600">
-                        <FaTwitter className="h-4 w-4" />
-                      </div>
-                    )}
-                    {(project.discordLink || project.discord) && (
-                      <div className="flex items-center text-gray-400 hover:text-blue-600">
-                        <FaDiscord className="h-4 w-4" />
-                      </div>
-                    )}
-
+                  {/* Social Links Preview and Report Button */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {project.website && (
+                        <div className="flex items-center text-gray-400 hover:text-blue-600">
+                          <FaGlobe className="h-4 w-4" />
+                        </div>
+                      )}
+                      {(project.twitterLink || project.twitter) && (
+                        <div className="flex items-center text-gray-400 hover:text-blue-600">
+                          <FaTwitter className="h-4 w-4" />
+                        </div>
+                      )}
+                      {(project.discordLink || project.discord) && (
+                        <div className="flex items-center text-gray-400 hover:text-blue-600">
+                          <FaDiscord className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Report Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReportProject(project);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Report this project"
+                    >
+                      <FaFlag className="h-3 w-3" />
+                      Report
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -601,12 +668,25 @@ const Projects: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => setSelectedProject(null)}
-                      className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                    >
-                      <FaTimes className="h-6 w-6" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          handleReportProject(selectedProject);
+                          setSelectedProject(null);
+                        }}
+                        className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Report this project"
+                      >
+                        <FaFlag className="h-4 w-4" />
+                        Report
+                      </button>
+                      <button
+                        onClick={() => setSelectedProject(null)}
+                        className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <FaTimes className="h-6 w-6" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -756,6 +836,18 @@ const Projects: React.FC = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => {
+            setShowReportModal(false);
+            setReportingProject(null);
+          }}
+          projectId={reportingProject?.id.toString() || ''}
+          projectName={reportingProject?.title || reportingProject?.name || ''}
+          onSubmit={handleReportSubmit}
+        />
         </div>
       </div>
     </PageTransition>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '../contexts/WalletContext';
 import { isAdminWallet } from '../utils/adminAuth';
 import { adminService, PlatformSettings } from '../services/adminService';
-import { FaShieldAlt, FaCog, FaCheckCircle, FaTimes, FaEdit, FaChartBar } from 'react-icons/fa';
+import { FaShieldAlt, FaCog, FaCheckCircle, FaTimes, FaEdit, FaChartBar, FaExclamationTriangle, FaTrash, FaPause, FaPlay, FaArchive } from 'react-icons/fa';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -11,10 +11,12 @@ interface AdminPanelProps {
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const { walletAddress } = useWallet();
-  const [activeTab, setActiveTab] = useState<'settings' | 'projects' | 'jobs' | 'stats'>('settings');
+  const [activeTab, setActiveTab] = useState<'settings' | 'reports' | 'archived' | 'stats'>('settings');
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const [reports, setReports] = useState<any[]>([]);
+  const [archivedReports, setArchivedReports] = useState<any[]>([]);
 
   // Check admin access
   if (!isAdminWallet(walletAddress)) {
@@ -42,7 +44,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   useEffect(() => {
     loadSettings();
     loadStats();
-  }, []);
+    if (walletAddress) {
+      loadReports();
+      loadArchivedReports();
+    }
+  }, [walletAddress]);
 
   const loadSettings = async () => {
     try {
@@ -62,6 +68,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
       setStats(adminStats);
     } catch (error) {
       console.error('Error loading stats:', error);
+    }
+  };
+
+  const loadReports = async () => {
+    if (!walletAddress) return;
+    try {
+      const reportsData = await adminService.getReports(walletAddress, false);
+      setReports(reportsData);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+    }
+  };
+
+  const loadArchivedReports = async () => {
+    if (!walletAddress) return;
+    try {
+      const archivedData = await adminService.getReports(walletAddress, true);
+      setArchivedReports(archivedData);
+    } catch (error) {
+      console.error('Error loading archived reports:', error);
+    }
+  };
+
+  const handleReportAction = async (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => {
+    if (!walletAddress) return;
+
+    try {
+      setLoading(true);
+      await adminService.processReport(walletAddress, reportId, action, projectId);
+      
+      // Reload reports data
+      await loadReports();
+      await loadArchivedReports();
+      
+      alert(`Report ${action}d successfully!`);
+    } catch (error) {
+      console.error(`Error ${action}ing report:`, error);
+      alert(`Failed to ${action} report. Please try again.`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -214,6 +260,141 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     </div>
   );
 
+  const renderReportsTab = () => (
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold flex items-center gap-2">
+        <FaExclamationTriangle size={20} />
+        Project Reports
+      </h3>
+      
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p className="text-yellow-800 text-sm">
+          Review reported projects and jobs. Take action by pausing or deleting malicious content.
+        </p>
+      </div>
+
+      {reports.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <FaCheckCircle size={48} className="mx-auto mb-4 text-gray-300" />
+          <h4 className="text-lg font-medium mb-2">No Reports</h4>
+          <p>No project or job reports to review at this time.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reports.map((report) => (
+            <div key={report.id} className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-lg font-medium text-gray-900">{report.title}</h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      report.severity === 'high' ? 'bg-red-100 text-red-800' :
+                      report.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {report.severity} priority
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-3">{report.description}</p>
+                  <div className="text-sm text-gray-500">
+                    Reported by: {report.reporter_id} • {new Date(report.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <button 
+                    onClick={() => handleReportAction(report.id, 'pause', report.scam_identifier)}
+                    disabled={loading}
+                    className="flex items-center gap-1 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50"
+                  >
+                    <FaPause size={14} />
+                    Pause
+                  </button>
+                  <button 
+                    onClick={() => handleReportAction(report.id, 'delete', report.scam_identifier)}
+                    disabled={loading}
+                    className="flex items-center gap-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    <FaTrash size={14} />
+                    Delete
+                  </button>
+                  <button 
+                    onClick={() => handleReportAction(report.id, 'archive')}
+                    disabled={loading}
+                    className="flex items-center gap-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  >
+                    <FaArchive size={14} />
+                    Archive
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderArchivedTab = () => (
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold flex items-center gap-2">
+        <FaArchive size={20} />
+        Archived Reports
+      </h3>
+      
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-blue-800 text-sm">
+          Previously processed reports. You can restore projects/jobs if needed.
+        </p>
+      </div>
+
+      {archivedReports.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <FaArchive size={48} className="mx-auto mb-4 text-gray-300" />
+          <h4 className="text-lg font-medium mb-2">No Archived Reports</h4>
+          <p>No archived reports to display.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {archivedReports.map((report) => (
+            <div key={report.id} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-lg font-medium text-gray-700">{report.title}</h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      report.status === 'deleted' ? 'bg-red-100 text-red-800' :
+                      report.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {report.status}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-3">{report.description}</p>
+                  <div className="text-sm text-gray-500">
+                    Processed: {new Date(report.updated_at).toLocaleDateString()} • 
+                    Action taken by: {report.verified_by}
+                  </div>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  {report.status === 'paused' && (
+                    <button 
+                      onClick={() => handleReportAction(report.id, 'restore', report.scam_identifier)}
+                      disabled={loading}
+                      className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                    >
+                      <FaPlay size={14} />
+                      Restore
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
@@ -235,8 +416,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         <div className="flex border-b">
           {[
             { id: 'settings', label: 'Settings', icon: FaCog },
-            { id: 'projects', label: 'Projects', icon: FaCheckCircle },
-            { id: 'jobs', label: 'Jobs', icon: FaEdit },
+            { id: 'reports', label: 'Reports', icon: FaCheckCircle },
+            { id: 'archived', label: 'Archived', icon: FaEdit },
             { id: 'stats', label: 'Statistics', icon: FaChartBar }
           ].map(({ id, label, icon: Icon }) => (
             <button
@@ -258,16 +439,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {activeTab === 'settings' && renderSettingsTab()}
           {activeTab === 'stats' && renderStatsTab()}
-          {activeTab === 'projects' && (
-            <div className="text-center text-gray-500 py-8">
-              Project management interface coming soon...
-            </div>
-          )}
-          {activeTab === 'jobs' && (
-            <div className="text-center text-gray-500 py-8">
-              Job management interface coming soon...
-            </div>
-          )}
+          {activeTab === 'reports' && renderReportsTab()}
+          {activeTab === 'archived' && renderArchivedTab()}
         </div>
       </div>
     </div>

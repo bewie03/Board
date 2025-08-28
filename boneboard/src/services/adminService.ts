@@ -232,6 +232,60 @@ export class AdminService {
     }
   }
 
+  // Reports Management
+  async getReports(walletAddress: string, archived: boolean = false): Promise<any[]> {
+    requireAdminAuth(walletAddress);
+
+    try {
+      const response = await fetch(`/api/reports?archived=${archived}`, {
+        headers: {
+          'x-wallet-address': walletAddress
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.reports || [];
+    } catch (error) {
+      console.error('Error getting reports:', error);
+      return [];
+    }
+  }
+
+  async processReport(
+    walletAddress: string, 
+    reportId: string, 
+    action: 'pause' | 'delete' | 'archive' | 'restore',
+    projectId?: string
+  ): Promise<void> {
+    requireAdminAuth(walletAddress);
+
+    try {
+      const response = await fetch('/api/reports', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          reportId,
+          action,
+          projectId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error processing report:', error);
+      throw error;
+    }
+  }
+
   // Analytics and Monitoring
   async getAdminStats(): Promise<{
     totalProjects: number;
