@@ -9,11 +9,27 @@ function generateUUID(): string {
   });
 }
 
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+// Database connection pool
+let pool: Pool | null = null;
+
+function getPool() {
+  if (!pool) {
+    const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    
+    if (!DATABASE_URL) {
+      throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
+    }
+    
+    pool = new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 1, // Vercel functions are stateless
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
+  }
+  return pool;
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method === 'POST') {
@@ -73,7 +89,7 @@ async function handleSubmitReport(req: any, res: any) {
       reporter_id || walletAddress
     ];
 
-    const result = await pool.query(query, values);
+    const result = await getPool().query(query, values);
     
     console.log('Report submitted successfully:', {
       reportId,
@@ -130,8 +146,11 @@ async function handleGetReports(req: any, res: any) {
 
     query += ` ORDER BY r.created_at DESC`;
 
-    const result = await pool.query(query, values);
-    
+    const result = await getPool().query(
+      'SELECT * FROM scam_reports WHERE status != $1 ORDER BY created_at DESC',
+      [archived ? 'pending' : 'archived']
+    );
+
     return res.status(200).json({
       reports: result.rows
     });
@@ -183,7 +202,7 @@ async function handleUpdateReport(req: any, res: any) {
     }
 
     // Start transaction
-    const client = await pool.connect();
+    const client = await getPool().connect();
     
     try {
       await client.query('BEGIN');
