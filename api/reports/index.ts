@@ -368,11 +368,25 @@ async function handleUpdateReport(req: any, res: any) {
         const scamType = reportData.scam_type;
         const itemType = scamType === 'project' ? 'project' : 'job';
         
-        console.log(`Processing ${action} for scam_type: ${scamType}, itemType: ${itemType} with ID: ${projectId}`);
+        console.log(`[API] Processing ${action} for scam_type: ${scamType}, itemType: ${itemType} with ID: ${projectId}`);
+        console.log(`[API] scam_identifier from report: ${reportData.scam_identifier}`);
+        console.log(`[API] projectId parameter: ${projectId}`);
+        console.log(`[API] Are they equal? ${reportData.scam_identifier === projectId}`);
         
         let updateQuery = '';
         let updateValues: any[] = [];
         let tableName = itemType === 'project' ? 'projects' : 'job_listings';
+        
+        // Check if the project/job actually exists before trying to delete it
+        const checkExistsQuery = `SELECT id FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
+        const existsResult = await client.query(checkExistsQuery, [projectId]);
+        console.log(`[API] ${tableName} with ID ${projectId} exists: ${existsResult.rows.length > 0}`);
+        if (existsResult.rows.length > 0) {
+          console.log(`[API] Found ${tableName}:`, existsResult.rows[0]);
+        } else {
+          console.log(`[API] ERROR: ${tableName} with ID ${projectId} not found in database`);
+          console.log(`[API] This means the scam_identifier doesn't match any existing ${tableName} ID`);
+        }
 
         switch (action) {
           case 'pause':
@@ -387,8 +401,10 @@ async function handleUpdateReport(req: any, res: any) {
             break;
           case 'permanent_delete':
             // Permanent delete: Remove job/project from database completely
-            updateQuery = `DELETE FROM ${tableName} WHERE id = $1`;
+            // Try with UUID casting to handle potential type mismatches
+            updateQuery = `DELETE FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
             updateValues = [projectId];
+            console.log(`[API] Attempting to delete from ${tableName} with UUID cast`);
             break;
           case 'delete':
             // Delete report only: Don't affect project/job status
@@ -407,10 +423,16 @@ async function handleUpdateReport(req: any, res: any) {
         }
 
         if (updateQuery) {
-          console.log(`Executing query: ${updateQuery} with values:`, updateValues);
+          console.log(`[API] Executing query: ${updateQuery} with values:`, updateValues);
           const updateResult = await client.query(updateQuery, updateValues);
-          console.log(`Update result: ${updateResult.rowCount} rows affected`);
-          console.log(`${itemType} ${projectId} ${action}d by admin ${walletAddress}`);
+          console.log(`[API] Update result: ${updateResult.rowCount} rows affected`);
+          if (updateResult.rowCount === 0) {
+            console.log(`[API] WARNING: No rows affected when trying to ${action} ${itemType} ${projectId}`);
+          } else {
+            console.log(`[API] SUCCESS: ${itemType} ${projectId} ${action}d by admin ${walletAddress}`);
+          }
+        } else {
+          console.log(`[API] No query to execute for action: ${action}`);
         }
       }
 
