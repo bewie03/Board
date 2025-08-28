@@ -242,7 +242,7 @@ async function handleUpdateReport(req: any, res: any) {
     
     switch (action) {
       case 'pause':
-        reportStatus = 'resolved';
+        reportStatus = 'paused';
         projectStatus = 'paused';
         break;
       case 'delete':
