@@ -1204,8 +1204,8 @@ const ReportCard: React.FC<{
                 disabled={loading}
                 className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
               >
-                <FaPlay className="h-3 w-3" />
-                Restore
+                <FaArchive className="h-3 w-3" />
+                Unarchive
               </button>
               <button
                 onClick={(e) => {
