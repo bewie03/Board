@@ -1203,7 +1203,10 @@ const ReportCard: React.FC<{
           {isArchived ? (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProcess(report.id, 'restore', report.scam_identifier);
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
               >
@@ -1211,7 +1214,10 @@ const ReportCard: React.FC<{
                 Unarchive
               </button>
               <button
-                onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProcess(report.id, 'delete', report.scam_identifier);
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
               >
@@ -1219,7 +1225,10 @@ const ReportCard: React.FC<{
                 Remove
               </button>
               <button
-                onClick={() => onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier})}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier});
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
               >
@@ -1252,7 +1261,10 @@ const ReportCard: React.FC<{
                 Archive
               </button>
               <button
-                onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProcess(report.id, 'delete', report.scam_identifier);
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
               >
@@ -1260,7 +1272,10 @@ const ReportCard: React.FC<{
                 Remove
               </button>
               <button
-                onClick={() => onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier})}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier});
+                }}
                 disabled={loading}
                 className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
               >
@@ -1366,7 +1381,10 @@ const PausedItemCard: React.FC<{
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onRestore(item.id, item.type)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRestore(item.id, item.type);
+            }}
             disabled={loading}
             className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
           >
@@ -1374,7 +1392,10 @@ const PausedItemCard: React.FC<{
             Resume
           </button>
           <button
-            onClick={() => onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id})}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id});
+            }}
             disabled={loading}
             className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
           >

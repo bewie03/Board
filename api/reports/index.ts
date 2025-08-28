@@ -169,25 +169,17 @@ async function handleGetReports(req: any, res: any) {
     if (paused === 'true') {
       // Get reports for paused items - only reports where the associated project/job is actually paused
       query = `
-        SELECT r.*, 
-               CASE 
-                 WHEN r.scam_type = 'project' THEN p.title
-                 WHEN r.scam_type = 'user' THEN j.title
-                 ELSE r.scam_identifier
-               END as project_name,
-               CASE 
-                 WHEN r.scam_type = 'project' THEN 'project'
-                 WHEN r.scam_type = 'user' THEN 'job'
-                 ELSE r.scam_type
-               END as item_type
+        (SELECT r.*, 
+               p.title as project_name,
+               'project' as item_type
         FROM scam_reports r
-        INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project' AND p.status = 'paused'
+        INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project' AND p.status = 'paused')
         UNION ALL
-        SELECT r.*, 
+        (SELECT r.*, 
                j.title as project_name,
                'job' as item_type
         FROM scam_reports r
-        INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user' AND j.status = 'paused'
+        INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user' AND j.status = 'paused')
         ORDER BY updated_at DESC
       `;
     } else if (archived === 'true') {
