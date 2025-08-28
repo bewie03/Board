@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
