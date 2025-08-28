@@ -206,7 +206,7 @@ const AdminPanel: React.FC = () => {
         },
         body: JSON.stringify({
           id: itemId,
-          status: itemType === 'project' ? 'active' : 'active'
+          status: itemType === 'project' ? 'active' : 'confirmed'
         })
       });
 
@@ -923,7 +923,7 @@ const ReportCard: React.FC<{
           </div>
           {report.project_name && (
             <div className="mb-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500 text-white">
                 {report.item_type === 'project' ? '📋' : '💼'} {report.project_name}
               </span>
             </div>
@@ -934,7 +934,7 @@ const ReportCard: React.FC<{
               {formatDate(report.created_at)}
             </span>
             <span className="capitalize">{report.scam_type.replace('_', ' ')}</span>
-            <span className="font-mono text-xs bg-gradient-to-r from-gray-500 to-gray-600 text-white px-3 py-1 rounded-full shadow-sm">
+            <span className="font-mono text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
               ID: {report.scam_identifier.slice(0, 8)}...
             </span>
           </div>
@@ -972,7 +972,7 @@ const ReportCard: React.FC<{
             <button
               onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
+              className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
             >
               <FaPlay className="h-3 w-3" />
               Resume
@@ -982,7 +982,7 @@ const ReportCard: React.FC<{
               <button
                 onClick={() => onProcess(report.id, 'pause', report.scam_identifier)}
                 disabled={loading}
-                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
+                className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 flex items-center gap-1"
               >
                 <FaClock className="h-3 w-3" />
                 Pause
@@ -990,7 +990,7 @@ const ReportCard: React.FC<{
               <button
                 onClick={() => onProcess(report.id, 'archive', report.scam_identifier)}
                 disabled={loading}
-                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
+                className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
               >
                 <FaArchive className="h-3 w-3" />
                 Archive
@@ -998,7 +998,7 @@ const ReportCard: React.FC<{
               <button
                 onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
                 disabled={loading}
-                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-all duration-200"
+                className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-1"
               >
                 <FaTrash className="h-3 w-3" />
                 Delete
@@ -1070,7 +1070,7 @@ const PausedItemCard: React.FC<{
             {item.type === 'job' && item.company && (
               <span>{item.company}</span>
             )}
-            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+            <span className="font-mono text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
               ID: {item.id.slice(0, 8)}...
             </span>
           </div>
@@ -1086,10 +1086,10 @@ const PausedItemCard: React.FC<{
           <button
             onClick={() => onRestore(item.id, item.type)}
             disabled={loading}
-            className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 flex items-center gap-1"
+            className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
           >
-            <FaProjectDiagram className="h-3 w-3" />
-            Restore
+            <FaPlay className="h-3 w-3" />
+            Resume
           </button>
         </div>
       </div>
