@@ -6,6 +6,7 @@ import { ProjectService, Project as ServiceProject } from '../services/projectSe
 import { useWallet } from '../contexts/WalletContext';
 import { ProjectVerificationToggle } from '../components/ProjectVerificationToggle';
 import { ReportModal, ReportData } from '../components/ReportModal';
+import { toast } from 'react-toastify';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PROJECT_CATEGORIES } from '../constants/categories';
@@ -150,7 +151,7 @@ const Projects: React.FC = () => {
         throw new Error('Failed to submit report');
       }
 
-      alert('Report submitted successfully. Thank you for helping keep the platform safe.');
+      toast.success('Report submitted successfully. Thank you for helping keep the platform safe.');
       setShowReportModal(false);
       setReportingProject(null);
     } catch (error) {

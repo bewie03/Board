@@ -4,6 +4,7 @@ import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaBuildin
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import { ReportModal, ReportData } from '../components/ReportModal';
+import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Job {
@@ -264,7 +265,7 @@ const JobListings: React.FC = () => {
         throw new Error('Failed to submit report');
       }
 
-      alert('Report submitted successfully. Thank you for helping keep the platform safe.');
+      toast.success('Report submitted successfully. Thank you for helping keep the platform safe.');
       setShowReportModal(false);
       setReportingJob(null);
     } catch (error) {
