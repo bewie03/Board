@@ -158,6 +158,7 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Loading paused items...');
       // Fetch paused projects and jobs, plus reports for paused items
       const [pausedProjects, pausedJobs, pausedReports] = await Promise.all([
         fetch('/api/projects?status=paused', {
@@ -171,6 +172,8 @@ const AdminPanel: React.FC = () => {
         }).then(res => res.json())
       ]);
       
+      console.log('Paused data:', { pausedProjects, pausedJobs, pausedReports });
+      
       const combined = [
         ...(pausedProjects.projects || []).map((p: any) => ({ ...p, type: 'project' })),
         ...(Array.isArray(pausedJobs) ? pausedJobs : []).map((j: any) => ({ ...j, type: 'job' }))
@@ -182,6 +185,19 @@ const AdminPanel: React.FC = () => {
           const existingItem = combined.find(item => item.id === report.scam_identifier);
           if (existingItem) {
             existingItem.report = report;
+          } else {
+            // If no matching project/job found, the report might be for a paused item
+            // that wasn't returned by the projects/jobs API, so add it as a standalone item
+            console.log('Adding standalone paused report:', report);
+            combined.push({
+              id: report.scam_identifier,
+              title: report.project_name || report.title,
+              description: report.description,
+              type: report.item_type || 'project',
+              created_at: report.created_at,
+              updated_at: report.updated_at,
+              report: report
+            });
           }
         });
       }
