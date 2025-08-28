@@ -71,14 +71,20 @@ const AdminPanel: React.FC = () => {
   }, [activeTab]);
 
   const getTimeAgo = (dateString: string): string => {
+    if (!dateString) return 'Unknown';
+    
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMinutes / 60);
     const diffInDays = Math.floor(diffInHours / 24);
 
-    if (diffInMinutes < 60) {
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    } else if (diffInMinutes < 60) {
       return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
     } else if (diffInHours < 24) {
       return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
@@ -680,16 +686,6 @@ const AdminPanel: React.FC = () => {
                         <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Description</label>
                         <p className="text-gray-900 mt-2 leading-relaxed">{selectedProject.description}</p>
                       </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 bg-green-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Budget</label>
-                          <p className="text-green-900 mt-1 text-lg font-bold">${selectedProject.budget}</p>
-                        </div>
-                        <div className="flex-1 bg-blue-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Timeline</label>
-                          <p className="text-blue-900 mt-1 font-medium">{selectedProject.timeline}</p>
-                        </div>
-                      </div>
                       {selectedProject.skills && (
                         <div>
                           <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Required Skills</label>
@@ -708,10 +704,6 @@ const AdminPanel: React.FC = () => {
                   <div className="space-y-6">
                     <h3 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-3">Contact Information</h3>
                     <div className="space-y-5">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Creator</label>
-                        <p className="text-gray-900 mt-2 font-mono text-sm break-all">{selectedProject.wallet_address}</p>
-                      </div>
                       {selectedProject.contact_email && (
                         <div className="bg-blue-50 rounded-lg p-4">
                           <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Email</label>
@@ -745,15 +737,16 @@ const AdminPanel: React.FC = () => {
 
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <div className="flex justify-center">
-                    <a
-                      href={`/projects?id=${selectedProject.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => {
+                        setSelectedProject(null);
+                        window.location.href = `/projects?id=${selectedProject.id}`;
+                      }}
                       className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg shadow-lg hover:shadow-xl"
                     >
                       <FaExternalLinkAlt className="w-5 h-5" />
                       View Full Project
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -811,15 +804,9 @@ const AdminPanel: React.FC = () => {
                         <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Description</label>
                         <p className="text-gray-900 mt-2 leading-relaxed">{selectedJob.description}</p>
                       </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 bg-green-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Salary</label>
-                          <p className="text-green-900 mt-1 text-lg font-bold">${selectedJob.salary}</p>
-                        </div>
-                        <div className="flex-1 bg-blue-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Job Type</label>
-                          <p className="text-blue-900 mt-1 font-medium">{selectedJob.job_type}</p>
-                        </div>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Salary</label>
+                        <p className="text-green-900 mt-1 text-lg font-bold">${selectedJob.salary}</p>
                       </div>
                       {selectedJob.location && (
                         <div className="bg-orange-50 rounded-lg p-4">
@@ -851,10 +838,6 @@ const AdminPanel: React.FC = () => {
                       <div className="bg-indigo-50 rounded-lg p-4">
                         <label className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Company</label>
                         <p className="text-indigo-900 mt-2 font-bold text-lg">{selectedJob.company || selectedJob.company_name}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Employer</label>
-                        <p className="text-gray-900 mt-2 font-mono text-sm break-all">{selectedJob.wallet_address}</p>
                       </div>
                       {selectedJob.contact_email && (
                         <div className="bg-blue-50 rounded-lg p-4">
@@ -889,15 +872,16 @@ const AdminPanel: React.FC = () => {
 
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <div className="flex justify-center">
-                    <a
-                      href={`/jobs?id=${selectedJob.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => {
+                        setSelectedJob(null);
+                        window.location.href = `/jobs?id=${selectedJob.id}`;
+                      }}
                       className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg shadow-lg hover:shadow-xl"
                     >
                       <FaExternalLinkAlt className="w-5 h-5" />
                       View Full Job
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
