@@ -714,21 +714,21 @@ const AdminPanel: React.FC = () => {
                         </div>
                       )}
                       {selectedProject.website && (
-                        <div className="bg-green-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Website</label>
-                          <p className="text-green-900 flex items-center gap-3 mt-2">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Website</label>
+                          <p className="text-gray-900 flex items-center gap-3 mt-2">
                             <FaGlobe className="w-5 h-5" />
-                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-800 font-medium hover:underline">
+                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
                               {selectedProject.website}
                             </a>
                           </p>
                         </div>
                       )}
-                      <div className="bg-purple-50 rounded-lg p-4">
-                        <label className="text-sm font-semibold text-purple-600 uppercase tracking-wide">Created</label>
-                        <p className="text-purple-900 flex items-center gap-3 mt-2">
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Created</label>
+                        <p className="text-blue-900 flex items-center gap-3 mt-2">
                           <FaCalendarAlt className="w-5 h-5" />
-                          <span className="font-medium">{getTimeAgo(selectedProject.created_at)}</span>
+                          <span className="font-medium">{getTimeAgo(selectedProject.createdAt || selectedProject.created_at)}</span>
                         </p>
                       </div>
                     </div>
@@ -804,14 +804,14 @@ const AdminPanel: React.FC = () => {
                         <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Description</label>
                         <p className="text-gray-900 mt-2 leading-relaxed">{selectedJob.description}</p>
                       </div>
-                      <div className="bg-green-50 rounded-lg p-4">
-                        <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Salary</label>
-                        <p className="text-green-900 mt-1 text-lg font-bold">${selectedJob.salary}</p>
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Salary</label>
+                        <p className="text-blue-900 mt-1 text-lg font-bold">{selectedJob.salary}</p>
                       </div>
                       {selectedJob.location && (
-                        <div className="bg-orange-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-orange-600 uppercase tracking-wide">Location</label>
-                          <p className="text-orange-900 flex items-center gap-3 mt-2">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Location</label>
+                          <p className="text-gray-900 flex items-center gap-3 mt-2">
                             <FaMapMarkerAlt className="w-5 h-5" />
                             <span className="font-medium">{selectedJob.location}</span>
                           </p>
@@ -835,9 +835,9 @@ const AdminPanel: React.FC = () => {
                   <div className="space-y-6">
                     <h3 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-3">Company Information</h3>
                     <div className="space-y-5">
-                      <div className="bg-indigo-50 rounded-lg p-4">
-                        <label className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Company</label>
-                        <p className="text-indigo-900 mt-2 font-bold text-lg">{selectedJob.company || selectedJob.company_name}</p>
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Company</label>
+                        <p className="text-blue-900 mt-2 font-bold text-lg">{selectedJob.company || selectedJob.company_name}</p>
                       </div>
                       {selectedJob.contact_email && (
                         <div className="bg-blue-50 rounded-lg p-4">
@@ -849,21 +849,21 @@ const AdminPanel: React.FC = () => {
                         </div>
                       )}
                       {selectedJob.website && (
-                        <div className="bg-green-50 rounded-lg p-4">
-                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Website</label>
-                          <p className="text-green-900 flex items-center gap-3 mt-2">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Website</label>
+                          <p className="text-gray-900 flex items-center gap-3 mt-2">
                             <FaGlobe className="w-5 h-5" />
-                            <a href={selectedJob.website} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-800 font-medium hover:underline">
+                            <a href={selectedJob.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
                               {selectedJob.website}
                             </a>
                           </p>
                         </div>
                       )}
-                      <div className="bg-purple-50 rounded-lg p-4">
-                        <label className="text-sm font-semibold text-purple-600 uppercase tracking-wide">Posted</label>
-                        <p className="text-purple-900 flex items-center gap-3 mt-2">
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Posted</label>
+                        <p className="text-blue-900 flex items-center gap-3 mt-2">
                           <FaCalendarAlt className="w-5 h-5" />
-                          <span className="font-medium">{getTimeAgo(selectedJob.created_at)}</span>
+                          <span className="font-medium">{getTimeAgo(selectedJob.createdAt || selectedJob.created_at)}</span>
                         </p>
                       </div>
                     </div>

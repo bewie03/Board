@@ -199,7 +199,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     paymentAmount || 0,
     paymentCurrency || 'BONE', 
     txHash || null, 
-    expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    null
   ];
 
   console.log('Executing query with params:', params);
