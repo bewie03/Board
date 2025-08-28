@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { FaShieldAlt, FaChartBar, FaDollarSign, FaBug, FaExclamationTriangle, FaProjectDiagram, FaBriefcase } from 'react-icons/fa';
+import { FaShieldAlt, FaChartBar, FaDollarSign, FaBug, FaExclamationTriangle, FaProjectDiagram, FaBriefcase, FaTrash, FaArchive, FaClock } from 'react-icons/fa';
 import { AdminService, PlatformSettings } from '../services/adminService';
 import { useWallet } from '../contexts/WalletContext';
 import { isAdminWallet } from '../utils/adminAuth';
 import { useNavigate } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 
+interface ScamReport {
+  id: string;
+  title: string;
+  description: string;
+  scam_type: string;
+  severity: string;
+  status: string;
+  scam_identifier: string;
+  created_at: string;
+  reporter_id: string;
+  evidence_urls?: string[];
+}
+
 const AdminPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'reports' | 'pricing' | 'bugs'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'pricing'>('reports');
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
+  const [reports, setReports] = useState<ScamReport[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { walletAddress } = useWallet();
@@ -22,10 +36,12 @@ const AdminPanel: React.FC = () => {
     }
   }, [walletAddress, navigate]);
 
-  // Load platform settings
+  // Load data based on active tab
   useEffect(() => {
     if (activeTab === 'pricing') {
       loadSettings();
+    } else if (activeTab === 'reports') {
+      loadReports();
     }
   }, [activeTab]);
 
@@ -38,6 +54,37 @@ const AdminPanel: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to load settings');
       console.error('Error loading settings:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadReports = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const reportsData = await adminService.getReports(walletAddress);
+      setReports(reportsData);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load reports');
+      console.error('Error loading reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      await adminService.processReport(walletAddress, reportId, action, projectId);
+      await loadReports(); // Reload reports after processing
+    } catch (err: any) {
+      setError(err.message || 'Failed to process report');
+      console.error('Error processing report:', err);
     } finally {
       setLoading(false);
     }
@@ -125,17 +172,6 @@ const AdminPanel: React.FC = () => {
                 <FaDollarSign className="mr-2 h-4 w-4" />
                 Pricing
               </button>
-              <button
-                onClick={() => setActiveTab('bugs')}
-                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                  activeTab === 'bugs'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-blue-600 hover:bg-blue-50'
-                }`}
-              >
-                <FaBug className="mr-2 h-4 w-4" />
-                Bug Reports
-              </button>
             </nav>
           </div>
         </div>
@@ -155,24 +191,47 @@ const AdminPanel: React.FC = () => {
           {activeTab === 'reports' && (
             <div className="bg-white shadow-sm rounded-xl border border-blue-100">
               <div className="px-6 py-5 border-b border-blue-100">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <FaChartBar className="h-5 w-5 text-blue-600" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <FaExclamationTriangle className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Scam Reports</h2>
+                      <p className="text-sm text-blue-600">Manage reported projects and suspicious activity</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">User Reports</h2>
-                    <p className="text-sm text-blue-600">Manage reported projects and job listings</p>
+                  <div className="bg-red-100 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium text-red-800">{reports.length} Reports</span>
                   </div>
                 </div>
               </div>
-              <div className="p-8">
-                <div className="text-center py-16">
-                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FaChartBar className="h-10 w-10 text-blue-400" />
+              <div className="p-6">
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">Loading reports...</p>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reports Yet</h3>
-                  <p className="text-blue-600">User reporting system will be implemented here</p>
-                </div>
+                ) : reports.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FaExclamationTriangle className="h-10 w-10 text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reports Yet</h3>
+                    <p className="text-blue-600">No scam reports have been submitted</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reports.map((report) => (
+                      <ReportCard 
+                        key={report.id} 
+                        report={report} 
+                        onProcess={handleProcessReport}
+                        loading={loading}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -218,34 +277,120 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
-          {/* Bug Reports Tab */}
-          {activeTab === 'bugs' && (
-            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
-              <div className="px-6 py-5 border-b border-blue-100">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <FaBug className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Bug Reports</h2>
-                    <p className="text-sm text-blue-600">Track and manage platform issues</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-8">
-                <div className="text-center py-16">
-                  <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FaBug className="h-10 w-10 text-blue-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Bug Reports</h3>
-                  <p className="text-blue-600">Bug reporting system will be implemented here</p>
-                </div>
+        </div>
+      </div>
+    </PageTransition>
+  );
+};
+
+// Report Card Component
+const ReportCard: React.FC<{
+  report: ScamReport;
+  onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => Promise<void>;
+  loading: boolean;
+}> = ({ report, onProcess, loading }) => {
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      case 'critical': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'verified': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'resolved': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">{report.title}</h3>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(report.severity)}`}>
+              {report.severity.toUpperCase()}
+            </span>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+              {report.status.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+            <span className="flex items-center gap-1">
+              <FaClock className="h-3 w-3" />
+              {formatDate(report.created_at)}
+            </span>
+            <span className="capitalize">{report.scam_type.replace('_', ' ')}</span>
+            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+              ID: {report.scam_identifier.slice(0, 8)}...
+            </span>
+          </div>
+          <p className="text-gray-700 text-sm mb-4 line-clamp-2">{report.description}</p>
+          {report.evidence_urls && report.evidence_urls.length > 0 && (
+            <div className="mb-4">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Evidence:</span>
+              <div className="mt-1 space-y-1">
+                {report.evidence_urls.slice(0, 2).map((url, index) => (
+                  <a
+                    key={index}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-xs text-blue-600 hover:text-blue-800 truncate"
+                  >
+                    {url}
+                  </a>
+                ))}
+                {report.evidence_urls.length > 2 && (
+                  <span className="text-xs text-gray-500">+{report.evidence_urls.length - 2} more</span>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
-    </PageTransition>
+      
+      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="text-xs text-gray-500">
+          Report ID: {report.id.slice(0, 8)}...
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onProcess(report.id, 'archive', report.scam_identifier)}
+            disabled={loading}
+            className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 flex items-center gap-1"
+          >
+            <FaArchive className="h-3 w-3" />
+            Archive
+          </button>
+          <button
+            onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
+            disabled={loading}
+            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 flex items-center gap-1"
+          >
+            <FaTrash className="h-3 w-3" />
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
