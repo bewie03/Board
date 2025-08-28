@@ -734,7 +734,7 @@ const AdminPanel: React.FC = () => {
                         <label className="text-sm font-medium text-gray-500">Created</label>
                         <p className="text-gray-900 flex items-center gap-2">
                           <FaCalendarAlt className="w-4 h-4" />
-                          {new Date(selectedProject.created_at).toLocaleDateString()}
+                          {getTimeAgo(selectedProject.created_at)}
                         </p>
                       </div>
                     </div>
@@ -954,16 +954,33 @@ const ReportCard: React.FC<{
     }
     
     if (report.scam_identifier) {
-      const itemType = report.item_type || (report.scam_type === 'project' ? 'project' : 'job');
+      // Determine if this is a project or job report
+      // Check if the scam_identifier exists in projects first, then fallback to jobs
+      let itemType = 'job'; // default
+      
+      // First try to fetch as project
+      try {
+        const projectResponse = await fetch(`/api/projects?id=${report.scam_identifier}`);
+        if (projectResponse.ok) {
+          const projectData = await projectResponse.json();
+          const projects = Array.isArray(projectData) ? projectData : (projectData.projects || []);
+          if (projects.length > 0) {
+            itemType = 'project';
+          }
+        }
+      } catch (error) {
+        // If project fetch fails, it's likely a job
+        itemType = 'job';
+      }
       console.log('Fetching details for:', { itemType, id: report.scam_identifier });
       
       try {
-        // Fetch the full project/job data for the modal
+        // Now fetch the data for the modal (we already determined the type above)
         if (itemType === 'project') {
+          // We already fetched project data above, so use it
           const response = await fetch(`/api/projects?id=${report.scam_identifier}`);
           const data = await response.json();
           console.log('Project API response:', data);
-          // Handle both array and object response formats
           const projects = Array.isArray(data) ? data : (data.projects || []);
           if (projects.length > 0) {
             console.log('Opening project modal with:', projects[0]);
@@ -975,7 +992,6 @@ const ReportCard: React.FC<{
           const response = await fetch(`/api/jobs?id=${report.scam_identifier}`);
           const data = await response.json();
           console.log('Jobs API response:', data);
-          // Handle both array and object response formats
           const jobs = Array.isArray(data) ? data : (data.jobs || []);
           if (jobs.length > 0) {
             console.log('Opening job modal with:', jobs[0]);
