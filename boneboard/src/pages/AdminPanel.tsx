@@ -645,15 +645,15 @@ const AdminPanel: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-8">
+                  <div className="flex-1">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">{selectedProject.title}</h2>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${
                         selectedProject.status === 'active' ? 'bg-green-100 text-green-800' :
                         selectedProject.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
                         selectedProject.status === 'completed' ? 'bg-blue-100 text-blue-800' :
@@ -661,39 +661,41 @@ const AdminPanel: React.FC = () => {
                       }`}>
                         {selectedProject.status}
                       </span>
-                      <span className="text-sm text-gray-500">Project</span>
+                      <span className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">Project</span>
                     </div>
                   </div>
                   <button
                     onClick={() => setSelectedProject(null)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
                   >
                     <FaTimes className="w-6 h-6" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Project Details</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Description</label>
-                        <p className="text-gray-900">{selectedProject.description}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-3">Project Details</h3>
+                    <div className="space-y-5">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Description</label>
+                        <p className="text-gray-900 mt-2 leading-relaxed">{selectedProject.description}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Budget</label>
-                        <p className="text-gray-900">${selectedProject.budget}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Timeline</label>
-                        <p className="text-gray-900">{selectedProject.timeline}</p>
+                      <div className="flex gap-4">
+                        <div className="flex-1 bg-green-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Budget</label>
+                          <p className="text-green-900 mt-1 text-lg font-bold">${selectedProject.budget}</p>
+                        </div>
+                        <div className="flex-1 bg-blue-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Timeline</label>
+                          <p className="text-blue-900 mt-1 font-medium">{selectedProject.timeline}</p>
+                        </div>
                       </div>
                       {selectedProject.skills && (
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Required Skills</label>
-                          <div className="flex flex-wrap gap-2 mt-1">
+                          <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Required Skills</label>
+                          <div className="flex flex-wrap gap-2">
                             {selectedProject.skills.split(',').map((skill: string, index: number) => (
-                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              <span key={index} className="px-3 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-lg">
                                 {skill.trim()}
                               </span>
                             ))}
@@ -703,53 +705,53 @@ const AdminPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Creator</label>
-                        <p className="text-gray-900">{selectedProject.wallet_address}</p>
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-3">Contact Information</h3>
+                    <div className="space-y-5">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Creator</label>
+                        <p className="text-gray-900 mt-2 font-mono text-sm break-all">{selectedProject.wallet_address}</p>
                       </div>
                       {selectedProject.contact_email && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Email</label>
-                          <p className="text-gray-900 flex items-center gap-2">
-                            <FaEnvelope className="w-4 h-4" />
-                            {selectedProject.contact_email}
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Email</label>
+                          <p className="text-blue-900 flex items-center gap-3 mt-2">
+                            <FaEnvelope className="w-5 h-5" />
+                            <span className="font-medium">{selectedProject.contact_email}</span>
                           </p>
                         </div>
                       )}
                       {selectedProject.website && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Website</label>
-                          <p className="text-gray-900 flex items-center gap-2">
-                            <FaGlobe className="w-4 h-4" />
-                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Website</label>
+                          <p className="text-green-900 flex items-center gap-3 mt-2">
+                            <FaGlobe className="w-5 h-5" />
+                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-800 font-medium hover:underline">
                               {selectedProject.website}
                             </a>
                           </p>
                         </div>
                       )}
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Created</label>
-                        <p className="text-gray-900 flex items-center gap-2">
-                          <FaCalendarAlt className="w-4 h-4" />
-                          {getTimeAgo(selectedProject.created_at)}
+                      <div className="bg-purple-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-purple-600 uppercase tracking-wide">Created</label>
+                        <p className="text-purple-900 flex items-center gap-3 mt-2">
+                          <FaCalendarAlt className="w-5 h-5" />
+                          <span className="font-medium">{getTimeAgo(selectedProject.created_at)}</span>
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="flex justify-between items-center">
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="flex justify-center">
                     <a
                       href={`/projects?id=${selectedProject.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg shadow-lg hover:shadow-xl"
                     >
-                      <FaExternalLinkAlt className="w-4 h-4" />
+                      <FaExternalLinkAlt className="w-5 h-5" />
                       View Full Project
                     </a>
                   </div>
@@ -774,15 +776,15 @@ const AdminPanel: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h2>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-8">
+                  <div className="flex-1">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">{selectedJob.title}</h2>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${
                         selectedJob.status === 'active' ? 'bg-green-100 text-green-800' :
                         selectedJob.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
                         selectedJob.status === 'filled' ? 'bg-blue-100 text-blue-800' :
@@ -790,48 +792,50 @@ const AdminPanel: React.FC = () => {
                       }`}>
                         {selectedJob.status}
                       </span>
-                      <span className="text-sm text-gray-500">Job</span>
+                      <span className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">Job</span>
                     </div>
                   </div>
                   <button
                     onClick={() => setSelectedJob(null)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
                   >
                     <FaTimes className="w-6 h-6" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Job Details</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Description</label>
-                        <p className="text-gray-900">{selectedJob.description}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-3">Job Details</h3>
+                    <div className="space-y-5">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Description</label>
+                        <p className="text-gray-900 mt-2 leading-relaxed">{selectedJob.description}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Salary</label>
-                        <p className="text-gray-900">${selectedJob.salary}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Job Type</label>
-                        <p className="text-gray-900">{selectedJob.job_type}</p>
+                      <div className="flex gap-4">
+                        <div className="flex-1 bg-green-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Salary</label>
+                          <p className="text-green-900 mt-1 text-lg font-bold">${selectedJob.salary}</p>
+                        </div>
+                        <div className="flex-1 bg-blue-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Job Type</label>
+                          <p className="text-blue-900 mt-1 font-medium">{selectedJob.job_type}</p>
+                        </div>
                       </div>
                       {selectedJob.location && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Location</label>
-                          <p className="text-gray-900 flex items-center gap-2">
-                            <FaMapMarkerAlt className="w-4 h-4" />
-                            {selectedJob.location}
+                        <div className="bg-orange-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-orange-600 uppercase tracking-wide">Location</label>
+                          <p className="text-orange-900 flex items-center gap-3 mt-2">
+                            <FaMapMarkerAlt className="w-5 h-5" />
+                            <span className="font-medium">{selectedJob.location}</span>
                           </p>
                         </div>
                       )}
                       {selectedJob.skills && (
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Required Skills</label>
-                          <div className="flex flex-wrap gap-2 mt-1">
+                          <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Required Skills</label>
+                          <div className="flex flex-wrap gap-2">
                             {selectedJob.skills.split(',').map((skill: string, index: number) => (
-                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              <span key={index} className="px-3 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-lg">
                                 {skill.trim()}
                               </span>
                             ))}
@@ -841,57 +845,57 @@ const AdminPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Company Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Company</label>
-                        <p className="text-gray-900">{selectedJob.company || selectedJob.company_name}</p>
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-3">Company Information</h3>
+                    <div className="space-y-5">
+                      <div className="bg-indigo-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Company</label>
+                        <p className="text-indigo-900 mt-2 font-bold text-lg">{selectedJob.company || selectedJob.company_name}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Employer</label>
-                        <p className="text-gray-900">{selectedJob.wallet_address}</p>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Employer</label>
+                        <p className="text-gray-900 mt-2 font-mono text-sm break-all">{selectedJob.wallet_address}</p>
                       </div>
                       {selectedJob.contact_email && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Email</label>
-                          <p className="text-gray-900 flex items-center gap-2">
-                            <FaEnvelope className="w-4 h-4" />
-                            {selectedJob.contact_email}
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-blue-600 uppercase tracking-wide">Email</label>
+                          <p className="text-blue-900 flex items-center gap-3 mt-2">
+                            <FaEnvelope className="w-5 h-5" />
+                            <span className="font-medium">{selectedJob.contact_email}</span>
                           </p>
                         </div>
                       )}
                       {selectedJob.website && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Website</label>
-                          <p className="text-gray-900 flex items-center gap-2">
-                            <FaGlobe className="w-4 h-4" />
-                            <a href={selectedJob.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <label className="text-sm font-semibold text-green-600 uppercase tracking-wide">Website</label>
+                          <p className="text-green-900 flex items-center gap-3 mt-2">
+                            <FaGlobe className="w-5 h-5" />
+                            <a href={selectedJob.website} target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-800 font-medium hover:underline">
                               {selectedJob.website}
                             </a>
                           </p>
                         </div>
                       )}
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Posted</label>
-                        <p className="text-gray-900 flex items-center gap-2">
-                          <FaCalendarAlt className="w-4 h-4" />
-                          {getTimeAgo(selectedJob.created_at)}
+                      <div className="bg-purple-50 rounded-lg p-4">
+                        <label className="text-sm font-semibold text-purple-600 uppercase tracking-wide">Posted</label>
+                        <p className="text-purple-900 flex items-center gap-3 mt-2">
+                          <FaCalendarAlt className="w-5 h-5" />
+                          <span className="font-medium">{getTimeAgo(selectedJob.created_at)}</span>
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="flex justify-between items-center">
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="flex justify-center">
                     <a
                       href={`/jobs?id=${selectedJob.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg shadow-lg hover:shadow-xl"
                     >
-                      <FaExternalLinkAlt className="w-4 h-4" />
+                      <FaExternalLinkAlt className="w-5 h-5" />
                       View Full Job
                     </a>
                   </div>
