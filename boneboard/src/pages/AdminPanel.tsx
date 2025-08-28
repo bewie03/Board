@@ -70,6 +70,23 @@ const AdminPanel: React.FC = () => {
     }
   }, [activeTab]);
 
+  const getTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    } else {
+      return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    }
+  };
+
   const loadSettings = async () => {
     if (!walletAddress) return;
     
@@ -793,19 +810,8 @@ const AdminPanel: React.FC = () => {
                         <p className="text-gray-900">{selectedJob.description}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Company</label>
-                        <p className="text-gray-900">{selectedJob.company}</p>
-                      </div>
-                      <div>
                         <label className="text-sm font-medium text-gray-500">Salary</label>
                         <p className="text-gray-900">${selectedJob.salary}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Posted</label>
-                        <p className="text-gray-900 flex items-center gap-2">
-                          <FaCalendarAlt className="w-4 h-4" />
-                          {new Date(selectedJob.created_at).toLocaleDateString()}
-                        </p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">Job Type</label>
@@ -840,7 +846,7 @@ const AdminPanel: React.FC = () => {
                     <div className="space-y-3">
                       <div>
                         <label className="text-sm font-medium text-gray-500">Company</label>
-                        <p className="text-gray-900">{selectedJob.company_name}</p>
+                        <p className="text-gray-900">{selectedJob.company || selectedJob.company_name}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">Employer</label>
@@ -870,7 +876,7 @@ const AdminPanel: React.FC = () => {
                         <label className="text-sm font-medium text-gray-500">Posted</label>
                         <p className="text-gray-900 flex items-center gap-2">
                           <FaCalendarAlt className="w-4 h-4" />
-                          {new Date(selectedJob.created_at).toLocaleDateString()}
+                          {getTimeAgo(selectedJob.created_at)}
                         </p>
                       </div>
                     </div>
