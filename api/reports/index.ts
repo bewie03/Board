@@ -169,20 +169,26 @@ async function handleGetReports(req: any, res: any) {
     if (paused === 'true') {
       // Get reports where associated project/job is paused AND report status is 'verified'
       query = `
-        (SELECT r.*, 
-               p.title as project_name,
-               'project' as item_type
+        SELECT r.*, 
+               CASE 
+                 WHEN r.scam_type = 'project' THEN p.title
+                 WHEN r.scam_type = 'user' THEN j.title
+                 ELSE r.scam_identifier
+               END as project_name,
+               CASE 
+                 WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'user' THEN 'job'
+                 ELSE r.scam_type
+               END as item_type
         FROM scam_reports r
-        INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
-        WHERE p.status = 'paused' AND r.status = 'verified')
-        UNION ALL
-        (SELECT r.*, 
-               j.title as project_name,
-               'job' as item_type
-        FROM scam_reports r
-        INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE j.status = 'paused' AND r.status = 'verified')
-        ORDER BY updated_at DESC
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
+        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
+        WHERE r.status = 'verified'
+        AND (
+          (r.scam_type = 'project' AND p.status = 'paused')
+          OR (r.scam_type = 'user' AND j.status = 'paused')
+        )
+        ORDER BY r.updated_at DESC
       `;
     } else if (archived === 'true') {
       // Get archived/resolved reports (status = 'resolved')
