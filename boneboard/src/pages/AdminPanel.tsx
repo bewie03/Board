@@ -27,6 +27,9 @@ const AdminPanel: React.FC = () => {
   const [reports, setReports] = useState<ScamReport[]>([]);
   const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
   const [pausedItems, setPausedItems] = useState<any[]>([]);
+  const [reportsSearchTerm, setReportsSearchTerm] = useState('');
+  const [archivedSearchTerm, setArchivedSearchTerm] = useState('');
+  const [pausedSearchTerm, setPausedSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [settings, setSettings] = useState<any>({
@@ -213,7 +216,24 @@ const AdminPanel: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
+      // Find the related report and archive it
+      const relatedReport = pausedItems.find(item => item.id === itemId);
+      if (relatedReport && relatedReport.reportId) {
+        await fetch('/api/reports', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress
+          },
+          body: JSON.stringify({
+            reportId: relatedReport.reportId,
+            action: 'archive'
+          })
+        });
+      }
+      
       await loadPausedItems();
+      await loadArchivedReports();
     } catch (err: any) {
       setError(err.message || 'Failed to restore item');
       console.error('Error restoring item:', err);
@@ -362,12 +382,26 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
               <div className="p-6">
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <input
+                    type="text"
+                    placeholder="Search reports..."
+                    value={reportsSearchTerm}
+                    onChange={(e) => setReportsSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-gray-600">Loading reports...</p>
                   </div>
-                ) : reports.length === 0 ? (
+                ) : reports.filter(report => 
+                  report.title.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                  report.description.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                  report.project_name?.toLowerCase().includes(reportsSearchTerm.toLowerCase())
+                ).length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaExclamationTriangle className="h-10 w-10 text-blue-400" />
@@ -377,7 +411,11 @@ const AdminPanel: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {reports.map((report) => (
+                    {reports.filter(report => 
+                      report.title.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                      report.description.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                      report.project_name?.toLowerCase().includes(reportsSearchTerm.toLowerCase())
+                    ).map((report) => (
                       <ReportCard 
                         key={report.id} 
                         report={report} 
@@ -413,12 +451,26 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
               <div className="p-6">
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <input
+                    type="text"
+                    placeholder="Search paused items..."
+                    value={pausedSearchTerm}
+                    onChange={(e) => setPausedSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-gray-600">Loading paused items...</p>
                   </div>
-                ) : pausedItems.length === 0 ? (
+                ) : pausedItems.filter(item => 
+                  item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                  item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                  item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
+                ).length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaClock className="h-10 w-10 text-blue-400" />
@@ -428,7 +480,11 @@ const AdminPanel: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pausedItems.map((item) => (
+                    {pausedItems.filter(item => 
+                      item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                      item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                      item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
+                    ).map((item) => (
                       <PausedItemCard 
                         key={item.id} 
                         item={item} 
@@ -464,12 +520,26 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
               <div className="p-6">
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <input
+                    type="text"
+                    placeholder="Search archived reports..."
+                    value={archivedSearchTerm}
+                    onChange={(e) => setArchivedSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-gray-600">Loading archived reports...</p>
                   </div>
-                ) : archivedReports.length === 0 ? (
+                ) : archivedReports.filter(report => 
+                  report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                  report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                  report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
+                ).length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaArchive className="h-10 w-10 text-blue-400" />
@@ -479,7 +549,11 @@ const AdminPanel: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {archivedReports.map((report) => (
+                    {archivedReports.filter(report => 
+                      report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                      report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                      report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
+                    ).map((report) => (
                       <ReportCard 
                         key={report.id} 
                         report={report} 
@@ -970,14 +1044,24 @@ const ReportCard: React.FC<{
         </div>
         <div className="flex items-center gap-2">
           {isArchived ? (
-            <button
-              onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
-              disabled={loading}
-              className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
-            >
-              <FaArchive className="h-3 w-3" />
-              Unarchive
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
+                disabled={loading}
+                className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
+              >
+                <FaArchive className="h-3 w-3" />
+                Unarchive
+              </button>
+              <button
+                onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
+                disabled={loading}
+                className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-1"
+              >
+                <FaTrash className="h-3 w-3" />
+                Delete
+              </button>
+            </div>
           ) : (
             <>
               <button

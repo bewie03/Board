@@ -276,15 +276,24 @@ async function handleUpdateReport(req: any, res: any) {
         adminUserId = adminUserResult.rows[0].id;
       }
 
-      // Update report status
-      const updateReportQuery = `
-        UPDATE scam_reports 
-        SET status = $1, verified_by = $2, verified_at = NOW(), updated_at = NOW(), is_verified = true
-        WHERE id = $3
-        RETURNING *
-      `;
+      // Update report status or delete report
+      let updateReportQuery = '';
+      let reportParams: any[] = [];
       
-      const reportResult = await client.query(updateReportQuery, [reportStatus, adminUserId, reportId]);
+      if (action === 'delete') {
+        updateReportQuery = `DELETE FROM scam_reports WHERE id = $1 RETURNING *`;
+        reportParams = [reportId];
+      } else {
+        updateReportQuery = `
+          UPDATE scam_reports 
+          SET status = $1, verified_by = $2, verified_at = NOW(), updated_at = NOW(), is_verified = true
+          WHERE id = $3
+          RETURNING *
+        `;
+        reportParams = [reportStatus, adminUserId, reportId];
+      }
+      
+      const reportResult = await client.query(updateReportQuery, reportParams);
       
       if (reportResult.rows.length === 0) {
         throw new Error('Report not found');
@@ -309,8 +318,9 @@ async function handleUpdateReport(req: any, res: any) {
             updateValues = ['paused', projectId];
             break;
           case 'delete':
-            updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['cancelled', projectId] : ['filled', projectId];
+            // Delete actually deletes the report, not the job/project
+            updateQuery = '';
+            updateValues = [];
             break;
           case 'restore':
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
