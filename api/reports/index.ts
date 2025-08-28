@@ -167,21 +167,21 @@ async function handleGetReports(req: any, res: any) {
     let values: any[] = [];
 
     if (paused === 'true') {
-      // Get reports with paused status
+      // Get reports where associated project/job is paused
       query = `
         (SELECT r.*, 
                p.title as project_name,
                'project' as item_type
         FROM scam_reports r
-        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
-        WHERE r.status = 'paused' AND r.scam_type = 'project')
+        INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
+        WHERE p.status = 'paused')
         UNION ALL
         (SELECT r.*, 
                j.title as project_name,
                'job' as item_type
         FROM scam_reports r
-        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
-        WHERE r.status = 'paused' AND r.scam_type = 'user')
+        INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
+        WHERE j.status = 'paused')
         ORDER BY updated_at DESC
       `;
     } else if (archived === 'true') {
@@ -270,7 +270,7 @@ async function handleUpdateReport(req: any, res: any) {
     
     switch (action) {
       case 'pause':
-        reportStatus = 'paused'; // Move to pause menu
+        reportStatus = 'verified'; // Use allowed status
         projectStatus = 'paused'; // Hide from public view
         break;
       case 'delete':
