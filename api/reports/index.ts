@@ -167,7 +167,7 @@ async function handleGetReports(req: any, res: any) {
     let values: any[] = [];
 
     if (archived === 'true') {
-      // Get archived/resolved reports
+      // Get archived/resolved reports (excluding paused items)
       query = `
         SELECT r.*, 
                CASE 
@@ -184,6 +184,11 @@ async function handleGetReports(req: any, res: any) {
         LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
         LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
         WHERE r.status IN ('resolved', 'rejected', 'archived')
+        AND (
+          (r.scam_type = 'project' AND (p.status IS NULL OR p.status != 'paused'))
+          OR (r.scam_type = 'user' AND (j.status IS NULL OR j.status != 'paused'))
+          OR r.scam_type NOT IN ('project', 'user')
+        )
         ORDER BY r.updated_at DESC
       `;
     } else {
