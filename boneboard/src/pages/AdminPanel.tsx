@@ -176,7 +176,12 @@ const AdminPanel: React.FC = () => {
         }).then(res => res.json())
       ]);
       
-      console.log('Paused data:', { pausedProjects, pausedJobs, pausedReports });
+      console.log('Paused data loaded:', {
+        projects: pausedProjects.projects?.length || 0,
+        jobs: Array.isArray(pausedJobs) ? pausedJobs.length : 0,
+        reports: pausedReports.reports?.length || 0
+      });
+      console.log('Paused reports data:', pausedReports.reports);
       
       const combined = [
         ...(pausedProjects.projects || []).map((p: any) => ({ ...p, type: 'project' })),
