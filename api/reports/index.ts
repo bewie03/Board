@@ -287,7 +287,7 @@ async function handleUpdateReport(req: any, res: any) {
         projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
-        reportStatus = 'pending'; // Move back to reports menu
+        reportStatus = 'resolved'; // Move to archive menu
         projectStatus = null; // Don't change job/project status when restoring
         break;
       default:
