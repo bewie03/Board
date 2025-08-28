@@ -307,11 +307,11 @@ async function handleUpdateReport(req: any, res: any) {
             break;
           case 'delete':
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['deleted', projectId] : ['cancelled', projectId];
+            updateValues = itemType === 'project' ? ['cancelled', projectId] : ['filled', projectId];
             break;
           case 'restore':
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
+            updateValues = itemType === 'project' ? ['active', projectId] : ['active', projectId];
             break;
         }
 

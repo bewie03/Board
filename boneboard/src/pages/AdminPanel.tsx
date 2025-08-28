@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaShieldAlt, FaChartBar, FaDollarSign, FaBug, FaExclamationTriangle, FaProjectDiagram, FaBriefcase, FaTrash, FaArchive, FaClock } from 'react-icons/fa';
-import { AdminService, PlatformSettings } from '../services/adminService';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
-import { isAdminWallet } from '../utils/adminAuth';
-import { useNavigate } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 
 interface ScamReport {
@@ -22,23 +20,37 @@ interface ScamReport {
 }
 
 const AdminPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'reports' | 'paused' | 'archived' | 'pricing'>('reports');
-  const [settings, setSettings] = useState<PlatformSettings | null>(null);
-  const [reports, setReports] = useState<ScamReport[]>([]);
-  const [pausedItems, setPausedItems] = useState<any[]>([]);
-  const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
+  const { walletAddress } = useWallet();
+  const [activeTab, setActiveTab] = useState('reports');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { walletAddress } = useWallet();
-  const navigate = useNavigate();
-  const adminService = AdminService.getInstance();
+  const [reports, setReports] = useState<ScamReport[]>([]);
+  const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
+  const [pausedItems, setPausedItems] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>({
+    projectListingFee: 0,
+    jobListingFee: 0,
+    maxProjectDuration: 365,
+    maxJobDuration: 30,
+    enablePayments: true,
+    maintenanceMode: false
+  });
 
-  // Redirect if not admin
-  useEffect(() => {
-    if (walletAddress && !isAdminWallet(walletAddress)) {
-      navigate('/');
-    }
-  }, [walletAddress, navigate]);
+  // Check admin access
+  const ADMIN_WALLET = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
+  
+  if (walletAddress && walletAddress !== ADMIN_WALLET) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+            <p className="text-gray-600">You don't have permission to access this page.</p>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
 
   // Load data based on active tab
   useEffect(() => {
@@ -54,11 +66,20 @@ const AdminPanel: React.FC = () => {
   }, [activeTab]);
 
   const loadSettings = async () => {
+    if (!walletAddress) return;
+    
     try {
       setLoading(true);
       setError(null);
-      const platformSettings = await adminService.getPlatformSettings();
-      setSettings(platformSettings);
+      // Mock settings for now
+      setSettings({
+        projectListingFee: 10,
+        jobListingFee: 5,
+        maxProjectDuration: 365,
+        maxJobDuration: 30,
+        enablePayments: true,
+        maintenanceMode: false
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to load settings');
       console.error('Error loading settings:', err);
@@ -73,8 +94,11 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const reportsData = await adminService.getReports(walletAddress, false);
-      setReports(reportsData);
+      const response = await fetch('/api/reports', {
+        headers: { 'x-wallet-address': walletAddress }
+      });
+      const data = await response.json();
+      setReports(data.reports || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load reports');
       console.error('Error loading reports:', err);
@@ -89,8 +113,11 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const reportsData = await adminService.getReports(walletAddress, true);
-      setArchivedReports(reportsData);
+      const response = await fetch('/api/reports?archived=true', {
+        headers: { 'x-wallet-address': walletAddress }
+      });
+      const data = await response.json();
+      setArchivedReports(data.reports || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load archived reports');
       console.error('Error loading archived reports:', err);
@@ -134,7 +161,23 @@ const AdminPanel: React.FC = () => {
     
     try {
       setLoading(true);
-      await adminService.processReport(walletAddress, reportId, action, projectId);
+      const response = await fetch('/api/reports', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          reportId,
+          action,
+          projectId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       // Reload all relevant data
       await loadReports();
       await loadArchivedReports();
@@ -153,14 +196,21 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       const endpoint = itemType === 'project' ? '/api/projects' : '/api/jobs';
-      await fetch(`${endpoint}/${itemId}`, {
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'x-wallet-address': walletAddress
         },
-        body: JSON.stringify({ status: 'active' })
+        body: JSON.stringify({
+          id: itemId,
+          status: itemType === 'project' ? 'active' : 'active'
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       await loadPausedItems();
     } catch (err: any) {
@@ -171,7 +221,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleUpdateSettings = async (newSettings: Partial<PlatformSettings>) => {
+  const handleUpdateSettings = async (newSettings: any) => {
     if (!walletAddress) {
       setError('Wallet not connected');
       return;
@@ -180,7 +230,8 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      await adminService.updatePlatformSettings(walletAddress, newSettings);
+      // Mock update for now - would call API in real implementation
+      console.log('Updating settings:', newSettings);
       await loadSettings(); // Reload to get updated data
     } catch (err: any) {
       setError(err.message || 'Failed to update settings');
@@ -190,7 +241,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  if (!walletAddress || !isAdminWallet(walletAddress)) {
+  if (!walletAddress || walletAddress !== ADMIN_WALLET) {
     return (
       <PageTransition>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -522,19 +573,34 @@ const ReportCard: React.FC<{
     });
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = async (e: React.MouseEvent) => {
     // Don't trigger if clicking on action buttons
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
     
     if (report.project_name && report.scam_identifier) {
-      // Open the project/job in a new tab for review
       const itemType = report.item_type || 'project';
-      if (itemType === 'project') {
-        window.open(`/projects?id=${report.scam_identifier}`, '_blank');
-      } else if (itemType === 'job') {
-        window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
+      
+      try {
+        // Fetch the full project/job data
+        if (itemType === 'project') {
+          const response = await fetch(`/api/projects?id=${report.scam_identifier}`);
+          const data = await response.json();
+          if (data.projects && data.projects.length > 0) {
+            // Open in new tab for now
+            window.open(`/projects?id=${report.scam_identifier}`, '_blank');
+          }
+        } else if (itemType === 'job') {
+          const response = await fetch(`/api/jobs?id=${report.scam_identifier}`);
+          const data = await response.json();
+          if (data.jobs && data.jobs.length > 0) {
+            // Open in new tab for now
+            window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching item details:', error);
       }
     }
   };
@@ -733,8 +799,8 @@ const PausedItemCard: React.FC<{
 
 // Pricing Settings Component
 const PricingSettings: React.FC<{
-  settings: PlatformSettings;
-  onUpdate: (settings: Partial<PlatformSettings>) => Promise<void>;
+  settings: any;
+  onUpdate: (settings: any) => Promise<void>;
   loading: boolean;
 }> = ({ settings, onUpdate, loading }) => {
   const [projectFeeBone, setProjectFeeBone] = useState(settings.projectListingFee);
