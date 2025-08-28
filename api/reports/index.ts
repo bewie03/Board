@@ -235,10 +235,10 @@ async function handleGetReports(req: any, res: any) {
 
     const result = await getPool().query(query, values);
     
-    console.log(`Query executed for ${paused === 'true' ? 'paused' : archived === 'true' ? 'archived' : 'active'} reports:`);
-    console.log(`Found ${result.rows.length} reports`);
+    console.log(`[API] Query executed for ${paused === 'true' ? 'paused' : archived === 'true' ? 'archived' : 'active'} reports:`);
+    console.log(`[API] Found ${result.rows.length} reports`);
     if (result.rows.length > 0) {
-      console.log('Sample report:', result.rows[0]);
+      console.log('[API] Sample report:', JSON.stringify(result.rows[0], null, 2));
     }
 
     return res.status(200).json({
