@@ -39,7 +39,6 @@ export default async function handler(req: any, res: any) {
   } else if (req.method === 'PUT') {
     return handleUpdateReport(req, res);
   } else {
-    res.setHeader('Allow', ['POST', 'GET', 'PUT']);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 }
@@ -317,9 +316,14 @@ async function handleUpdateReport(req: any, res: any) {
       let updateReportQuery = '';
       let reportParams: any[] = [];
       
-      console.log(`Processing report ${reportId} with action: ${action}, reportStatus: ${reportStatus}`);
+      // First, let's see what the current report looks like
+      const currentReportQuery = 'SELECT * FROM scam_reports WHERE id = $1';
+      const currentReportResult = await client.query(currentReportQuery, [reportId]);
+      console.log('[API] Current report before update:', JSON.stringify(currentReportResult.rows[0], null, 2));
       
-      if (action === 'delete' || action === 'permanent_delete') {
+      console.log(`[API] Processing report ${reportId} with action: ${action}, reportStatus: ${reportStatus}`);
+      
+      if (reportStatus === null) {
         updateReportQuery = `DELETE FROM scam_reports WHERE id = $1 RETURNING *`;
         reportParams = [reportId];
       } else {
@@ -338,7 +342,28 @@ async function handleUpdateReport(req: any, res: any) {
         throw new Error('Report not found');
       }
 
-      console.log('Report updated successfully:', reportResult.rows[0]);
+      console.log('[API] Report updated successfully:', JSON.stringify(reportResult.rows[0], null, 2));
+      
+      // After updating report, let's check what reports we can find with paused query
+      if (action === 'pause') {
+        const testPausedQuery = `
+          SELECT r.*, 
+                 CASE 
+                   WHEN r.scam_type = 'project' THEN p.title
+                   WHEN r.scam_type = 'user' THEN j.title
+                   ELSE r.scam_identifier
+                 END as project_name
+          FROM scam_reports r
+          LEFT JOIN projects p ON (r.scam_identifier ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND CAST(r.scam_identifier AS UUID) = p.id AND r.scam_type = 'project')
+          LEFT JOIN job_listings j ON (r.scam_identifier ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND CAST(r.scam_identifier AS UUID) = j.id AND r.scam_type = 'user')
+          WHERE r.status = 'verified'
+        `;
+        const testResult = await client.query(testPausedQuery);
+        console.log('[API] All verified reports after pause action:', testResult.rows.length);
+        if (testResult.rows.length > 0) {
+          console.log('[API] Sample verified report:', JSON.stringify(testResult.rows[0], null, 2));
+        }
+      }
 
       // Take action on the project/job if needed
       if (action && projectId && projectStatus !== null) {
