@@ -167,19 +167,21 @@ async function handleGetReports(req: any, res: any) {
     let values: any[] = [];
 
     if (paused === 'true') {
-      // Get reports for paused items - only reports where the associated project/job is actually paused
+      // Get reports with paused status
       query = `
         (SELECT r.*, 
                p.title as project_name,
                'project' as item_type
         FROM scam_reports r
-        INNER JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project' AND p.status = 'paused')
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
+        WHERE r.status = 'paused' AND r.scam_type = 'project')
         UNION ALL
         (SELECT r.*, 
                j.title as project_name,
                'job' as item_type
         FROM scam_reports r
-        INNER JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user' AND j.status = 'paused')
+        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
+        WHERE r.status = 'paused' AND r.scam_type = 'user')
         ORDER BY updated_at DESC
       `;
     } else if (archived === 'true') {
@@ -268,11 +270,11 @@ async function handleUpdateReport(req: any, res: any) {
     
     switch (action) {
       case 'pause':
-        reportStatus = 'verified'; // Remove from reports menu (use different status than archive)
+        reportStatus = 'paused'; // Move to pause menu with unique status
         projectStatus = 'paused'; // Hide from public view
         break;
       case 'delete':
-        reportStatus = 'verified'; // Just delete the report
+        reportStatus = 'resolved'; // Move to archive section when removing report
         projectStatus = null; // Don't change job/project status
         break;
       case 'permanent_delete':
@@ -284,9 +286,9 @@ async function handleUpdateReport(req: any, res: any) {
         projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
-        // When restoring from archive menu, move report back to reports menu
+        // When restoring from archive menu OR pause menu, move report back to reports menu
         reportStatus = 'pending'; // Move back to reports menu
-        projectStatus = null; // Don't change job/project status when unarchiving
+        projectStatus = 'active'; // Restore project/job to active status
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });
