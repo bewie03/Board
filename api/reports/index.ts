@@ -254,6 +254,10 @@ async function handleUpdateReport(req: any, res: any) {
         reportStatus = 'verified'; // Just delete the report
         projectStatus = null; // Don't change job/project status
         break;
+      case 'permanent_delete':
+        reportStatus = 'verified'; // Delete the report
+        projectStatus = 'deleted'; // Mark for permanent deletion
+        break;
       case 'archive':
         reportStatus = 'archived'; // Move to archive section
         projectStatus = null; // Don't change job/project status
@@ -327,6 +331,11 @@ async function handleUpdateReport(req: any, res: any) {
             // Restore: Make job/project visible again
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
+            break;
+          case 'permanent_delete':
+            // Permanent delete: Remove job/project from database completely
+            updateQuery = `DELETE FROM ${tableName} WHERE id = $1`;
+            updateValues = [projectId];
             break;
           default:
             // Archive and delete don't affect job/project status

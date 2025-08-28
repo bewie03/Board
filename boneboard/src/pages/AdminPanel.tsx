@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay, FaCoins, FaInfoCircle } from 'react-icons/fa';
+import { FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay, FaCoins, FaInfoCircle, FaTrashAlt } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -21,25 +21,23 @@ interface ScamReport {
 
 const AdminPanel: React.FC = () => {
   const { walletAddress } = useWallet();
-  const [activeTab, setActiveTab] = useState('reports');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'reports' | 'paused' | 'archived' | 'pricing'>('reports');
   const [reports, setReports] = useState<ScamReport[]>([]);
   const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
   const [pausedItems, setPausedItems] = useState<any[]>([]);
-  const [reportsSearchTerm, setReportsSearchTerm] = useState('');
-  const [archivedSearchTerm, setArchivedSearchTerm] = useState('');
-  const [pausedSearchTerm, setPausedSearchTerm] = useState('');
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any>(null);
-  const [settings, setSettings] = useState<any>({
-    projectListingFee: 0,
-    jobListingFee: 0,
-    maxProjectDuration: 365,
-    maxJobDuration: 30,
-    enablePayments: true,
-    maintenanceMode: false
-  });
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [settings, setSettings] = useState<any>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, type: 'report' | 'item', id: string, itemId?: string} | null>(null);
+  const [reportsSearchTerm, setReportsSearchTerm] = useState('');
+  const [pausedSearchTerm, setPausedSearchTerm] = useState('');
+  const [archivedSearchTerm, setArchivedSearchTerm] = useState('');
+  const [reportsSortBy, setReportsSortBy] = useState<'newest' | 'oldest' | 'severity'>('newest');
+  const [pausedSortBy, setPausedSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [archivedSortBy, setArchivedSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [severityFilter, setSeverityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'critical'>('all');
 
   // Check admin access
   const ADMIN_WALLET = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
@@ -184,7 +182,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => {
+  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore' | 'permanent_delete', projectId?: string) => {
     if (!walletAddress) return;
     
     try {
@@ -405,26 +403,38 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
               <div className="p-6">
-                {/* Search Bar */}
-                <div className="mb-6">
+                <div className="mb-6 space-y-4">
                   <input
                     type="text"
                     placeholder="Search reports..."
                     value={reportsSearchTerm}
                     onChange={(e) => setReportsSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                </div>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-600">Loading reports...</p>
+                  <div className="flex gap-4 flex-wrap">
+                    <select
+                      value={reportsSortBy}
+                      onChange={(e) => setReportsSortBy(e.target.value as 'newest' | 'oldest' | 'severity')}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="severity">By Severity</option>
+                    </select>
+                    <select
+                      value={severityFilter}
+                      onChange={(e) => setSeverityFilter(e.target.value as 'all' | 'low' | 'medium' | 'high' | 'critical')}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Severities</option>
+                      <option value="critical">Critical</option>
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
                   </div>
-                ) : reports.filter(report => 
-                  report.title.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
-                  report.description.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
-                  report.project_name?.toLowerCase().includes(reportsSearchTerm.toLowerCase())
-                ).length === 0 ? (
+                </div>
+                {reports.length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaExclamationTriangle className="h-10 w-10 text-blue-400" />
@@ -434,11 +444,25 @@ const AdminPanel: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {reports.filter(report => 
-                      report.title.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
-                      report.description.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
-                      report.project_name?.toLowerCase().includes(reportsSearchTerm.toLowerCase())
-                    ).map((report) => (
+                    {reports
+                      .filter(report => {
+                        const matchesSearch = report.title.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                          report.description.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                          report.project_name?.toLowerCase().includes(reportsSearchTerm.toLowerCase());
+                        const matchesSeverity = severityFilter === 'all' || report.severity === severityFilter;
+                        return matchesSearch && matchesSeverity;
+                      })
+                      .sort((a, b) => {
+                        if (reportsSortBy === 'oldest') {
+                          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                        } else if (reportsSortBy === 'severity') {
+                          const severityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+                          return (severityOrder[b.severity as keyof typeof severityOrder] || 0) - (severityOrder[a.severity as keyof typeof severityOrder] || 0);
+                        } else {
+                          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                        }
+                      })
+                      .map((report) => (
                       <ReportCard 
                         key={report.id} 
                         report={report} 
@@ -446,6 +470,7 @@ const AdminPanel: React.FC = () => {
                         loading={loading}
                         onSelectProject={setSelectedProject}
                         onSelectJob={setSelectedJob}
+                        onDeleteConfirm={setDeleteConfirm}
                       />
                     ))}
                   </div>
@@ -474,26 +499,44 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
               <div className="p-6">
-                {/* Search Bar */}
-                <div className="mb-6">
+                <div className="mb-6 space-y-4">
                   <input
                     type="text"
                     placeholder="Search paused items..."
                     value={pausedSearchTerm}
                     onChange={(e) => setPausedSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  <div className="flex gap-4 flex-wrap">
+                    <select
+                      value={pausedSortBy}
+                      onChange={(e) => setPausedSortBy(e.target.value as 'newest' | 'oldest')}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                    </select>
+                  </div>
                 </div>
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-gray-600">Loading paused items...</p>
                   </div>
-                ) : pausedItems.filter(item => 
-                  item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                  item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                  item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
-                ).length === 0 ? (
+                ) : pausedItems
+                  .filter(item => 
+                    item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                    item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                    item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
+                  )
+                  .sort((a, b) => {
+                    if (pausedSortBy === 'oldest') {
+                      return new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime();
+                    } else {
+                      return new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime();
+                    }
+                  })
+                  .length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaClock className="h-10 w-10 text-blue-400" />
@@ -503,11 +546,20 @@ const AdminPanel: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pausedItems.filter(item => 
-                      item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                      item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                      item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
-                    ).map((item) => (
+                    {pausedItems
+                      .filter(item => 
+                        item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                        item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
+                        item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
+                      )
+                      .sort((a, b) => {
+                        if (pausedSortBy === 'oldest') {
+                          return new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime();
+                        } else {
+                          return new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime();
+                        }
+                      })
+                      .map((item) => (
                       <PausedItemCard 
                         key={item.id} 
                         item={item} 
@@ -515,6 +567,7 @@ const AdminPanel: React.FC = () => {
                         loading={loading}
                         onSelectProject={setSelectedProject}
                         onSelectJob={setSelectedJob}
+                        onDeleteConfirm={setDeleteConfirm}
                       />
                     ))}
                   </div>
@@ -543,8 +596,7 @@ const AdminPanel: React.FC = () => {
                 </div>
               </div>
               <div className="p-6">
-                {/* Search Bar */}
-                <div className="mb-6">
+                <div className="mb-6 space-y-4">
                   <input
                     type="text"
                     placeholder="Search archived reports..."
@@ -552,17 +604,36 @@ const AdminPanel: React.FC = () => {
                     onChange={(e) => setArchivedSearchTerm(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
+                  <div className="flex gap-4 flex-wrap">
+                    <select
+                      value={archivedSortBy}
+                      onChange={(e) => setArchivedSortBy(e.target.value as 'newest' | 'oldest')}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                    </select>
+                  </div>
                 </div>
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-gray-600">Loading archived reports...</p>
                   </div>
-                ) : archivedReports.filter(report => 
-                  report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                  report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                  report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
-                ).length === 0 ? (
+                ) : archivedReports
+                  .filter(report => 
+                    report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                    report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                    report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
+                  )
+                  .sort((a, b) => {
+                    if (archivedSortBy === 'oldest') {
+                      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                    } else {
+                      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                    }
+                  })
+                  .length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaArchive className="h-10 w-10 text-blue-400" />
@@ -572,11 +643,20 @@ const AdminPanel: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {archivedReports.filter(report => 
-                      report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                      report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                      report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
-                    ).map((report) => (
+                    {archivedReports
+                      .filter(report => 
+                        report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                        report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
+                        report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
+                      )
+                      .sort((a, b) => {
+                        if (archivedSortBy === 'oldest') {
+                          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                        } else {
+                          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                        }
+                      })
+                      .map((report) => (
                       <ReportCard 
                         key={report.id} 
                         report={report} 
@@ -585,6 +665,7 @@ const AdminPanel: React.FC = () => {
                         isArchived={true}
                         onSelectProject={setSelectedProject}
                         onSelectJob={setSelectedJob}
+                        onDeleteConfirm={setDeleteConfirm}
                       />
                     ))}
                   </div>
@@ -889,6 +970,39 @@ const AdminPanel: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm?.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Deletion</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to permanently delete this {deleteConfirm.type === 'item' ? 'job/project' : 'report'}? 
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (deleteConfirm.type === 'item' && deleteConfirm.itemId) {
+                    await handleProcessReport(deleteConfirm.id, 'permanent_delete', deleteConfirm.itemId);
+                  }
+                  setDeleteConfirm(null);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </PageTransition>
   );
 };
@@ -896,12 +1010,13 @@ const AdminPanel: React.FC = () => {
 // Report Card Component
 const ReportCard: React.FC<{
   report: ScamReport;
-  onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => Promise<void>;
+  onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore' | 'permanent_delete', projectId?: string) => Promise<void>;
   loading: boolean;
   isArchived?: boolean;
   onSelectProject: (project: any) => void;
   onSelectJob: (job: any) => void;
-}> = ({ report, onProcess, loading, isArchived = false, onSelectProject, onSelectJob }) => {
+  onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
+}> = ({ report, onProcess, loading, isArchived = false, onSelectProject, onSelectJob, onDeleteConfirm }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'bg-red-500 text-white';
@@ -1076,9 +1191,17 @@ const ReportCard: React.FC<{
               <button
                 onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
                 disabled={loading}
-                className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-1"
+                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
               >
                 <FaTrash className="h-3 w-3" />
+                Remove
+              </button>
+              <button
+                onClick={() => onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier})}
+                disabled={loading}
+                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
+              >
+                <FaTrashAlt className="h-3 w-3" />
                 Delete
               </button>
             </div>
@@ -1103,9 +1226,17 @@ const ReportCard: React.FC<{
               <button
                 onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
                 disabled={loading}
-                className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-1"
+                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
               >
                 <FaTrash className="h-3 w-3" />
+                Remove
+              </button>
+              <button
+                onClick={() => onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier})}
+                disabled={loading}
+                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
+              >
+                <FaTrashAlt className="h-3 w-3" />
                 Delete
               </button>
             </>
@@ -1123,7 +1254,8 @@ const PausedItemCard: React.FC<{
   loading: boolean;
   onSelectProject: (project: any) => void;
   onSelectJob: (job: any) => void;
-}> = ({ item, onRestore, loading, onSelectProject, onSelectJob }) => {
+  onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
+}> = ({ item, onRestore, loading, onSelectProject, onSelectJob, onDeleteConfirm }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -1212,6 +1344,14 @@ const PausedItemCard: React.FC<{
           >
             <FaPlay className="h-3 w-3" />
             Resume
+          </button>
+          <button
+            onClick={() => onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id})}
+            disabled={loading}
+            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
+          >
+            <FaTrashAlt className="h-3 w-3" />
+            Delete
           </button>
         </div>
       </div>
