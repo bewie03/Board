@@ -265,30 +265,30 @@ async function handleUpdateReport(req: any, res: any) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    let reportStatus = 'pending';
+    let reportStatus: string | null = 'pending';
     let projectStatus: string | null = 'active';
     
     switch (action) {
       case 'pause':
-        reportStatus = 'paused'; // Move to pause menu with unique status
+        reportStatus = 'paused'; // Move to pause menu
         projectStatus = 'paused'; // Hide from public view
         break;
       case 'delete':
-        reportStatus = 'resolved'; // Move to archive section when removing report
+        // Remove report only - delete from database
+        reportStatus = null; // Will delete the report
         projectStatus = null; // Don't change job/project status
         break;
       case 'permanent_delete':
-        reportStatus = 'verified'; // Delete the report
+        reportStatus = null; // Will delete the report
         projectStatus = 'deleted'; // Mark for permanent deletion
         break;
       case 'archive':
-        reportStatus = 'resolved'; // Move to archive section (using 'resolved' since 'archived' not allowed)
+        reportStatus = 'resolved'; // Move to archive menu
         projectStatus = null; // Don't change job/project status
         break;
       case 'restore':
-        // When restoring from archive menu OR pause menu, move report back to reports menu
         reportStatus = 'pending'; // Move back to reports menu
-        projectStatus = 'active'; // Restore project/job to active status
+        projectStatus = null; // Don't change job/project status when restoring
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });
@@ -313,7 +313,7 @@ async function handleUpdateReport(req: any, res: any) {
       let updateReportQuery = '';
       let reportParams: any[] = [];
       
-      if (action === 'delete') {
+      if (action === 'delete' || action === 'permanent_delete') {
         updateReportQuery = `DELETE FROM scam_reports WHERE id = $1 RETURNING *`;
         reportParams = [reportId];
       } else {

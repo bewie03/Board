@@ -262,18 +262,7 @@ const AdminPanel: React.FC = () => {
       // Find the related report and restore it when resuming from pause menu
       const relatedReport = pausedItems.find(item => item.id === itemId);
       if (relatedReport && relatedReport.report) {
-        await fetch('/api/reports', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-wallet-address': walletAddress
-          },
-          body: JSON.stringify({
-            reportId: relatedReport.report.id,
-            action: 'restore',
-            projectId: itemId
-          })
-        });
+        await handleProcessReport(relatedReport.report.id, 'restore', itemId);
       }
       
       await loadPausedItems();
