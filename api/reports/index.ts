@@ -352,11 +352,9 @@ async function handleUpdateReport(req: any, res: any) {
             updateValues = ['paused', projectId];
             break;
           case 'restore':
-            // Restore: Only update status if coming from pause menu (has projectStatus)
-            if (projectStatus === 'active') {
-              updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-              updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
-            }
+            // Restore: Update project/job status to active when resuming
+            updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
+            updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
             break;
           case 'permanent_delete':
             // Permanent delete: Remove job/project from database completely
