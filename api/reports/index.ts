@@ -190,6 +190,7 @@ async function handleGetReports(req: any, res: any) {
         )
         ORDER BY r.updated_at DESC
       `;
+      console.log('Paused reports query:', query);
     } else if (archived === 'true') {
       // Get archived/resolved reports (status = 'resolved')
       query = `
@@ -310,6 +311,8 @@ async function handleUpdateReport(req: any, res: any) {
       let updateReportQuery = '';
       let reportParams: any[] = [];
       
+      console.log(`Processing report ${reportId} with action: ${action}, reportStatus: ${reportStatus}`);
+      
       if (action === 'delete' || action === 'permanent_delete') {
         updateReportQuery = `DELETE FROM scam_reports WHERE id = $1 RETURNING *`;
         reportParams = [reportId];
@@ -328,6 +331,8 @@ async function handleUpdateReport(req: any, res: any) {
       if (reportResult.rows.length === 0) {
         throw new Error('Report not found');
       }
+
+      console.log('Report updated successfully:', reportResult.rows[0]);
 
       // Take action on the project/job if needed
       if (action && projectId && projectStatus !== null) {
