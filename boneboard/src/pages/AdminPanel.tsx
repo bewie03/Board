@@ -793,8 +793,19 @@ const AdminPanel: React.FC = () => {
                         <p className="text-gray-900">{selectedJob.description}</p>
                       </div>
                       <div>
+                        <label className="text-sm font-medium text-gray-500">Company</label>
+                        <p className="text-gray-900">{selectedJob.company}</p>
+                      </div>
+                      <div>
                         <label className="text-sm font-medium text-gray-500">Salary</label>
                         <p className="text-gray-900">${selectedJob.salary}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Posted</label>
+                        <p className="text-gray-900 flex items-center gap-2">
+                          <FaCalendarAlt className="w-4 h-4" />
+                          {new Date(selectedJob.created_at).toLocaleDateString()}
+                        </p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">Job Type</label>
@@ -936,7 +947,7 @@ const ReportCard: React.FC<{
       return;
     }
     
-    if (report.project_name && report.scam_identifier) {
+    if (report.scam_identifier) {
       const itemType = report.item_type || (report.scam_type === 'project' ? 'project' : 'job');
       console.log('Fetching details for:', { itemType, id: report.scam_identifier });
       
@@ -973,8 +984,7 @@ const ReportCard: React.FC<{
         alert('Unable to load details for this item. Please try again.');
       }
     } else {
-      console.log('Missing project_name or scam_identifier:', { 
-        project_name: report.project_name, 
+      console.log('Missing scam_identifier:', { 
         scam_identifier: report.scam_identifier 
       });
     }
