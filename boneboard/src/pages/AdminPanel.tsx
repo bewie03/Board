@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaProjectDiagram, FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaBug, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -26,6 +27,8 @@ const AdminPanel: React.FC = () => {
   const [reports, setReports] = useState<ScamReport[]>([]);
   const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
   const [pausedItems, setPausedItems] = useState<any[]>([]);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
   const [settings, setSettings] = useState<any>({
     projectListingFee: 0,
     jobListingFee: 0,
@@ -381,6 +384,8 @@ const AdminPanel: React.FC = () => {
                         report={report} 
                         onProcess={handleProcessReport}
                         loading={loading}
+                        onSelectProject={setSelectedProject}
+                        onSelectJob={setSelectedJob}
                       />
                     ))}
                   </div>
@@ -478,8 +483,10 @@ const AdminPanel: React.FC = () => {
                         key={report.id} 
                         report={report} 
                         onProcess={handleProcessReport}
-                        loading={loading}
+                        loading={false}
                         isArchived={true}
+                        onSelectProject={setSelectedProject}
+                        onSelectJob={setSelectedJob}
                       />
                     ))}
                   </div>
@@ -531,6 +538,277 @@ const AdminPanel: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Project Modal */}
+      <AnimatePresence>
+        {selectedProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setSelectedProject(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        selectedProject.status === 'active' ? 'bg-green-100 text-green-800' :
+                        selectedProject.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                        selectedProject.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {selectedProject.status}
+                      </span>
+                      <span className="text-sm text-gray-500">Project</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedProject(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FaTimes className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Project Details</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Description</label>
+                        <p className="text-gray-900">{selectedProject.description}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Budget</label>
+                        <p className="text-gray-900">${selectedProject.budget}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Timeline</label>
+                        <p className="text-gray-900">{selectedProject.timeline}</p>
+                      </div>
+                      {selectedProject.skills && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Required Skills</label>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {selectedProject.skills.split(',').map((skill: string, index: number) => (
+                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                {skill.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Creator</label>
+                        <p className="text-gray-900">{selectedProject.wallet_address}</p>
+                      </div>
+                      {selectedProject.contact_email && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email</label>
+                          <p className="text-gray-900 flex items-center gap-2">
+                            <FaEnvelope className="w-4 h-4" />
+                            {selectedProject.contact_email}
+                          </p>
+                        </div>
+                      )}
+                      {selectedProject.website && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Website</label>
+                          <p className="text-gray-900 flex items-center gap-2">
+                            <FaGlobe className="w-4 h-4" />
+                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              {selectedProject.website}
+                            </a>
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Created</label>
+                        <p className="text-gray-900 flex items-center gap-2">
+                          <FaCalendarAlt className="w-4 h-4" />
+                          {new Date(selectedProject.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <a
+                      href={`/projects?id=${selectedProject.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <FaExternalLinkAlt className="w-4 h-4" />
+                      View Full Project
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Job Modal */}
+      <AnimatePresence>
+        {selectedJob && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setSelectedJob(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h2>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        selectedJob.status === 'active' ? 'bg-green-100 text-green-800' :
+                        selectedJob.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                        selectedJob.status === 'filled' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {selectedJob.status}
+                      </span>
+                      <span className="text-sm text-gray-500">Job</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedJob(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FaTimes className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Job Details</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Description</label>
+                        <p className="text-gray-900">{selectedJob.description}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Salary</label>
+                        <p className="text-gray-900">${selectedJob.salary}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Job Type</label>
+                        <p className="text-gray-900">{selectedJob.job_type}</p>
+                      </div>
+                      {selectedJob.location && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Location</label>
+                          <p className="text-gray-900 flex items-center gap-2">
+                            <FaMapMarkerAlt className="w-4 h-4" />
+                            {selectedJob.location}
+                          </p>
+                        </div>
+                      )}
+                      {selectedJob.skills && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Required Skills</label>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {selectedJob.skills.split(',').map((skill: string, index: number) => (
+                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                {skill.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Company Information</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Company</label>
+                        <p className="text-gray-900">{selectedJob.company_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Employer</label>
+                        <p className="text-gray-900">{selectedJob.wallet_address}</p>
+                      </div>
+                      {selectedJob.contact_email && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email</label>
+                          <p className="text-gray-900 flex items-center gap-2">
+                            <FaEnvelope className="w-4 h-4" />
+                            {selectedJob.contact_email}
+                          </p>
+                        </div>
+                      )}
+                      {selectedJob.website && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Website</label>
+                          <p className="text-gray-900 flex items-center gap-2">
+                            <FaGlobe className="w-4 h-4" />
+                            <a href={selectedJob.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              {selectedJob.website}
+                            </a>
+                          </p>
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Posted</label>
+                        <p className="text-gray-900 flex items-center gap-2">
+                          <FaCalendarAlt className="w-4 h-4" />
+                          {new Date(selectedJob.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <a
+                      href={`/jobs?id=${selectedJob.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <FaExternalLinkAlt className="w-4 h-4" />
+                      View Full Job
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 };
@@ -541,7 +819,9 @@ const ReportCard: React.FC<{
   onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => Promise<void>;
   loading: boolean;
   isArchived?: boolean;
-}> = ({ report, onProcess, loading, isArchived = false }) => {
+  onSelectProject: (project: any) => void;
+  onSelectJob: (job: any) => void;
+}> = ({ report, onProcess, loading, isArchived = false, onSelectProject, onSelectJob }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'bg-red-100 text-red-800';
@@ -579,27 +859,31 @@ const ReportCard: React.FC<{
     }
     
     if (report.project_name && report.scam_identifier) {
-      const itemType = report.item_type || 'project';
+      const itemType = report.item_type || (report.scam_type === 'project' ? 'project' : 'job');
       
       try {
-        // Fetch the full project/job data
+        // Fetch the full project/job data for the modal
         if (itemType === 'project') {
           const response = await fetch(`/api/projects?id=${report.scam_identifier}`);
           const data = await response.json();
           if (data.projects && data.projects.length > 0) {
-            // Open in new tab for now
-            window.open(`/projects?id=${report.scam_identifier}`, '_blank');
+            onSelectProject(data.projects[0]);
           }
-        } else if (itemType === 'job') {
+        } else {
           const response = await fetch(`/api/jobs?id=${report.scam_identifier}`);
           const data = await response.json();
           if (data.jobs && data.jobs.length > 0) {
-            // Open in new tab for now
-            window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
+            onSelectJob(data.jobs[0]);
           }
         }
       } catch (error) {
         console.error('Error fetching item details:', error);
+        // Fallback to opening in new tab
+        if (itemType === 'project') {
+          window.open(`/projects?id=${report.scam_identifier}`, '_blank');
+        } else {
+          window.open(`/jobs?id=${report.scam_identifier}`, '_blank');
+        }
       }
     }
   };

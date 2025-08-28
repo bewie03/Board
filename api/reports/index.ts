@@ -294,7 +294,10 @@ async function handleUpdateReport(req: any, res: any) {
       if (action && projectId) {
         // First, determine if this is a project or job by checking the report
         const reportData = reportResult.rows[0];
-        const itemType = reportData.item_type || 'project';
+        const scamType = reportData.scam_type;
+        const itemType = scamType === 'project' ? 'project' : 'job';
+        
+        console.log(`Processing ${action} for scam_type: ${scamType}, itemType: ${itemType} with ID: ${projectId}`);
         
         let updateQuery = '';
         let updateValues: any[] = [];
@@ -316,7 +319,9 @@ async function handleUpdateReport(req: any, res: any) {
         }
 
         if (updateQuery) {
-          await client.query(updateQuery, updateValues);
+          console.log(`Executing query: ${updateQuery} with values:`, updateValues);
+          const updateResult = await client.query(updateQuery, updateValues);
+          console.log(`Update result: ${updateResult.rowCount} rows affected`);
           console.log(`${itemType} ${projectId} ${action}d by admin ${walletAddress}`);
         }
       }
