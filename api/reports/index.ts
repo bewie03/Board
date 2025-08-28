@@ -67,6 +67,31 @@ async function handleSubmitReport(req: any, res: any) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Look up or create user ID from wallet address
+    let userId = null;
+    try {
+      // First try to find existing user
+      const userQuery = 'SELECT id FROM users WHERE wallet_address = $1';
+      const userResult = await getPool().query(userQuery, [walletAddress]);
+      
+      if (userResult.rows.length > 0) {
+        userId = userResult.rows[0].id;
+      } else {
+        // Create new user if doesn't exist
+        const newUserId = generateUUID();
+        const createUserQuery = `
+          INSERT INTO users (id, wallet_address, created_at, updated_at)
+          VALUES ($1, $2, NOW(), NOW())
+          RETURNING id
+        `;
+        const createUserResult = await getPool().query(createUserQuery, [newUserId, walletAddress]);
+        userId = createUserResult.rows[0].id;
+      }
+    } catch (error) {
+      console.error('Error handling user lookup/creation:', error);
+      return res.status(500).json({ error: 'Failed to process user information' });
+    }
+
     // Insert report into database
     const reportId = generateUUID();
     const query = `
@@ -102,7 +127,7 @@ async function handleSubmitReport(req: any, res: any) {
       severity,
       evidenceUrlsArray,
       scam_identifier,
-      reporter_id || walletAddress
+      userId
     ];
 
     const result = await getPool().query(query, values);
