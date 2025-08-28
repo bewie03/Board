@@ -198,14 +198,13 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       const endpoint = itemType === 'project' ? '/api/projects' : '/api/jobs';
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${endpoint}?id=${itemId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
-          id: itemId,
           status: itemType === 'project' ? 'active' : 'confirmed'
         })
       });
@@ -435,6 +434,8 @@ const AdminPanel: React.FC = () => {
                         item={item} 
                         onRestore={handleRestoreItem}
                         loading={loading}
+                        onSelectProject={setSelectedProject}
+                        onSelectJob={setSelectedJob}
                       />
                     ))}
                   </div>
@@ -969,9 +970,14 @@ const ReportCard: React.FC<{
         </div>
         <div className="flex items-center gap-2">
           {isArchived ? (
-            <div className="text-xs text-gray-500">
-              Archived - No actions available
-            </div>
+            <button
+              onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
+              disabled={loading}
+              className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
+            >
+              <FaArchive className="h-3 w-3" />
+              Unarchive
+            </button>
           ) : (
             <>
               <button
@@ -1011,7 +1017,9 @@ const PausedItemCard: React.FC<{
   item: any;
   onRestore: (itemId: string, itemType: 'project' | 'job') => Promise<void>;
   loading: boolean;
-}> = ({ item, onRestore, loading }) => {
+  onSelectProject: (project: any) => void;
+  onSelectJob: (job: any) => void;
+}> = ({ item, onRestore, loading, onSelectProject, onSelectJob }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -1022,18 +1030,33 @@ const PausedItemCard: React.FC<{
     });
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = async (e: React.MouseEvent) => {
     // Don't trigger if clicking on action buttons
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
     
     if (item.id) {
-      // Open the project/job in a new tab for review
-      if (item.type === 'project') {
-        window.open(`/projects?id=${item.id}`, '_blank');
-      } else if (item.type === 'job') {
-        window.open(`/jobs?id=${item.id}`, '_blank');
+      try {
+        // Fetch the full project/job data for the modal
+        if (item.type === 'project') {
+          const response = await fetch(`/api/projects?id=${item.id}`);
+          const data = await response.json();
+          const projects = Array.isArray(data) ? data : (data.projects || []);
+          if (projects.length > 0) {
+            onSelectProject(projects[0]);
+          }
+        } else if (item.type === 'job') {
+          const response = await fetch(`/api/jobs?id=${item.id}`);
+          const data = await response.json();
+          const jobs = Array.isArray(data) ? data : (data.jobs || []);
+          if (jobs.length > 0) {
+            onSelectJob(jobs[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching item details:', error);
+        alert('Unable to load details for this item. Please try again.');
       }
     }
   };
