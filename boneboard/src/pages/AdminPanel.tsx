@@ -120,14 +120,16 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('[FRONTEND] Loading active reports...');
       const response = await fetch('/api/reports', {
         headers: { 'x-wallet-address': walletAddress }
       });
       const data = await response.json();
+      console.log('[FRONTEND] Active reports loaded:', data.reports?.length || 0, 'reports');
       setReports(data.reports || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load reports');
-      console.error('Error loading reports:', err);
+      console.error('[FRONTEND] Error loading reports:', err);
     } finally {
       setLoading(false);
     }
@@ -139,14 +141,16 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('[FRONTEND] Loading archived reports...');
       const response = await fetch('/api/reports?archived=true', {
         headers: { 'x-wallet-address': walletAddress }
       });
       const data = await response.json();
+      console.log('[FRONTEND] Archived reports loaded:', data.reports?.length || 0, 'reports');
       setArchivedReports(data.reports || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load archived reports');
-      console.error('Error loading archived reports:', err);
+      console.error('[FRONTEND] Error loading archived reports:', err);
     } finally {
       setLoading(false);
     }
@@ -216,7 +220,7 @@ const AdminPanel: React.FC = () => {
     
     try {
       setLoading(true);
-      console.log(`Processing report ${reportId} with action: ${action}, projectId: ${projectId}`);
+      console.log(`[FRONTEND] Processing report ${reportId} with action: ${action}, projectId: ${projectId}`);
       
       const response = await fetch('/api/reports', {
         method: 'PUT',
@@ -233,22 +237,24 @@ const AdminPanel: React.FC = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error:', response.status, errorText);
+        console.error('[FRONTEND] API Error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
       const result = await response.json();
-      console.log('API Response:', result);
+      console.log('[FRONTEND] API Response:', result);
       
       // Reload all relevant data
-      console.log('Reloading data...');
-      await loadReports();
-      await loadArchivedReports();
-      await loadPausedItems();
-      console.log('Data reloaded successfully');
+      console.log('[FRONTEND] Reloading all data...');
+      await Promise.all([
+        loadReports(),
+        loadArchivedReports(),
+        loadPausedItems()
+      ]);
+      console.log('[FRONTEND] All data reloaded successfully');
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
-      console.error('Error processing report:', err);
+      console.error('[FRONTEND] Error processing report:', err);
     } finally {
       setLoading(false);
     }
