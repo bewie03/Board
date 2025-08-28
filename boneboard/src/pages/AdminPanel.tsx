@@ -17,12 +17,15 @@ interface ScamReport {
   created_at: string;
   reporter_id: string;
   evidence_urls?: string[];
+  project_name?: string;
+  item_type?: string;
 }
 
 const AdminPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'reports' | 'archived' | 'pricing'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'paused' | 'archived' | 'pricing'>('reports');
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [reports, setReports] = useState<ScamReport[]>([]);
+  const [pausedItems, setPausedItems] = useState<any[]>([]);
   const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +46,8 @@ const AdminPanel: React.FC = () => {
       loadSettings();
     } else if (activeTab === 'reports') {
       loadReports();
+    } else if (activeTab === 'paused') {
+      loadPausedItems();
     } else if (activeTab === 'archived') {
       loadArchivedReports();
     }
@@ -94,18 +99,73 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const loadPausedItems = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      // Fetch paused projects and jobs
+      const [pausedProjects, pausedJobs] = await Promise.all([
+        fetch('/api/projects?status=paused', {
+          headers: { 'x-wallet-address': walletAddress }
+        }).then(res => res.json()),
+        fetch('/api/jobs?status=paused', {
+          headers: { 'x-wallet-address': walletAddress }
+        }).then(res => res.json())
+      ]);
+      
+      const combined = [
+        ...(pausedProjects.projects || []).map((p: any) => ({ ...p, type: 'project' })),
+        ...(pausedJobs.jobs || []).map((j: any) => ({ ...j, type: 'job' }))
+      ];
+      
+      setPausedItems(combined);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load paused items');
+      console.error('Error loading paused items:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => {
     if (!walletAddress) return;
     
     try {
       setLoading(true);
       await adminService.processReport(walletAddress, reportId, action, projectId);
-      // Reload both active and archived reports
+      // Reload all relevant data
       await loadReports();
       await loadArchivedReports();
+      await loadPausedItems();
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
       console.error('Error processing report:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestoreItem = async (itemId: string, itemType: 'project' | 'job') => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      const endpoint = itemType === 'project' ? '/api/projects' : '/api/jobs';
+      await fetch(`${endpoint}/${itemId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({ status: 'active' })
+      });
+      
+      await loadPausedItems();
+    } catch (err: any) {
+      setError(err.message || 'Failed to restore item');
+      console.error('Error restoring item:', err);
     } finally {
       setLoading(false);
     }
@@ -181,6 +241,17 @@ const AdminPanel: React.FC = () => {
               >
                 <FaChartBar className="mr-2 h-4 w-4" />
                 Reports
+              </button>
+              <button
+                onClick={() => setActiveTab('paused')}
+                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                  activeTab === 'paused'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <FaClock className="mr-2 h-4 w-4" />
+                Paused
               </button>
               <button
                 onClick={() => setActiveTab('archived')}
@@ -259,6 +330,55 @@ const AdminPanel: React.FC = () => {
                         key={report.id} 
                         report={report} 
                         onProcess={handleProcessReport}
+                        loading={loading}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Paused Items Tab */}
+          {activeTab === 'paused' && (
+            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
+              <div className="px-6 py-5 border-b border-blue-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <FaClock className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Paused Items</h2>
+                      <p className="text-sm text-blue-600">Manage paused projects and job listings</p>
+                    </div>
+                  </div>
+                  <div className="bg-yellow-100 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium text-yellow-800">{pausedItems.length} Paused</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">Loading paused items...</p>
+                  </div>
+                ) : pausedItems.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FaClock className="h-10 w-10 text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Paused Items</h3>
+                    <p className="text-blue-600">No projects or jobs are currently paused</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pausedItems.map((item) => (
+                      <PausedItemCard 
+                        key={item.id} 
+                        item={item} 
+                        onRestore={handleRestoreItem}
                         loading={loading}
                       />
                     ))}
@@ -415,6 +535,13 @@ const ReportCard: React.FC<{
               {report.status.toUpperCase()}
             </span>
           </div>
+          {report.project_name && (
+            <div className="mb-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {report.item_type === 'project' ? '📋' : '💼'} {report.project_name}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
             <span className="flex items-center gap-1">
               <FaClock className="h-3 w-3" />
@@ -492,6 +619,73 @@ const ReportCard: React.FC<{
               </button>
             </>
           )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Paused Item Card Component
+const PausedItemCard: React.FC<{
+  item: any;
+  onRestore: (itemId: string, itemType: 'project' | 'job') => Promise<void>;
+  loading: boolean;
+}> = ({ item, onRestore, loading }) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              {item.type.toUpperCase()}
+            </span>
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+              PAUSED
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+            <span className="flex items-center gap-1">
+              <FaClock className="h-3 w-3" />
+              {formatDate(item.updated_at || item.created_at)}
+            </span>
+            {item.type === 'project' && item.category && (
+              <span className="capitalize">{item.category}</span>
+            )}
+            {item.type === 'job' && item.company && (
+              <span>{item.company}</span>
+            )}
+            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+              ID: {item.id.slice(0, 8)}...
+            </span>
+          </div>
+          <p className="text-gray-700 text-sm mb-4 line-clamp-2">{item.description}</p>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="text-xs text-gray-500">
+          {item.type === 'project' ? 'Project' : 'Job'} ID: {item.id.slice(0, 8)}...
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onRestore(item.id, item.type)}
+            disabled={loading}
+            className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 flex items-center gap-1"
+          >
+            <FaProjectDiagram className="h-3 w-3" />
+            Restore
+          </button>
         </div>
       </div>
     </div>

@@ -172,10 +172,17 @@ async function handleGetReports(req: any, res: any) {
         SELECT r.*, 
                CASE 
                  WHEN r.scam_type = 'project' THEN p.title
+                 WHEN r.scam_type = 'user' THEN j.title
                  ELSE r.scam_identifier
-               END as project_name
+               END as project_name,
+               CASE 
+                 WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'user' THEN 'job'
+                 ELSE r.scam_type
+               END as item_type
         FROM scam_reports r
-        LEFT JOIN projects p ON r.scam_identifier = p.id::text
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
+        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
         WHERE r.status IN ('resolved', 'rejected', 'archived')
         ORDER BY r.updated_at DESC
       `;
@@ -185,10 +192,17 @@ async function handleGetReports(req: any, res: any) {
         SELECT r.*, 
                CASE 
                  WHEN r.scam_type = 'project' THEN p.title
+                 WHEN r.scam_type = 'user' THEN j.title
                  ELSE r.scam_identifier
-               END as project_name
+               END as project_name,
+               CASE 
+                 WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'user' THEN 'job'
+                 ELSE r.scam_type
+               END as item_type
         FROM scam_reports r
-        LEFT JOIN projects p ON r.scam_identifier = p.id::text
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text AND r.scam_type = 'project'
+        LEFT JOIN job_listings j ON r.scam_identifier = j.id::text AND r.scam_type = 'user'
         WHERE r.status IN ('pending', 'verified')
         ORDER BY r.created_at DESC
       `;
@@ -252,6 +266,15 @@ async function handleUpdateReport(req: any, res: any) {
     try {
       await client.query('BEGIN');
 
+      // Look up admin user ID from wallet address
+      const adminUserQuery = 'SELECT id FROM users WHERE wallet_address = $1';
+      const adminUserResult = await client.query(adminUserQuery, [walletAddress]);
+      
+      let adminUserId = null;
+      if (adminUserResult.rows.length > 0) {
+        adminUserId = adminUserResult.rows[0].id;
+      }
+
       // Update report status
       const updateReportQuery = `
         UPDATE scam_reports 
@@ -260,7 +283,7 @@ async function handleUpdateReport(req: any, res: any) {
         RETURNING *
       `;
       
-      const reportResult = await client.query(updateReportQuery, [reportStatus, walletAddress, reportId]);
+      const reportResult = await client.query(updateReportQuery, [reportStatus, adminUserId, reportId]);
       
       if (reportResult.rows.length === 0) {
         throw new Error('Report not found');
