@@ -161,36 +161,40 @@ async function handleGetReports(req: any, res: any) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    const { status = 'pending', archived = 'false' } = req.query;
+    const { archived = 'false' } = req.query;
 
-    let query = `
-      SELECT r.*, 
-             CASE 
-               WHEN r.scam_type = 'malicious_project' THEN p.title
-               WHEN r.scam_type = 'fake_project' THEN p.title
-               ELSE r.scam_identifier
-             END as project_name
-      FROM scam_reports r
-      LEFT JOIN projects p ON r.scam_identifier = p.id::text
-      WHERE 1=1
-    `;
-
-    const values: any[] = [];
-    let paramCount = 0;
+    let query: string;
+    let values: any[] = [];
 
     if (archived === 'true') {
-      query += ` AND r.status IN ('resolved', 'dismissed', 'deleted', 'paused')`;
+      // Get archived/resolved reports
+      query = `
+        SELECT r.*, 
+               CASE 
+                 WHEN r.scam_type = 'project' THEN p.title
+                 ELSE r.scam_identifier
+               END as project_name
+        FROM scam_reports r
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text
+        WHERE r.status IN ('resolved', 'rejected', 'archived')
+        ORDER BY r.updated_at DESC
+      `;
     } else {
-      query += ` AND r.status = $${++paramCount}`;
-      values.push(status);
+      // Get active/pending reports
+      query = `
+        SELECT r.*, 
+               CASE 
+                 WHEN r.scam_type = 'project' THEN p.title
+                 ELSE r.scam_identifier
+               END as project_name
+        FROM scam_reports r
+        LEFT JOIN projects p ON r.scam_identifier = p.id::text
+        WHERE r.status IN ('pending', 'verified')
+        ORDER BY r.created_at DESC
+      `;
     }
 
-    query += ` ORDER BY r.created_at DESC`;
-
-    const result = await getPool().query(
-      'SELECT * FROM scam_reports WHERE status != $1 ORDER BY created_at DESC',
-      [archived ? 'pending' : 'archived']
-    );
+    const result = await getPool().query(query, values);
 
     return res.status(200).json({
       reports: result.rows
@@ -232,10 +236,10 @@ async function handleUpdateReport(req: any, res: any) {
         projectAction = 'delete';
         break;
       case 'archive':
-        reportStatus = 'dismissed';
+        reportStatus = 'archived';
         break;
       case 'restore':
-        reportStatus = 'resolved';
+        reportStatus = 'pending';
         projectAction = 'restore';
         break;
       default:

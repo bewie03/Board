@@ -20,9 +20,10 @@ interface ScamReport {
 }
 
 const AdminPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'reports' | 'pricing'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'archived' | 'pricing'>('reports');
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [reports, setReports] = useState<ScamReport[]>([]);
+  const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { walletAddress } = useWallet();
@@ -42,6 +43,8 @@ const AdminPanel: React.FC = () => {
       loadSettings();
     } else if (activeTab === 'reports') {
       loadReports();
+    } else if (activeTab === 'archived') {
+      loadArchivedReports();
     }
   }, [activeTab]);
 
@@ -65,11 +68,27 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const reportsData = await adminService.getReports(walletAddress);
+      const reportsData = await adminService.getReports(walletAddress, false);
       setReports(reportsData);
     } catch (err: any) {
       setError(err.message || 'Failed to load reports');
       console.error('Error loading reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadArchivedReports = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const reportsData = await adminService.getReports(walletAddress, true);
+      setArchivedReports(reportsData);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load archived reports');
+      console.error('Error loading archived reports:', err);
     } finally {
       setLoading(false);
     }
@@ -81,7 +100,9 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       await adminService.processReport(walletAddress, reportId, action, projectId);
-      await loadReports(); // Reload reports after processing
+      // Reload both active and archived reports
+      await loadReports();
+      await loadArchivedReports();
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
       console.error('Error processing report:', err);
@@ -162,6 +183,17 @@ const AdminPanel: React.FC = () => {
                 Reports
               </button>
               <button
+                onClick={() => setActiveTab('archived')}
+                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                  activeTab === 'archived'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                <FaArchive className="mr-2 h-4 w-4" />
+                Archived
+              </button>
+              <button
                 onClick={() => setActiveTab('pricing')}
                 className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                   activeTab === 'pricing'
@@ -236,6 +268,56 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {/* Archived Reports Tab */}
+          {activeTab === 'archived' && (
+            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
+              <div className="px-6 py-5 border-b border-blue-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <FaArchive className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Archived Reports</h2>
+                      <p className="text-sm text-blue-600">View resolved and archived reports</p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-100 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium text-gray-800">{archivedReports.length} Archived</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">Loading archived reports...</p>
+                  </div>
+                ) : archivedReports.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FaArchive className="h-10 w-10 text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Archived Reports</h3>
+                    <p className="text-blue-600">No reports have been archived yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {archivedReports.map((report) => (
+                      <ReportCard 
+                        key={report.id} 
+                        report={report} 
+                        onProcess={handleProcessReport}
+                        loading={loading}
+                        isArchived={true}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Pricing Tab */}
           {activeTab === 'pricing' && (
             <div className="bg-white shadow-sm rounded-xl border border-blue-100">
@@ -288,7 +370,8 @@ const ReportCard: React.FC<{
   report: ScamReport;
   onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore', projectId?: string) => Promise<void>;
   loading: boolean;
-}> = ({ report, onProcess, loading }) => {
+  isArchived?: boolean;
+}> = ({ report, onProcess, loading, isArchived = false }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'bg-red-100 text-red-800';
@@ -372,22 +455,43 @@ const ReportCard: React.FC<{
           Report ID: {report.id.slice(0, 8)}...
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => onProcess(report.id, 'archive', report.scam_identifier)}
-            disabled={loading}
-            className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 flex items-center gap-1"
-          >
-            <FaArchive className="h-3 w-3" />
-            Archive
-          </button>
-          <button
-            onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
-            disabled={loading}
-            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 flex items-center gap-1"
-          >
-            <FaTrash className="h-3 w-3" />
-            Delete
-          </button>
+          {isArchived ? (
+            <button
+              onClick={() => onProcess(report.id, 'restore', report.scam_identifier)}
+              disabled={loading}
+              className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 flex items-center gap-1"
+            >
+              <FaClock className="h-3 w-3" />
+              Restore
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => onProcess(report.id, 'pause', report.scam_identifier)}
+                disabled={loading}
+                className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50 flex items-center gap-1"
+              >
+                <FaClock className="h-3 w-3" />
+                Pause Project
+              </button>
+              <button
+                onClick={() => onProcess(report.id, 'archive', report.scam_identifier)}
+                disabled={loading}
+                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 flex items-center gap-1"
+              >
+                <FaArchive className="h-3 w-3" />
+                Archive
+              </button>
+              <button
+                onClick={() => onProcess(report.id, 'delete', report.scam_identifier)}
+                disabled={loading}
+                className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 flex items-center gap-1"
+              >
+                <FaTrash className="h-3 w-3" />
+                Delete Project
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
