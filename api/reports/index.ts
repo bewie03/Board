@@ -160,7 +160,7 @@ async function handleGetReports(req: any, res: any) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    const { archived = 'false', paused = 'false' } = req.query;
+    const { paused = 'false' } = req.query;
 
     let query: string;
     let values: any[] = [];
@@ -210,7 +210,7 @@ async function handleGetReports(req: any, res: any) {
 
     const result = await getPool().query(query, values);
     
-    console.log(`[API] Query executed for ${paused === 'true' ? 'paused' : archived === 'true' ? 'archived' : 'active'} reports:`);
+    console.log(`[API] Query executed for ${paused === 'true' ? 'paused' : 'active'} reports:`);
     console.log(`[API] Found ${result.rows.length} reports`);
     if (result.rows.length > 0) {
       console.log('[API] Sample report:', JSON.stringify(result.rows[0], null, 2));
@@ -263,7 +263,7 @@ async function handleUpdateReport(req: any, res: any) {
         break;
       case 'restore':
         reportStatus = 'pending'; // Move report back to active reports when restoring from pause
-        projectStatus = 'active'; // Restore project/job to active status
+        projectStatus = null; // Will be set dynamically based on item type
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });

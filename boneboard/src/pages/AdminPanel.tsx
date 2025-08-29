@@ -195,7 +195,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore' | 'permanent_delete', projectId?: string) => {
+  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string) => {
     if (!walletAddress) return;
     
     try {
@@ -248,7 +248,7 @@ const AdminPanel: React.FC = () => {
       // Find the related report first
       const relatedItem = pausedItems.find(item => item.id === itemId);
       if (relatedItem && relatedItem.report) {
-        // Use the reports API to restore the project/job and archive the report
+        // Use the reports API to restore the project/job
         await handleProcessReport(relatedItem.report.id, 'restore', itemId);
       } else {
         // If no report found, directly update the project/job status
@@ -919,7 +919,7 @@ const AdminPanel: React.FC = () => {
 // Report Card Component
 const ReportCard: React.FC<{
   report: ScamReport;
-  onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore' | 'permanent_delete', projectId?: string) => Promise<void>;
+  onProcess: (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string) => Promise<void>;
   loading: boolean;
   onSelectProject: (project: any) => void;
   onSelectJob: (job: any) => void;
@@ -1133,23 +1133,11 @@ const PausedItemCard: React.FC<{
   onSelectJob: (job: any) => void;
   onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
 }> = ({ item, onRestore, loading, onSelectProject, onSelectJob, onDeleteConfirm }) => {
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'bg-red-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-green-500 text-white';
-      case 'critical': return 'bg-purple-600 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     });
   };
 
@@ -1186,82 +1174,79 @@ const PausedItemCard: React.FC<{
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer hover:border-blue-300"
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-blue-300 relative"
       onClick={handleCardClick}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-            {item.report && (
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(item.report.severity)}`}>
-                {item.report.severity.toUpperCase()}
-              </span>
-            )}
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500 text-white">
-              PAUSED
-            </span>
-          </div>
-          {item.report && (
-            <div className="mb-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500 text-white">
-                {item.type === 'project' ? '📋' : '💼'} Report: {item.report.title}
-              </span>
-            </div>
+      {/* Header with logo/avatar and title */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+          {item.type === 'project' ? (
+            <span className="text-2xl">📋</span>
+          ) : (
+            <span className="text-2xl">💼</span>
           )}
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-            <span className="flex items-center gap-1">
-              <FaClock className="h-3 w-3" />
-              {formatDate(item.updated_at || item.created_at)}
-            </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 truncate">{item.title}</h3>
+            <div className="flex items-center gap-2 ml-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRestore(item.id, item.type);
+                }}
+                disabled={loading}
+                className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                title="Resume"
+              >
+                <FaPlay className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id});
+                }}
+                disabled={loading}
+                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                title="Delete"
+              >
+                <FaTrashAlt className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">
             {item.type === 'project' && item.category && (
               <span className="capitalize">{item.category}</span>
             )}
             {item.type === 'job' && item.company && (
               <span>{item.company}</span>
             )}
-            <span className="font-mono text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
-              ID: {item.id.slice(0, 8)}...
-            </span>
-          </div>
-          <p className="text-gray-700 text-sm mb-4 line-clamp-2">{item.description}</p>
-          {item.report && item.report.description && (
-            <div className="mb-4">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Report Details:</span>
-              <p className="text-gray-700 text-sm mt-1 line-clamp-2">{item.report.description}</p>
-            </div>
-          )}
+          </p>
         </div>
       </div>
-      
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="text-xs text-gray-500">
-          {item.report ? `Report ID: ${item.report.id.slice(0, 8)}...` : `${item.type === 'project' ? 'Project' : 'Job'} ID: ${item.id.slice(0, 8)}...`}
+
+      {/* Description */}
+      <p className="text-gray-700 text-sm mb-4 line-clamp-3 leading-relaxed">
+        {item.description}
+      </p>
+
+      {/* Report Details if available */}
+      {item.report && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <FaExclamationTriangle className="h-4 w-4 text-red-600" />
+            <span className="text-sm font-medium text-red-800">Report: {item.report.title}</span>
+          </div>
+          <p className="text-xs text-red-700 line-clamp-2">{item.report.description}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRestore(item.id, item.type);
-            }}
-            disabled={loading}
-            className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
-          >
-            <FaPlay className="h-3 w-3" />
-            Play
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id});
-            }}
-            disabled={loading}
-            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
-          >
-            <FaTrashAlt className="h-3 w-3" />
-            Delete
-          </button>
-        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+        <span>Created {formatDate(item.created_at || item.updated_at)}</span>
+        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
+          PAUSED
+        </span>
       </div>
     </div>
   );
