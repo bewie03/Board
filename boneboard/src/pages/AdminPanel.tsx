@@ -4,20 +4,6 @@ import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, 
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
-interface ScamReport {
-  id: string;
-  title: string;
-  description: string;
-  scam_type: string;
-  severity: string;
-  status: string;
-  scam_identifier: string;
-  created_at: string;
-  reporter_id: string;
-  evidence_urls?: string[];
-  project_name?: string;
-  item_type?: string;
-}
 
 const AdminPanel: React.FC = () => {
   const { walletAddress } = useWallet();
@@ -253,45 +239,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleRestoreItem = async (itemId: string, itemType: 'project' | 'job') => {
-    if (!walletAddress) return;
-    
-    try {
-      setLoading(true);
-      
-      // Find the related report first
-      const relatedItem = reportedItems.find(item => item.id === itemId);
-      if (relatedItem && relatedItem.report) {
-        // Use the reports API to restore the project/job
-        await handleProcessReport(relatedItem.report.id, 'restore', itemId);
-      } else {
-        // If no report found, directly update the project/job status
-        const endpoint = itemType === 'project' ? '/api/projects' : '/api/jobs';
-        const response = await fetch(`${endpoint}?id=${itemId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-wallet-address': walletAddress
-          },
-          body: JSON.stringify({
-            status: itemType === 'project' ? 'active' : 'confirmed'
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      }
-      
-      // Reload all data to reflect changes
-      await loadReportedItems();
-    } catch (err: any) {
-      setError(err.message || 'Failed to restore item');
-      console.error('Error restoring item:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleUpdateSettings = async (newSettings: any) => {
     if (!walletAddress) {
@@ -477,8 +424,8 @@ const AdminPanel: React.FC = () => {
                         <ReportedItemCard 
                           key={item.id} 
                           item={item} 
-                          onPause={(itemId, itemType) => handleProcessReport(item.primaryReport?.id, 'pause', itemId)}
-                          onDelete={(itemId, itemType) => setDeleteConfirm({show: true, type: 'item', id: itemId, itemId})}
+                          onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId)}
+                          onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: itemId, itemId})}
                           onShowReports={(item) => {
                             setSelectedReport({
                               ...item.primaryReport,
@@ -992,214 +939,6 @@ const AdminPanel: React.FC = () => {
       </AnimatePresence>
 
     </PageTransition>
-  );
-};
-
-// Report Card Component
-const ReportCard: React.FC<{
-  report: ScamReport;
-  onProcess: (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string) => Promise<void>;
-  loading: boolean;
-  onSelectProject: (project: any) => void;
-  onSelectJob: (job: any) => void;
-  onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
-}> = ({ report, onProcess, loading, onSelectProject, onSelectJob, onDeleteConfirm }) => {
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'bg-red-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-green-500 text-white';
-      case 'critical': return 'bg-purple-600 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-500 text-white';
-      case 'verified': return 'bg-green-500 text-white';
-      case 'rejected': return 'bg-red-500 text-white';
-      case 'resolved': return 'bg-blue-500 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const handleCardClick = async (e: React.MouseEvent) => {
-    console.log('Report card clicked:', report);
-    
-    // Don't trigger if clicking on action buttons
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
-    }
-    
-    if (report.scam_identifier) {
-      // Determine if this is a project or job report
-      // Check if the scam_identifier exists in projects first, then fallback to jobs
-      let itemType = 'job'; // default
-      
-      // First try to fetch as project
-      try {
-        const projectResponse = await fetch(`/api/projects?id=${report.scam_identifier}`);
-        if (projectResponse.ok) {
-          const projectData = await projectResponse.json();
-          const projects = Array.isArray(projectData) ? projectData : (projectData.projects || []);
-          if (projects.length > 0) {
-            itemType = 'project';
-          }
-        }
-      } catch (error) {
-        // If project fetch fails, it's likely a job
-        itemType = 'job';
-      }
-      console.log('Fetching details for:', { itemType, id: report.scam_identifier });
-      
-      try {
-        // Now fetch the data for the modal (we already determined the type above)
-        if (itemType === 'project') {
-          // We already fetched project data above, so use it
-          const response = await fetch(`/api/projects?id=${report.scam_identifier}`);
-          const data = await response.json();
-          console.log('Project API response:', data);
-          const projects = Array.isArray(data) ? data : (data.projects || []);
-          if (projects.length > 0) {
-            console.log('Opening project modal with:', projects[0]);
-            onSelectProject(projects[0]);
-          } else {
-            console.log('No projects found in response');
-          }
-        } else {
-          const response = await fetch(`/api/jobs?id=${report.scam_identifier}`);
-          const data = await response.json();
-          console.log('Jobs API response:', data);
-          const jobs = Array.isArray(data) ? data : (data.jobs || []);
-          if (jobs.length > 0) {
-            console.log('Opening job modal with:', jobs[0]);
-            onSelectJob(jobs[0]);
-          } else {
-            console.log('No jobs found in response');
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching item details:', error);
-        // Don't open new tab - just show error in console
-        alert('Unable to load details for this item. Please try again.');
-      }
-    } else {
-      console.log('Missing scam_identifier:', { 
-        scam_identifier: report.scam_identifier 
-      });
-    }
-  };
-
-  return (
-    <div 
-      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer hover:border-blue-300"
-      onClick={handleCardClick}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">{report.title}</h3>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(report.severity)}`}>
-              {report.severity.toUpperCase()}
-            </span>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
-              {report.status.toUpperCase()}
-            </span>
-          </div>
-          {report.project_name && (
-            <div className="mb-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500 text-white">
-                {report.item_type === 'project' ? '📋' : '💼'} {report.project_name}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-            <span className="flex items-center gap-1">
-              <FaClock className="h-3 w-3" />
-              {formatDate(report.created_at)}
-            </span>
-            <span className="capitalize">{report.scam_type.replace('_', ' ')}</span>
-            <span className="font-mono text-xs bg-gray-500 text-white px-3 py-1 rounded-full">
-              ID: {report.scam_identifier.slice(0, 8)}...
-            </span>
-          </div>
-          <p className="text-gray-700 text-sm mb-4 line-clamp-2">{report.description}</p>
-          {report.evidence_urls && report.evidence_urls.length > 0 && (
-            <div className="mb-4">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Evidence:</span>
-              <div className="mt-1 space-y-1">
-                {report.evidence_urls.slice(0, 2).map((url, index) => (
-                  <a
-                    key={index}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-xs text-blue-600 hover:text-blue-800 truncate"
-                  >
-                    {url}
-                  </a>
-                ))}
-                {report.evidence_urls.length > 2 && (
-                  <span className="text-xs text-gray-500">+{report.evidence_urls.length - 2} more</span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="text-xs text-gray-500">
-          Report ID: {report.id.slice(0, 8)}...
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onProcess(report.id, 'pause', report.scam_identifier);
-            }}
-            disabled={loading}
-            className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 flex items-center gap-1"
-          >
-            <FaClock className="h-3 w-3" />
-            Pause
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onProcess(report.id, 'delete', report.scam_identifier);
-            }}
-            disabled={loading}
-            className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
-          >
-            <FaTrash className="h-3 w-3" />
-            Remove
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier});
-            }}
-            disabled={loading}
-            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
-          >
-            <FaTrashAlt className="h-3 w-3" />
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };
 
