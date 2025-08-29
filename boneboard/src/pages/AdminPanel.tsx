@@ -169,7 +169,8 @@ const AdminPanel: React.FC = () => {
               reports: reports,
               reportCount: reports.length,
               primaryReport: firstReport,
-              status: itemData.status // Ensure status is preserved
+              status: itemData.status, // Ensure status is preserved
+              currentStatus: itemData.status // Add explicit current status tracking
             });
           } else {
             // If item not found, create a placeholder from report data
@@ -183,6 +184,7 @@ const AdminPanel: React.FC = () => {
               reportCount: reports.length,
               primaryReport: firstReport,
               status: 'active', // Default status for placeholder items
+              currentStatus: 'active',
               isPlaceholder: true
             });
           }
@@ -333,7 +335,7 @@ const AdminPanel: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white shadow">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
@@ -382,7 +384,7 @@ const AdminPanel: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
               <div className="flex">
@@ -452,7 +454,7 @@ const AdminPanel: React.FC = () => {
                     <p className="text-blue-600">No projects or jobs have been reported yet</p>
                   </div>
                 ) : (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
                     {reportedItems
                       .filter(item => {
                         const matchesSearch = item.title?.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
@@ -478,7 +480,7 @@ const AdminPanel: React.FC = () => {
                         <ReportedItemCard 
                           key={item.id} 
                           item={item} 
-                          onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.status)}
+                          onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.currentStatus || item.status)}
                           onRemove={(itemId) => handleRemoveFromReports(item.primaryReport?.id, itemId)}
                           onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: item.primaryReport?.id, itemId})}
                           onShowReports={(item) => {
@@ -1067,7 +1069,7 @@ const ReportedItemCard: React.FC<{
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300 min-w-[400px]"
+      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300"
       onClick={handleCardClick}
     >
       <div className="p-6">
@@ -1124,9 +1126,9 @@ const ReportedItemCard: React.FC<{
               }}
               disabled={loading}
               className="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
-              title={item.status === 'paused' ? 'Resume item' : 'Pause item'}
+              title={item.currentStatus === 'paused' || item.status === 'paused' ? 'Resume item' : 'Pause item'}
             >
-              {item.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
+              {item.currentStatus === 'paused' || item.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
             </button>
             <button
               onClick={(e) => {
