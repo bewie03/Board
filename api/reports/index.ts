@@ -262,7 +262,7 @@ async function handleUpdateReport(req: any, res: any) {
         projectStatus = 'deleted'; // Mark project/job for permanent deletion
         break;
       case 'restore':
-        reportStatus = 'pending'; // Move report back to active reports when restoring from pause
+        reportStatus = 'verified'; // Keep report as verified when restoring - just unpausing the item
         projectStatus = null; // Will be set dynamically based on item type
         break;
       default:
