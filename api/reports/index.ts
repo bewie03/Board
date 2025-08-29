@@ -341,30 +341,53 @@ async function handleUpdateReport(req: any, res: any) {
 
       // Take action on the project/job if needed
       if (action && projectId && (projectStatus !== null || action === 'pause')) {
-        // First, determine if this is a project or job by checking the report
+        // First, determine if this is a project or job by checking both tables
         const reportData = reportResult.rows[0];
         const scamType = reportData.scam_type;
-        const itemType = scamType === 'project' ? 'project' : 'job';
         
-        console.log(`[API] Processing ${action} for scam_type: ${scamType}, itemType: ${itemType} with ID: ${projectId}`);
+        console.log(`[API] Processing ${action} for scam_type: ${scamType} with ID: ${projectId}`);
         console.log(`[API] scam_identifier from report: ${reportData.scam_identifier}`);
         console.log(`[API] projectId parameter: ${projectId}`);
         console.log(`[API] Are they equal? ${reportData.scam_identifier === projectId}`);
         
+        // Check both projects and job_listings tables to determine actual type
+        let itemType = 'project';
+        let tableName = 'projects';
+        
+        // First check projects table
+        const projectExistsQuery = `SELECT id, status FROM projects WHERE id = CAST($1 AS UUID)`;
+        const projectExists = await client.query(projectExistsQuery, [projectId]);
+        
+        if (projectExists.rows.length === 0) {
+          // Not found in projects, check job_listings
+          const jobExistsQuery = `SELECT id, status FROM job_listings WHERE id = CAST($1 AS UUID)`;
+          const jobExists = await client.query(jobExistsQuery, [projectId]);
+          
+          if (jobExists.rows.length > 0) {
+            itemType = 'job';
+            tableName = 'job_listings';
+            console.log(`[API] Found in job_listings table:`, jobExists.rows[0]);
+          } else {
+            console.log(`[API] ERROR: ID ${projectId} not found in either projects or job_listings tables`);
+            console.log(`[API] SKIPPING update since item doesn't exist in any table`);
+            
+            await client.query('COMMIT');
+            return res.status(200).json({
+              message: `Report processed successfully. Note: Referenced item no longer exists in database.`,
+              report: reportResult.rows[0],
+              warning: `Item with ID ${projectId} not found in either projects or job_listings tables`
+            });
+          }
+        } else {
+          console.log(`[API] Found in projects table:`, projectExists.rows[0]);
+        }
+        
+        console.log(`[API] Determined itemType: ${itemType}, tableName: ${tableName}`);
+        
         let updateQuery = '';
         let updateValues: any[] = [];
-        let tableName = itemType === 'project' ? 'projects' : 'job_listings';
         
-        // Check if the project/job actually exists before trying to delete it
-        const checkExistsQuery = `SELECT id FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
-        const existsResult = await client.query(checkExistsQuery, [projectId]);
-        console.log(`[API] ${tableName} with ID ${projectId} exists: ${existsResult.rows.length > 0}`);
-        if (existsResult.rows.length > 0) {
-          console.log(`[API] Found ${tableName}:`, existsResult.rows[0]);
-        } else {
-          console.log(`[API] ERROR: ${tableName} with ID ${projectId} not found in database`);
-          console.log(`[API] This means the scam_identifier doesn't match any existing ${tableName} ID`);
-        }
+        // We already checked existence above, so we can proceed with the update
 
         switch (action) {
           case 'pause':
