@@ -248,7 +248,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string, currentStatus?: string) => {
-    if (!walletAddress) return;
+    if (!walletAddress || !reportId || !projectId) return;
     
     try {
       setLoading(true);
@@ -259,7 +259,6 @@ const AdminPanel: React.FC = () => {
         finalAction = currentStatus === 'paused' ? 'restore' : 'pause';
       }
       
-      console.log(`[FRONTEND] Processing report ${reportId} with action: ${finalAction}, projectId: ${projectId}, currentStatus: ${currentStatus}`);
       
       const response = await fetch('/api/reports', {
         method: 'PUT',
@@ -276,20 +275,14 @@ const AdminPanel: React.FC = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[FRONTEND] API Error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log('[FRONTEND] API Response:', result);
-      
+      await response.json();
       // Reload all relevant data
-      console.log('[FRONTEND] Reloading all data...');
       await loadReportedItems();
-      console.log('[FRONTEND] All data reloaded successfully');
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
-      console.error('[FRONTEND] Error processing report:', err);
     } finally {
       setLoading(false);
     }
@@ -480,7 +473,9 @@ const AdminPanel: React.FC = () => {
                         <ReportedItemCard 
                           key={item.id} 
                           item={item} 
-                          onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.currentStatus || item.status)}
+                          onPause={(itemId) => {
+                            handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.currentStatus || item.status);
+                          }}
                           onRemove={(itemId) => handleRemoveFromReports(item.primaryReport?.id, itemId)}
                           onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: item.primaryReport?.id, itemId})}
                           onShowReports={(item) => {
