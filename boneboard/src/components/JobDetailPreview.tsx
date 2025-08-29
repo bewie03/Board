@@ -63,15 +63,15 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
   contactEmail
 }) => {
   return (
-    <div className="w-full">
+    <div className="w-full max-w-full overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-200">
         <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+          <div className="flex-1 min-w-0 pr-4">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 break-words">
               {title || 'Job Title'}
             </h3>
             <div className="mt-1">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 break-words">
                 {company || 'Company Name'}
               </p>
               <div className="mt-1">
@@ -103,25 +103,25 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         </div>
         <div className="mt-4 pt-3 border-t border-gray-100">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-            <span className="flex items-center">
+            <span className="flex items-center min-w-0">
               <FaMapMarkerAlt className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              {workArrangement === 'remote' ? 'Remote' : workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}
+              <span className="truncate">{workArrangement === 'remote' ? 'Remote' : workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
             </span>
-            <span className="flex items-center">
+            <span className="flex items-center min-w-0">
               <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              {salary || 'Salary'}
+              <span className="break-words">{salary || 'Salary'}</span>
             </span>
-            <span className="flex items-center">
+            <span className="flex items-center min-w-0">
               <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              {type || 'Full-time'}
+              <span className="truncate">{type || 'Full-time'}</span>
             </span>
           </div>
         </div>
       </div>
-      <div className="px-6 py-5 w-full">
+      <div className="px-6 py-5 w-full max-w-full overflow-hidden">
         <div className="mb-6">
           <h4 className="text-lg font-medium text-gray-900 mb-2">Job Description</h4>
-          <p className="text-gray-700 whitespace-pre-line break-words">{description || 'Job description will appear here...'}</p>
+          <p className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere">{description || 'Job description will appear here...'}</p>
         </div>
         
         {requiredSkills.length > 0 && (
@@ -131,9 +131,9 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
               {requiredSkills.map((skill, index) => (
                 <span 
                   key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 break-words max-w-full"
                 >
-                  {skill}
+                  <span className="break-words">{skill}</span>
                 </span>
               ))}
             </div>
@@ -143,7 +143,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         {additionalInfo.length > 0 && (
           <div className="mb-6">
             <h4 className="text-lg font-medium text-gray-900 mb-2">Additional Information</h4>
-            <div className="text-gray-700 whitespace-pre-line break-words">
+            <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere">
               {additionalInfo.join('\n')}
             </div>
           </div>
@@ -152,7 +152,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         <div className="mb-6">
           <h4 className="text-lg font-medium text-gray-900 mb-2">How to Apply</h4>
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <p className="text-gray-700 whitespace-pre-line break-words">
+            <p className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere">
               {howToApply || 'Application instructions will appear here...'}
             </p>
           </div>
@@ -172,7 +172,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
                     className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
                   >
                     <FaLink className="flex-shrink-0 mr-2 h-3.5 w-3.5" />
-                    <span className="truncate">{website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
+                    <span className="break-all">{website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
                   </a>
                 </div>
               </div>

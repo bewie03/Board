@@ -203,10 +203,8 @@ const JobListings: React.FC = () => {
       (selectedVerificationFilter === 'verified' && job.isProjectVerified === true);
     
     return matchesSearch && matchesDate && matchesCategory && matchesPayment && matchesJobType && matchesWorkArrangement && matchesVerification;
-  }).sort((a, b) => {
-    // Sort featured jobs first, then by timestamp (newest first)
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
+  }).filter(job => !job.featured).sort((a, b) => {
+    // Sort by timestamp (newest first)
     return b.timestamp - a.timestamp;
   });
 
@@ -549,7 +547,7 @@ const JobListings: React.FC = () => {
                     onClick={() => selectJob(job.id)}
                     className={`group cursor-pointer bg-white overflow-hidden shadow-lg rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative ${
                       selectedJob?.id === job.id ? 'ring-2 ring-blue-500 shadow-xl' : ''
-                    } ${job.featured ? 'ring-2 ring-blue-400 bg-gradient-to-r from-blue-50 to-white' : ''}`}
+                    }`}
                   >
                     {/* Bookmark Button */}
                     <button
@@ -562,21 +560,11 @@ const JobListings: React.FC = () => {
                         <FaRegBookmark className="h-4 w-4 text-gray-400 hover:text-blue-600" />
                       )}
                     </button>
-                    {/* Featured Badge */}
-                    {job.featured && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
-                          <span className="text-blue-600 mr-1 text-sm">★</span>
-                          Featured
-                        </span>
-                      </div>
-                    )}
                     <div className="px-6 py-5 border-b border-gray-200">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center">
+                          <h3 className="text-lg leading-6 font-medium text-gray-900">
                             {job.title}
-                            {job.featured && <span className="ml-2 text-blue-500 text-xl">★</span>}
                           </h3>
                           <div className="mt-1 flex items-center">
                             <span className="text-sm text-gray-500">
