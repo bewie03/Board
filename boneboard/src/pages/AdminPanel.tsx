@@ -1304,15 +1304,56 @@ const PausedItemCard: React.FC<{
                     REPORTED
                   </span>
                 )}
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium text-xs">
+                  PAUSED
+                </span>
               </div>
-              <p className="text-sm text-gray-600">
-                {item.type === 'project' && item.category && (
+              
+              {/* Project/Job specific info */}
+              {item.type === 'project' && (
+                <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
                   <span className="capitalize">{item.category}</span>
-                )}
-                {item.type === 'job' && item.company && (
+                  {item.funding_goal && (
+                    <>
+                      <span>•</span>
+                      <span className="text-green-600 font-medium">
+                        Goal: ${parseFloat(item.funding_goal).toLocaleString()}
+                      </span>
+                    </>
+                  )}
+                  {item.current_funding && (
+                    <>
+                      <span>•</span>
+                      <span className="text-blue-600">
+                        Raised: ${parseFloat(item.current_funding).toLocaleString()}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {item.type === 'job' && (
+                <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
                   <span>{item.company}</span>
-                )}
-              </p>
+                  {item.location && (
+                    <>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <FaMapMarkerAlt className="h-3 w-3" />
+                        {item.location}
+                      </span>
+                    </>
+                  )}
+                  {item.salary && (
+                    <>
+                      <span>•</span>
+                      <span className="text-green-600 font-medium">
+                        ${parseFloat(item.salary).toLocaleString()} {item.custom_salary_type || item.salary_type}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Action Buttons */}
@@ -1343,24 +1384,72 @@ const PausedItemCard: React.FC<{
           </div>
           
           {/* Description */}
-          <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
+          <p className="text-gray-700 text-sm mb-3 line-clamp-3 leading-relaxed">
             {item.description}
           </p>
           
-          {/* Footer Info */}
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Created {formatDate(item.created_at)}</span>
-            <div className="flex items-center gap-2">
-              {item.type === 'job' && item.location && (
-                <>
-                  <span>{item.location}</span>
-                  <span>•</span>
-                </>
+          {/* Additional project/job details */}
+          {item.type === 'project' && (
+            <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
+              {item.website && (
+                <a 
+                  href={item.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <FaGlobe className="h-3 w-3" />
+                  Website
+                </a>
               )}
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
-                PAUSED
-              </span>
+              {item.twitter_link && (
+                <a 
+                  href={item.twitter_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <FaExternalLinkAlt className="h-3 w-3" />
+                  Twitter
+                </a>
+              )}
+              {item.discord_link && (
+                <a 
+                  href={item.discord_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <FaExternalLinkAlt className="h-3 w-3" />
+                  Discord
+                </a>
+              )}
             </div>
+          )}
+          
+          {item.type === 'job' && (
+            <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
+              {item.expires_at && (
+                <span className="flex items-center gap-1">
+                  <FaClock className="h-3 w-3" />
+                  Expires {formatDate(item.expires_at)}
+                </span>
+              )}
+              {item.category && (
+                <span className="capitalize">{item.category}</span>
+              )}
+            </div>
+          )}
+          
+          {/* Footer Info */}
+          <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+            <span>Created {formatDate(item.created_at)}</span>
+            {item.report && (
+              <span className="text-red-600 font-medium">Click to view report details →</span>
+            )}
           </div>
         </div>
       </div>
