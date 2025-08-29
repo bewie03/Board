@@ -181,20 +181,9 @@ const AdminPanel: React.FC = () => {
               isPaused: isPaused // Explicit pause state based on actual status
             });
           } else {
-            // If item not found, create a placeholder from report data
-            reportedItems.push({
-              id: itemId,
-              title: firstReport.project_name || firstReport.title || 'Unknown Item',
-              description: firstReport.description || 'No description available',
-              type: firstReport.item_type || 'project',
-              created_at: firstReport.created_at,
-              reports: reports,
-              reportCount: reports.length,
-              primaryReport: firstReport,
-              status: 'active', // Default status for placeholder items
-              currentStatus: 'active',
-              isPlaceholder: true
-            });
+            // If item not found, skip it - likely deleted from database
+            console.log(`[FRONTEND] Skipping item ${itemId} - not found in database (likely deleted)`);
+            // Don't add placeholder items for deleted projects/jobs
           }
         } catch (error) {
           console.error(`Error fetching details for item ${itemId}:`, error);
