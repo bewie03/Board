@@ -287,7 +287,16 @@ const AdminPanel: React.FC = () => {
       // Update local state immediately for better UX
       setReportedItems(prev => prev.map(item => {
         if (item.id === projectId) {
-          const newStatus = finalAction === 'pause' ? 'paused' : 'active';
+          // For restore action, use the correct status based on item type
+          let newStatus;
+          if (finalAction === 'pause') {
+            newStatus = 'paused';
+          } else {
+            // For restore: projects use 'active', jobs use 'confirmed'
+            // We need to determine item type from the scam_type or check both
+            newStatus = item.scam_type === 'project' ? 'active' : 'confirmed';
+          }
+          
           return {
             ...item,
             status: newStatus,
