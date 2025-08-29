@@ -848,35 +848,6 @@ const AdminPanel: React.FC = () => {
 
                 {/* Report Info */}
                 <div className="space-y-6">
-                  {/* Title and Severity */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{selectedReport.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        selectedReport.severity === 'high' ? 'bg-red-500 text-white' :
-                        selectedReport.severity === 'medium' ? 'bg-yellow-500 text-white' :
-                        selectedReport.severity === 'low' ? 'bg-green-500 text-white' :
-                        'bg-purple-600 text-white'
-                      }`}>
-                        {selectedReport.severity?.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="capitalize">{selectedReport.scam_type}</span>
-                      <span>•</span>
-                      <span className="capitalize font-medium text-blue-600">
-                        {selectedReport.itemType || 'Unknown'} Report
-                      </span>
-                      <span>•</span>
-                      <span>{new Date(selectedReport.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Description</h4>
-                    <p className="text-gray-700 leading-relaxed">{selectedReport.description}</p>
-                  </div>
 
                   {/* Individual Reports */}
                   {selectedReport.allReports && selectedReport.allReports.length > 0 ? (
@@ -1017,25 +988,6 @@ const ReportedItemCard: React.FC<{
     return date.toLocaleDateString();
   };
 
-  const getHighestSeverity = () => {
-    if (!item.reports || item.reports.length === 0) return 'low';
-    const severityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
-    return item.reports.reduce((highest: string, report: any) => {
-      const currentLevel = severityOrder[report.severity as keyof typeof severityOrder] || 1;
-      const highestLevel = severityOrder[highest as keyof typeof severityOrder] || 1;
-      return currentLevel > highestLevel ? report.severity : highest;
-    }, 'low');
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'bg-red-600 text-white';
-      case 'high': return 'bg-red-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-green-500 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
 
   const handleCardClick = () => {
     onShowReports(item);
@@ -1043,23 +995,23 @@ const ReportedItemCard: React.FC<{
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300"
       onClick={handleCardClick}
     >
-      <div className="p-6">
-        <div className="flex items-center mb-4">
+      <div className="p-4">
+        <div className="flex items-start gap-3 mb-3">
           {/* Circular Avatar */}
-          <div className="w-12 h-12 rounded-full mr-4 bg-white border border-gray-200 flex items-center justify-center">
-            {item.logo || item.companyLogo ? (
+          <div className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {item.avatar || item.logo || item.companyLogo || item.company_logo ? (
               <img 
-                src={item.logo || item.companyLogo} 
+                src={item.avatar || item.logo || item.companyLogo || item.company_logo} 
                 alt={`${item.title} logo`}
                 className="w-full h-full rounded-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<div class="text-blue-600 text-lg"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                    parent.innerHTML = '<div class="text-blue-600 text-lg flex items-center justify-center w-full h-full"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
                   }
                 }}
               />
@@ -1068,15 +1020,15 @@ const ReportedItemCard: React.FC<{
             )}
           </div>
           
-          <div className="flex-1">
-            <div className="flex items-center">
-              <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-base font-semibold text-gray-900 truncate">{item.title}</h3>
               {item.isVerified && (
                 <div 
-                  className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                  className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
                   title="Verified project"
                 >
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -1087,14 +1039,9 @@ const ReportedItemCard: React.FC<{
               <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                 {item.type === 'project' ? item.category : item.company}
               </span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(getHighestSeverity())}`}>
-                REPORTED
+              <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                {item.reportCount || 1} Report{(item.reportCount || 1) > 1 ? 's' : ''}
               </span>
-              {item.reportCount > 1 && (
-                <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                  {item.reportCount} Reports
-                </span>
-              )}
             </div>
           </div>
           
@@ -1125,7 +1072,7 @@ const ReportedItemCard: React.FC<{
           </div>
         </div>
         
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
           {item.description}
         </p>
         
