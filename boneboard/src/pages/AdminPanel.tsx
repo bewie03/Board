@@ -1258,11 +1258,6 @@ const PausedItemCard: React.FC<{
     });
   };
 
-  const formatSalary = (salary: number, salaryType: string, customSalaryType?: string) => {
-    if (!salary) return 'Not specified';
-    const type = customSalaryType || salaryType;
-    return `$${salary.toLocaleString()} ${type}`;
-  };
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't trigger if clicking on action buttons
@@ -1277,93 +1272,90 @@ const PausedItemCard: React.FC<{
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
-      {/* Project/Job Preview Box */}
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-start gap-3">
-          {/* Logo/Avatar */}
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            {item.logo ? (
-              <img src={item.logo} alt={item.title} className="w-8 h-8 rounded" />
-            ) : (
-              <span className="text-white font-bold text-lg">
-                {item.title?.charAt(0)?.toUpperCase() || '?'}
-              </span>
-            )}
-          </div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200 cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <div className="flex items-start gap-4">
+        {/* Circular Logo */}
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+          {item.logo ? (
+            <img src={item.logo} alt={item.title} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <span className="text-white font-bold text-lg">
+              {item.title?.charAt(0)?.toUpperCase() || '?'}
+            </span>
+          )}
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-900 text-lg truncate">{item.title}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  {item.type === 'project' && (
-                    <>
-                      <span className="text-sm text-gray-600 capitalize">{item.category}</span>
-                      {item.funding_goal && (
-                        <span className="text-sm text-green-600 font-medium">
-                          Goal: ${item.funding_goal?.toLocaleString()}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {item.type === 'job' && (
-                    <>
-                      <span className="text-sm text-gray-600">{item.company}</span>
-                      {item.salary && (
-                        <span className="text-sm text-green-600 font-medium">
-                          {formatSalary(item.salary, item.salary_type, item.custom_salary_type)}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
+                {item.report && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    item.report.severity === 'high' ? 'bg-red-500 text-white' :
+                    item.report.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                    item.report.severity === 'low' ? 'bg-green-500 text-white' :
+                    'bg-purple-600 text-white'
+                  }`}>
+                    REPORTED
+                  </span>
+                )}
               </div>
-              
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1 ml-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRestore(item.id, item.type);
-                  }}
-                  disabled={loading}
-                  className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                  title="Resume"
-                >
-                  <FaPlay className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id});
-                  }}
-                  disabled={loading}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete"
-                >
-                  <FaTrashAlt className="h-4 w-4" />
-                </button>
-              </div>
+              <p className="text-sm text-gray-600">
+                {item.type === 'project' && item.category && (
+                  <span className="capitalize">{item.category}</span>
+                )}
+                {item.type === 'job' && item.company && (
+                  <span>{item.company}</span>
+                )}
+              </p>
             </div>
             
-            {/* Description */}
-            <p className="text-gray-700 text-sm mt-2 line-clamp-2 leading-relaxed">
-              {item.description}
-            </p>
-            
-            {/* Additional Info */}
-            <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-              <span className="flex items-center gap-1">
-                <FaClock className="h-3 w-3" />
-                {formatDate(item.created_at)}
-              </span>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 ml-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRestore(item.id, item.type);
+                }}
+                disabled={loading}
+                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                title="Resume"
+              >
+                <FaPlay className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id});
+                }}
+                disabled={loading}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete"
+              >
+                <FaTrashAlt className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Description */}
+          <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
+            {item.description}
+          </p>
+          
+          {/* Footer Info */}
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>Created {formatDate(item.created_at)}</span>
+            <div className="flex items-center gap-2">
               {item.type === 'job' && item.location && (
-                <span className="flex items-center gap-1">
-                  <FaMapMarkerAlt className="h-3 w-3" />
-                  {item.location}
-                </span>
+                <>
+                  <span>{item.location}</span>
+                  <span>•</span>
+                </>
               )}
               <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
                 PAUSED
@@ -1372,36 +1364,6 @@ const PausedItemCard: React.FC<{
           </div>
         </div>
       </div>
-
-      {/* Report Section - Clickable */}
-      {item.report && (
-        <div 
-          className="p-4 bg-red-50 border-l-4 border-red-400 cursor-pointer hover:bg-red-100 transition-colors"
-          onClick={handleCardClick}
-        >
-          <div className="flex items-start gap-3">
-            <FaExclamationTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-semibold text-red-800">Report: {item.report.title}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  item.report.severity === 'high' ? 'bg-red-500 text-white' :
-                  item.report.severity === 'medium' ? 'bg-yellow-500 text-white' :
-                  item.report.severity === 'low' ? 'bg-green-500 text-white' :
-                  'bg-purple-600 text-white'
-                }`}>
-                  {item.report.severity?.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs text-red-700 line-clamp-2 mb-2">{item.report.description}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-red-600">Click to view full report details</span>
-                <FaExternalLinkAlt className="h-3 w-3 text-red-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
