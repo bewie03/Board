@@ -164,13 +164,15 @@ const AdminPanel: React.FC = () => {
           
           // If we found the item, add it with its reports
           if (itemData) {
+            console.log(`[FRONTEND] Item ${itemId} found with status: ${itemData.status}`);
             reportedItems.push({
               ...itemData,
               reports: reports,
               reportCount: reports.length,
               primaryReport: firstReport,
-              status: itemData.status, // Ensure status is preserved
-              currentStatus: itemData.status // Add explicit current status tracking
+              status: itemData.status, // Current database status
+              currentStatus: itemData.status, // Track current status for UI
+              isPaused: itemData.status === 'paused' // Explicit pause state
             });
           } else {
             // If item not found, create a placeholder from report data
@@ -289,7 +291,8 @@ const AdminPanel: React.FC = () => {
           return {
             ...item,
             status: newStatus,
-            currentStatus: newStatus
+            currentStatus: newStatus,
+            isPaused: finalAction === 'pause'
           };
         }
         return item;
@@ -1147,9 +1150,9 @@ const ReportedItemCard: React.FC<{
               }}
               disabled={loading || item.isPlaceholder}
               className={`p-2 transition-colors ${item.isPlaceholder ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-yellow-600'}`}
-              title={item.isPlaceholder ? 'Item no longer exists' : (item.currentStatus === 'paused' || item.status === 'paused' ? 'Resume item' : 'Pause item')}
+              title={item.isPlaceholder ? 'Item no longer exists' : (item.isPaused || item.status === 'paused' ? 'Resume item' : 'Pause item')}
             >
-              {item.currentStatus === 'paused' || item.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
+              {item.isPaused || item.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
             </button>
             <button
               onClick={(e) => {
