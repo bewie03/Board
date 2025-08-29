@@ -396,9 +396,12 @@ async function handleUpdateReport(req: any, res: any) {
             updateValues = ['paused', projectId];
             break;
           case 'restore':
-            // Restore: Update project/job status to active when resuming from pause
+            // Restore: Update project/job status back to active state when resuming from pause
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['active', projectId] : ['active', projectId];
+            // Projects use 'active', jobs use 'confirmed' as their active state
+            const restoredStatus = itemType === 'project' ? 'active' : 'confirmed';
+            updateValues = [restoredStatus, projectId];
+            console.log(`[API] Restoring ${itemType} to status: ${restoredStatus}`);
             break;
           case 'permanent_delete':
             // Permanent delete: Remove job/project from database completely
