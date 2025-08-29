@@ -128,8 +128,8 @@ const JobListings: React.FC = () => {
           ...job,
           logo: job.companyLogo || null,
           posted: formatRelativeTime(job.timestamp),
-          // Temporary: Set some jobs as verified for testing
-          isProjectVerified: job.company === 'SundaeSwap' || job.title.toLowerCase().includes('sundae'),
+          // Use actual project verification from database
+          isProjectVerified: job.isProjectVerified || false,
           // Transform discord string to object format if needed
           discord: job.discord ? { inviteUrl: job.discord } : undefined,
           // Ensure companyLogo is properly typed
@@ -203,12 +203,14 @@ const JobListings: React.FC = () => {
       (selectedVerificationFilter === 'verified' && job.isProjectVerified === true);
     
     return matchesSearch && matchesDate && matchesCategory && matchesPayment && matchesJobType && matchesWorkArrangement && matchesVerification;
-  }).filter(job => !job.featured).sort((a, b) => {
-    // Sort by timestamp (newest first)
+  }).sort((a, b) => {
+    // Sort featured jobs first, then by timestamp (newest first)
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
     return b.timestamp - a.timestamp;
   });
 
-  // Get featured jobs for the featured section
+  // Get featured jobs for the featured section (keep separate sidebar section)
   const featuredJobs = jobs.filter(job => job.featured);
 
   const selectJob = (jobId: string) => {
