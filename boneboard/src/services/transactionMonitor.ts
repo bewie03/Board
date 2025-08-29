@@ -13,7 +13,10 @@ class TransactionMonitor {
   private isChecking = false;
 
   async startMonitoring(walletAddress: string) {
-    if (this.isChecking) return;
+    if (this.isChecking) {
+      console.log('Transaction monitoring already active, skipping duplicate start');
+      return;
+    }
     
     console.log('Starting transaction monitoring for wallet:', walletAddress);
     this.isChecking = true;
@@ -99,13 +102,14 @@ class TransactionMonitor {
       
       if (status === 'confirmed') {
         console.log('Transaction confirmed, saving job to database');
-        // Remove from localStorage first to prevent duplicate processing
-        localStorage.removeItem(pendingKey);
-        this.stopMonitoring();
         
-        // Save job to database
+        // Save job to database first (with duplicate check)
         try {
           await this.saveJobToDatabase(pendingTx.jobData, pendingTx.txHash);
+          
+          // Only remove from localStorage and stop monitoring after successful save
+          localStorage.removeItem(pendingKey);
+          this.stopMonitoring();
           
           // Dispatch custom event for UI to handle success state
           window.dispatchEvent(new CustomEvent('jobPostedSuccessfully', {
@@ -116,7 +120,8 @@ class TransactionMonitor {
           return;
         } catch (error) {
           console.error('Error saving job to database:', error);
-          toast.error('Transaction confirmed but failed to save job. Please contact support.');
+          // Don't remove from localStorage if save failed, allow retry
+          toast.error('Transaction confirmed but failed to save job. Will retry...');
         }
       } else {
         // For both 'failed' and 'pending', we continue checking until timeout
@@ -129,6 +134,20 @@ class TransactionMonitor {
   }
 
   private async saveJobToDatabase(jobData: JobPostingData, txHash: string) {
+    // Check if job with this txHash already exists to prevent duplicates
+    try {
+      const existingJobs = await JobService.getAllJobs();
+      const existingJob = existingJobs.find(job => job.txHash === txHash);
+      
+      if (existingJob) {
+        console.log('Job with this transaction hash already exists, skipping duplicate save:', txHash);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking for existing job:', error);
+      // Continue with save attempt even if check fails
+    }
+
     const jobToSave = {
       title: jobData.title,
       company: jobData.company,

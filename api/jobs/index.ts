@@ -190,6 +190,20 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
   // Calculate expiration date
   const expiresAt = new Date(Date.now() + (duration * 30 * 24 * 60 * 60 * 1000));
 
+  // Check if job with this txHash already exists to prevent duplicates
+  if (txHash) {
+    const duplicateCheckQuery = 'SELECT id FROM job_listings WHERE tx_hash = $1';
+    const duplicateResult = await getPool().query(duplicateCheckQuery, [txHash]);
+    
+    if (duplicateResult.rows.length > 0) {
+      console.log('Job with this transaction hash already exists:', txHash);
+      return res.status(409).json({ 
+        error: 'Job with this transaction hash already exists',
+        existingJobId: duplicateResult.rows[0].id 
+      });
+    }
+  }
+
   const query = `
     INSERT INTO job_listings (
       title, company, description, salary, salary_type, category, type,
