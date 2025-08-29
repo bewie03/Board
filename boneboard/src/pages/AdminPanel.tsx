@@ -108,7 +108,7 @@ const AdminPanel: React.FC = () => {
       setError(null);
       console.log('Loading reported items...');
       
-      // Fetch all reports first
+      // Fetch all reports first (both pending and verified to show paused items)
       const reportsResponse = await fetch('/api/reports', {
         headers: { 'x-wallet-address': walletAddress }
       });
@@ -431,7 +431,10 @@ const AdminPanel: React.FC = () => {
                               ...item.primaryReport,
                               itemType: item.type,
                               itemTitle: item.title,
-                              allReports: item.reports || []
+                              allReports: item.reports || [],
+                              website: item.website,
+                              twitter: item.twitter,
+                              discord: item.discord
                             });
                             setShowReportSidePanel(true);
                           }}
@@ -795,14 +798,52 @@ const AdminPanel: React.FC = () => {
             >
               <div className="p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Report Details</h2>
-                  <button
-                    onClick={() => setShowReportSidePanel(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <FaTimes className="h-5 w-5" />
-                  </button>
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">{selectedReport.itemTitle}</h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-600 capitalize">
+                          {selectedReport.itemType} Report
+                        </span>
+                        {selectedReport.allReports && (
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                            {selectedReport.allReports.length} Report{selectedReport.allReports.length > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowReportSidePanel(false)}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <FaTimes className="h-5 w-5" />
+                    </button>
+                  </div>
+                  
+                  {/* Social Links */}
+                  <div className="flex space-x-3">
+                    {selectedReport.website && (
+                      <a href={selectedReport.website} target="_blank" rel="noopener noreferrer" 
+                         className="p-2 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+                        <FaGlobe className="h-4 w-4" />
+                      </a>
+                    )}
+                    {selectedReport.twitter && (
+                      <a href={typeof selectedReport.twitter === 'string' ? selectedReport.twitter : `https://twitter.com/${selectedReport.twitter.username}`} 
+                         target="_blank" rel="noopener noreferrer"
+                         className="p-2 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+                        <FaTwitter className="h-4 w-4" />
+                      </a>
+                    )}
+                    {selectedReport.discord && (
+                      <a href={typeof selectedReport.discord === 'string' ? selectedReport.discord : selectedReport.discord.inviteUrl} 
+                         target="_blank" rel="noopener noreferrer"
+                         className="p-2 text-gray-400 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <FaDiscord className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {/* Report Info */}
@@ -837,100 +878,118 @@ const AdminPanel: React.FC = () => {
                     <p className="text-gray-700 leading-relaxed">{selectedReport.description}</p>
                   </div>
 
-                  {/* Reported Item */}
-                  {selectedReport.itemTitle && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Reported {selectedReport.itemType}</h4>
-                      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p className="text-sm font-medium text-blue-900">{selectedReport.itemTitle}</p>
-                        {selectedReport.allReports && selectedReport.allReports.length > 1 && (
-                          <p className="text-xs text-blue-700 mt-1">
-                            {selectedReport.allReports.length} reports total
-                          </p>
+                  {/* Individual Reports */}
+                  {selectedReport.allReports && selectedReport.allReports.length > 0 ? (
+                    selectedReport.allReports.map((report: any, index: number) => (
+                      <div key={report.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-sm font-medium text-gray-900">Report #{index + 1}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            report.severity === 'high' ? 'bg-red-500 text-white' :
+                            report.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                            report.severity === 'low' ? 'bg-green-500 text-white' :
+                            'bg-purple-600 text-white'
+                          }`}>
+                            {report.severity?.toUpperCase()}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(report.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        
+                        <h5 className="font-medium text-gray-900 mb-2">{report.title}</h5>
+                        <p className="text-sm text-gray-700 mb-3 leading-relaxed">{report.description}</p>
+                        
+                        <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
+                          <span className="capitalize">{report.scam_type}</span>
+                          <span>•</span>
+                          <span className={`px-2 py-0.5 rounded-full ${
+                            report.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            report.status === 'verified' ? 'bg-green-100 text-green-800' :
+                            report.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {report.status?.toUpperCase()}
+                          </span>
+                        </div>
+                        
+                        {/* Evidence for this report */}
+                        {report.evidence_urls && report.evidence_urls.length > 0 && (
+                          <div>
+                            <h6 className="text-xs font-medium text-gray-700 mb-2">Evidence:</h6>
+                            <div className="space-y-1">
+                              {report.evidence_urls.map((url: string, urlIndex: number) => (
+                                <a
+                                  key={urlIndex}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 hover:underline break-all"
+                                >
+                                  <FaExternalLinkAlt className="h-2 w-2 flex-shrink-0" />
+                                  Evidence {urlIndex + 1}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* All Reports */}
-                  {selectedReport.allReports && selectedReport.allReports.length > 1 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-3">All Reports ({selectedReport.allReports.length})</h4>
-                      <div className="space-y-3">
-                        {selectedReport.allReports.map((report: any, index: number) => (
-                          <div key={report.id} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm font-medium text-gray-900">Report #{index + 1}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                report.severity === 'high' ? 'bg-red-500 text-white' :
-                                report.severity === 'medium' ? 'bg-yellow-500 text-white' :
-                                report.severity === 'low' ? 'bg-green-500 text-white' :
-                                'bg-purple-600 text-white'
-                              }`}>
-                                {report.severity?.toUpperCase()}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {new Date(report.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <h5 className="font-medium text-gray-900 mb-1">{report.title}</h5>
-                            <p className="text-sm text-gray-700 mb-2">{report.description}</p>
-                            <p className="text-xs text-gray-600 capitalize">{report.scam_type}</p>
+                    ))
+                  ) : (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-sm font-medium text-gray-900">Report #1</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          selectedReport.severity === 'high' ? 'bg-red-500 text-white' :
+                          selectedReport.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                          selectedReport.severity === 'low' ? 'bg-green-500 text-white' :
+                          'bg-purple-600 text-white'
+                        }`}>
+                          {selectedReport.severity?.toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(selectedReport.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      
+                      <h5 className="font-medium text-gray-900 mb-2">{selectedReport.title}</h5>
+                      <p className="text-sm text-gray-700 mb-3 leading-relaxed">{selectedReport.description}</p>
+                      
+                      <div className="flex items-center gap-4 text-xs text-gray-600 mb-3">
+                        <span className="capitalize">{selectedReport.scam_type}</span>
+                        <span>•</span>
+                        <span className={`px-2 py-0.5 rounded-full ${
+                          selectedReport.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          selectedReport.status === 'verified' ? 'bg-green-100 text-green-800' :
+                          selectedReport.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {selectedReport.status?.toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      {/* Evidence */}
+                      {selectedReport.evidence_urls && selectedReport.evidence_urls.length > 0 && (
+                        <div>
+                          <h6 className="text-xs font-medium text-gray-700 mb-2">Evidence:</h6>
+                          <div className="space-y-1">
+                            {selectedReport.evidence_urls.map((url: string, index: number) => (
+                              <a
+                                key={index}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 hover:underline break-all"
+                              >
+                                <FaExternalLinkAlt className="h-2 w-2 flex-shrink-0" />
+                                Evidence {index + 1}
+                              </a>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
-
-                  {/* Target Identifier */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Target Identifier</h4>
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <code className="text-sm text-gray-800 break-all">{selectedReport.scam_identifier}</code>
-                    </div>
-                  </div>
-
-                  {/* Evidence URLs */}
-                  {selectedReport.evidence_urls && selectedReport.evidence_urls.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Evidence</h4>
-                      <div className="space-y-2">
-                        {selectedReport.evidence_urls.map((url: string, index: number) => (
-                          <a
-                            key={index}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
-                          >
-                            <FaExternalLinkAlt className="h-3 w-3" />
-                            Evidence {index + 1}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Status */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Status</h4>
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                      selectedReport.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      selectedReport.status === 'verified' ? 'bg-green-100 text-green-800' :
-                      selectedReport.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {selectedReport.status?.toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Reporter ID */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Reporter</h4>
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <code className="text-xs text-gray-600 break-all">{selectedReport.reporter_id}</code>
-                    </div>
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -1069,27 +1128,6 @@ const ReportedItemCard: React.FC<{
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
           {item.description}
         </p>
-        
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex space-x-2">
-            {item.website && (
-              <a href={item.website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                <FaGlobe className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-              </a>
-            )}
-            {item.twitter && (
-              <a href={typeof item.twitter === 'string' ? item.twitter : `https://twitter.com/${item.twitter.username}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                <FaTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-              </a>
-            )}
-            {item.discord && (
-              <a href={typeof item.discord === 'string' ? item.discord : item.discord.inviteUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                <FaDiscord className="h-4 w-4 text-gray-400 hover:text-indigo-600" />
-              </a>
-            )}
-          </div>
-          <span className="text-red-600 font-medium text-xs">Click to view reports →</span>
-        </div>
         
         <div className="text-xs text-gray-500">
           Created {formatDate(item.created_at || item.createdAt)}
