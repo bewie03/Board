@@ -259,6 +259,7 @@ const AdminPanel: React.FC = () => {
         finalAction = currentStatus === 'paused' ? 'restore' : 'pause';
       }
       
+      console.log(`[FRONTEND] Processing ${finalAction} for item ${projectId} with current status: ${currentStatus}`);
       
       const response = await fetch('/api/reports', {
         method: 'PUT',
@@ -278,8 +279,23 @@ const AdminPanel: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
-      await response.json();
-      // Reload all relevant data
+      const result = await response.json();
+      console.log(`[FRONTEND] API response:`, result);
+      
+      // Update local state immediately for better UX
+      setReportedItems(prev => prev.map(item => {
+        if (item.id === projectId) {
+          const newStatus = finalAction === 'pause' ? 'paused' : 'active';
+          return {
+            ...item,
+            status: newStatus,
+            currentStatus: newStatus
+          };
+        }
+        return item;
+      }));
+      
+      // Reload all relevant data to ensure consistency
       await loadReportedItems();
     } catch (err: any) {
       setError(err.message || 'Failed to process report');

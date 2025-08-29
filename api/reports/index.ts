@@ -375,7 +375,7 @@ async function handleUpdateReport(req: any, res: any) {
           case 'restore':
             // Restore: Update project/job status to active when resuming from pause
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
-            updateValues = itemType === 'project' ? ['active', projectId] : ['confirmed', projectId];
+            updateValues = itemType === 'project' ? ['active', projectId] : ['active', projectId];
             break;
           case 'permanent_delete':
             // Permanent delete: Remove job/project from database completely
