@@ -138,24 +138,26 @@ const AdminPanel: React.FC = () => {
         let itemData = null;
         
         try {
-          // Try to fetch as project first
-          const projectResponse = await fetch(`/api/projects?id=${itemId}`);
+          // Try to fetch as project first (force fresh data by adding timestamp)
+          const projectResponse = await fetch(`/api/projects?id=${itemId}&_t=${Date.now()}`);
           if (projectResponse.ok) {
             const projectData = await projectResponse.json();
             const projects = Array.isArray(projectData) ? projectData : (projectData.projects || []);
             if (projects.length > 0) {
               itemData = { ...projects[0], type: 'project' };
+              console.log(`[FRONTEND] Fetched project ${itemId} with status: ${projects[0].status}`);
             }
           }
           
           // If not found as project, try as job
           if (!itemData) {
-            const jobResponse = await fetch(`/api/jobs?id=${itemId}`);
+            const jobResponse = await fetch(`/api/jobs?id=${itemId}&_t=${Date.now()}`);
             if (jobResponse.ok) {
               const jobData = await jobResponse.json();
               const jobs = Array.isArray(jobData) ? jobData : (jobData.jobs || []);
               if (jobs.length > 0) {
                 itemData = { ...jobs[0], type: 'job' };
+                console.log(`[FRONTEND] Fetched job ${itemId} with status: ${jobs[0].status}`);
               }
             }
           }
@@ -1065,7 +1067,7 @@ const ReportedItemCard: React.FC<{
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300"
+      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300 min-w-[400px]"
       onClick={handleCardClick}
     >
       <div className="p-6">

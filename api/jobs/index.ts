@@ -107,6 +107,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   if (active === 'true') {
     conditions.push('j.expires_at > NOW()');
     conditions.push('j.status IN (\'confirmed\', \'pending\')');
+    conditions.push('j.status != \'paused\''); // Exclude paused items from public listings
   }
 
   if (conditions.length > 0) {

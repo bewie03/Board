@@ -71,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handleGet(req: VercelRequest, res: VercelResponse) {
-  const { id, wallet, status, category } = req.query;
+  const { id, wallet, status, category, active } = req.query;
 
   let query = `
     SELECT p.*, 
@@ -106,6 +106,11 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   if (category) {
     conditions.push('p.category = $' + (params.length + 1));
     params.push(category);
+  }
+
+  if (active === 'true') {
+    conditions.push('p.status IN (\'active\', \'funded\')');
+    conditions.push('p.status != \'paused\''); // Exclude paused items from public listings
   }
 
   if (conditions.length > 0) {
