@@ -474,10 +474,20 @@ const AdminPanel: React.FC = () => {
                           key={item.id} 
                           item={item} 
                           onPause={(itemId) => {
+                            if (item.isPlaceholder) {
+                              setError('Cannot pause deleted/missing items');
+                              return;
+                            }
                             handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.currentStatus || item.status);
                           }}
                           onRemove={(itemId) => handleRemoveFromReports(item.primaryReport?.id, itemId)}
-                          onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: item.primaryReport?.id, itemId})}
+                          onDelete={(itemId) => {
+                            if (item.isPlaceholder) {
+                              setError('Cannot delete missing items - use "Remove from reports" instead');
+                              return;
+                            }
+                            setDeleteConfirm({show: true, type: 'item', id: item.primaryReport?.id, itemId});
+                          }}
                           onShowReports={(item) => {
                             setSelectedReport({
                               ...item.primaryReport,
@@ -1119,9 +1129,9 @@ const ReportedItemCard: React.FC<{
                 e.stopPropagation();
                 onPause(item.id, item.type);
               }}
-              disabled={loading}
-              className="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
-              title={item.currentStatus === 'paused' || item.status === 'paused' ? 'Resume item' : 'Pause item'}
+              disabled={loading || item.isPlaceholder}
+              className={`p-2 transition-colors ${item.isPlaceholder ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-yellow-600'}`}
+              title={item.isPlaceholder ? 'Item no longer exists' : (item.currentStatus === 'paused' || item.status === 'paused' ? 'Resume item' : 'Pause item')}
             >
               {item.currentStatus === 'paused' || item.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
             </button>
@@ -1141,9 +1151,9 @@ const ReportedItemCard: React.FC<{
                 e.stopPropagation();
                 onDelete(item.id, item.type);
               }}
-              disabled={loading}
-              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-              title="Delete item permanently"
+              disabled={loading || item.isPlaceholder}
+              className={`p-2 transition-colors ${item.isPlaceholder ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'}`}
+              title={item.isPlaceholder ? 'Item no longer exists' : 'Delete item permanently'}
             >
               <FaTrash className="h-4 w-4" />
             </button>
