@@ -80,8 +80,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       p.status as project_status
     FROM job_listings j
     LEFT JOIN projects p ON (
-      LOWER(j.company) = LOWER(p.title) OR 
-      LOWER(j.company) = LOWER(p.name) OR
+      LOWER(j.company) = LOWER(p.title) OR
       j.user_id = p.wallet_address
     )
   `;
