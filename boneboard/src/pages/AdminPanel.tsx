@@ -169,6 +169,7 @@ const AdminPanel: React.FC = () => {
             // Projects: paused when status === 'paused'
             // Jobs: paused when status === 'paused', active when status === 'confirmed'
             const isPaused = itemData.status === 'paused';
+            console.log(`[FRONTEND] Item ${itemId} has status '${itemData.status}', isPaused: ${isPaused}, type: ${itemData.type}`);
             
             reportedItems.push({
               ...itemData,
@@ -313,8 +314,14 @@ const AdminPanel: React.FC = () => {
         return item;
       }));
       
-      // Reload all relevant data to ensure consistency
-      await loadReportedItems();
+      // Don't reload immediately - let the optimistic update show first
+      // await loadReportedItems();
+      
+      // Reload after a delay to see actual database state
+      setTimeout(async () => {
+        console.log('[FRONTEND] Reloading data after 3 seconds to check actual database state');
+        await loadReportedItems();
+      }, 3000);
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
     } finally {

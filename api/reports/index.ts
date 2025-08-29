@@ -292,8 +292,18 @@ async function handleUpdateReport(req: any, res: any) {
       let updateReportQuery = '';
       let reportParams: any[] = [];
       
-      // First, let's see what the current report looks like
-      const currentReportQuery = 'SELECT * FROM scam_reports WHERE id = $1';
+      // First, let's see what the current report looks like with item_type
+      const currentReportQuery = `
+        SELECT r.*, 
+               CASE 
+                 WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'job' THEN 'job'
+                 WHEN r.scam_type = 'user' THEN 'job'
+                 ELSE r.scam_type
+               END as item_type
+        FROM scam_reports r 
+        WHERE r.id = $1
+      `;
       const currentReportResult = await client.query(currentReportQuery, [reportId]);
       console.log('[API] Current report before update:', JSON.stringify(currentReportResult.rows[0], null, 2));
       
@@ -307,7 +317,13 @@ async function handleUpdateReport(req: any, res: any) {
           UPDATE scam_reports 
           SET status = $1, verified_by = $2, verified_at = NOW(), updated_at = NOW(), is_verified = true
           WHERE id = $3
-          RETURNING *
+          RETURNING *, 
+                   CASE 
+                     WHEN scam_type = 'project' THEN 'project'
+                     WHEN scam_type = 'job' THEN 'job'
+                     WHEN scam_type = 'user' THEN 'job'
+                     ELSE scam_type
+                   END as item_type
         `;
         reportParams = [reportStatus, adminUserId, reportId];
       }
