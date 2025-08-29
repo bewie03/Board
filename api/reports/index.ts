@@ -342,7 +342,7 @@ async function handleUpdateReport(req: any, res: any) {
       }
 
       // Take action on the project/job if needed
-      if (action && projectId && (projectStatus !== null || action === 'pause')) {
+      if (action && projectId && (projectStatus !== null || action === 'pause' || action === 'restore')) {
         // First, determine if this is a project or job by checking both tables
         const reportData = reportResult.rows[0];
         const scamType = reportData.scam_type;
