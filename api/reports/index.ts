@@ -344,14 +344,25 @@ async function handleUpdateReport(req: any, res: any) {
         // First, determine if this is a project or job by checking both tables
         const reportData = reportResult.rows[0];
         const scamType = reportData.scam_type;
+        const itemType = reportData.item_type;
         
-        console.log(`[API] Processing ${action} for scam_type: ${scamType} with ID: ${projectId}`);
+        console.log(`[API] Processing ${action} for scam_type: ${scamType}, item_type: ${itemType} with ID: ${projectId}`);
         console.log(`[API] scam_identifier from report: ${reportData.scam_identifier}`);
         console.log(`[API] projectId parameter: ${projectId}`);
         console.log(`[API] Are they equal? ${reportData.scam_identifier === projectId}`);
         
+        // Skip processing if this is not a project or job (e.g., website, user, etc.)
+        if (itemType !== 'project' && itemType !== 'job') {
+          console.log(`[API] Skipping ${action} action - item_type '${itemType}' is not a project or job`);
+          await client.query('COMMIT');
+          return res.status(200).json({
+            message: `Report processed successfully. Note: ${action} action not applicable to ${itemType} reports.`,
+            report: reportResult.rows[0]
+          });
+        }
+        
         // Check both projects and job_listings tables to determine actual type
-        let itemType = 'project';
+        let actualItemType = 'project';
         let tableName = 'projects';
         
         // First check projects table
@@ -364,7 +375,7 @@ async function handleUpdateReport(req: any, res: any) {
           const jobExists = await client.query(jobExistsQuery, [projectId]);
           
           if (jobExists.rows.length > 0) {
-            itemType = 'job';
+            actualItemType = 'job';
             tableName = 'job_listings';
             console.log(`[API] Found in job_listings table:`, jobExists.rows[0]);
           } else {
@@ -382,7 +393,7 @@ async function handleUpdateReport(req: any, res: any) {
           console.log(`[API] Found in projects table:`, projectExists.rows[0]);
         }
         
-        console.log(`[API] Determined itemType: ${itemType}, tableName: ${tableName}`);
+        console.log(`[API] Determined actualItemType: ${actualItemType}, tableName: ${tableName}`);
         
         let updateQuery = '';
         let updateValues: any[] = [];
@@ -399,9 +410,9 @@ async function handleUpdateReport(req: any, res: any) {
             // Restore: Update project/job status back to active state when resuming from pause
             updateQuery = `UPDATE ${tableName} SET status = $1, updated_at = NOW() WHERE id = $2`;
             // Projects use 'active', jobs use 'confirmed' as their active state
-            const restoredStatus = itemType === 'project' ? 'active' : 'confirmed';
+            const restoredStatus = actualItemType === 'project' ? 'active' : 'confirmed';
             updateValues = [restoredStatus, projectId];
-            console.log(`[API] Restoring ${itemType} to status: ${restoredStatus}`);
+            console.log(`[API] Restoring ${actualItemType} to status: ${restoredStatus}`);
             break;
           case 'permanent_delete':
             // Permanent delete: Remove job/project from database completely
