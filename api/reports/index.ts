@@ -310,7 +310,17 @@ async function handleUpdateReport(req: any, res: any) {
       console.log(`[API] Processing report ${reportId} with action: ${action}, reportStatus: ${reportStatus}`);
       
       if (reportStatus === null) {
-        updateReportQuery = `DELETE FROM scam_reports WHERE id = $1 RETURNING *`;
+        updateReportQuery = `
+          DELETE FROM scam_reports 
+          WHERE id = $1 
+          RETURNING *, 
+                   CASE 
+                     WHEN scam_type = 'project' THEN 'project'
+                     WHEN scam_type = 'job' THEN 'job'
+                     WHEN scam_type = 'user' THEN 'job'
+                     ELSE scam_type
+                   END as item_type
+        `;
         reportParams = [reportId];
       } else {
         updateReportQuery = `
