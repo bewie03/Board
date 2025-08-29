@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBriefcase, FaChartBar, FaExclamationTriangle, FaArchive, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay, FaCoins, FaInfoCircle, FaTrashAlt } from 'react-icons/fa';
+import { FaBriefcase, FaChartBar, FaExclamationTriangle, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay, FaCoins, FaInfoCircle, FaTrashAlt } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
