@@ -64,14 +64,14 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
 }) => {
   return (
     <div className="w-full max-w-full overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-200">
-        <div className="flex justify-between items-start">
-          <div className="flex-1 min-w-0 pr-4">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 break-words">
+      <div className="px-6 py-5 border-b border-gray-200 max-w-full overflow-hidden">
+        <div className="flex justify-between items-start max-w-full">
+          <div className="flex-1 min-w-0 pr-4 max-w-full overflow-hidden">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 break-words word-wrap overflow-wrap-anywhere">
               {title || 'Job Title'}
             </h3>
             <div className="mt-1">
-              <p className="text-sm text-gray-500 break-words">
+              <p className="text-sm text-gray-500 break-words word-wrap overflow-wrap-anywhere">
                 {company || 'Company Name'}
               </p>
               <div className="mt-1">
@@ -101,39 +101,39 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
             )}
           </div>
         </div>
-        <div className="mt-4 pt-3 border-t border-gray-100">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-            <span className="flex items-center min-w-0">
+        <div className="mt-4 pt-3 border-t border-gray-100 max-w-full overflow-hidden">
+          <div className="flex flex-col gap-y-2 text-sm text-gray-600 max-w-full">
+            <span className="flex items-center min-w-0 max-w-full">
               <FaMapMarkerAlt className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              <span className="truncate">{workArrangement === 'remote' ? 'Remote' : workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
+              <span className="break-words overflow-wrap-anywhere">{workArrangement === 'remote' ? 'Remote' : workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
             </span>
-            <span className="flex items-center min-w-0">
+            <span className="flex items-center min-w-0 max-w-full">
               <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              <span className="break-words">{salary || 'Salary'}</span>
+              <span className="break-words overflow-wrap-anywhere">{salary || 'Salary'}</span>
             </span>
-            <span className="flex items-center min-w-0">
+            <span className="flex items-center min-w-0 max-w-full">
               <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              <span className="truncate">{type || 'Full-time'}</span>
+              <span className="break-words overflow-wrap-anywhere">{type || 'Full-time'}</span>
             </span>
           </div>
         </div>
       </div>
       <div className="px-6 py-5 w-full max-w-full overflow-hidden">
-        <div className="mb-6">
+        <div className="mb-6 max-w-full overflow-hidden">
           <h4 className="text-lg font-medium text-gray-900 mb-2">Job Description</h4>
-          <p className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere">{description || 'Job description will appear here...'}</p>
+          <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-all max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>{description || 'Job description will appear here...'}</div>
         </div>
         
         {requiredSkills.length > 0 && (
           <div className="mb-6">
             <h4 className="text-lg font-medium text-gray-900 mb-2">Required Skills</h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
               {requiredSkills.map((skill, index) => (
                 <span 
                   key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 break-words max-w-full"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 max-w-full overflow-hidden"
                 >
-                  <span className="break-words">{skill}</span>
+                  <span className="break-words overflow-wrap-anywhere" style={{wordBreak: 'break-word'}}>{skill}</span>
                 </span>
               ))}
             </div>
@@ -143,7 +143,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         {additionalInfo.length > 0 && (
           <div className="mb-6">
             <h4 className="text-lg font-medium text-gray-900 mb-2">Additional Information</h4>
-            <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+            <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
               {additionalInfo.join('\n')}
             </div>
           </div>
@@ -152,27 +152,27 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         <div className="mb-6">
           <h4 className="text-lg font-medium text-gray-900 mb-2">How to Apply</h4>
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <p className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+            <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
               {howToApply || 'Application instructions will appear here...'}
-            </p>
+            </div>
           </div>
         </div>
 
         {(website || twitter || discord || contactEmail) && (
-          <div className="mt-6 pt-4 border-t border-gray-200 px-6 pb-6">
+          <div className="mt-6 pt-4 border-t border-gray-200 px-6 pb-6 max-w-full overflow-hidden">
             {/* Links section */}
             {website && (
-              <div className="mb-6">
+              <div className="mb-6 max-w-full overflow-hidden">
                 <h4 className="text-sm font-medium text-gray-500 mb-3">LINKS</h4>
-                <div className="flex items-center">
+                <div className="flex items-center max-w-full overflow-hidden">
                   <a 
                     href={website.startsWith('http') ? website : `https://${website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline max-w-full overflow-hidden"
                   >
                     <FaLink className="flex-shrink-0 mr-2 h-3.5 w-3.5" />
-                    <span className="break-all">{website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
+                    <span className="break-all max-w-full overflow-hidden" style={{wordBreak: 'break-all'}}>{website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
                   </a>
                 </div>
               </div>
@@ -182,7 +182,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
             {(twitter || discord || contactEmail) && (
               <>
                 <h4 className="text-sm font-medium text-gray-500 mb-3">CONTACT</h4>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 max-w-full overflow-hidden">
                   {twitter && (
                     <a 
                       href={`https://twitter.com/${twitter.replace('@', '')}`} 

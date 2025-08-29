@@ -203,8 +203,10 @@ const JobListings: React.FC = () => {
       (selectedVerificationFilter === 'verified' && job.isProjectVerified === true);
     
     return matchesSearch && matchesDate && matchesCategory && matchesPayment && matchesJobType && matchesWorkArrangement && matchesVerification;
-  }).filter(job => !job.featured).sort((a, b) => {
-    // Sort by timestamp (newest first)
+  }).sort((a, b) => {
+    // Sort featured jobs first, then by timestamp (newest first)
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
     return b.timestamp - a.timestamp;
   });
 
