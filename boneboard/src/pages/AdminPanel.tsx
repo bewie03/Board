@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBriefcase, FaChartBar, FaExclamationTriangle, FaClock, FaTrash, FaShieldAlt, FaDollarSign, FaTimes, FaGlobe, FaExternalLinkAlt, FaEnvelope, FaCalendarAlt, FaMapMarkerAlt, FaPlay, FaCoins, FaInfoCircle, FaTrashAlt } from 'react-icons/fa';
+import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaTrashAlt, FaCoins, FaBriefcase, FaInfoCircle, FaClock } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -21,9 +21,8 @@ interface ScamReport {
 
 const AdminPanel: React.FC = () => {
   const { walletAddress } = useWallet();
-  const [activeTab, setActiveTab] = useState<'reports' | 'paused' | 'pricing'>('reports');
-  const [reports, setReports] = useState<ScamReport[]>([]);
-  const [pausedItems, setPausedItems] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'reports' | 'pricing'>('reports');
+  const [reportedItems, setReportedItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -33,9 +32,7 @@ const AdminPanel: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, type: 'report' | 'item', id: string, itemId?: string} | null>(null);
   const [reportsSearchTerm, setReportsSearchTerm] = useState('');
-  const [pausedSearchTerm, setPausedSearchTerm] = useState('');
   const [reportsSortBy, setReportsSortBy] = useState<'newest' | 'oldest' | 'severity'>('newest');
-  const [pausedSortBy, setPausedSortBy] = useState<'newest' | 'oldest'>('newest');
   const [severityFilter, setSeverityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'critical'>('all');
 
   // Check admin access
@@ -56,12 +53,17 @@ const AdminPanel: React.FC = () => {
 
   // Load data based on active tab
   useEffect(() => {
+    if (walletAddress === ADMIN_WALLET) {
+      loadReportedItems();
+      loadSettings();
+    }
+  }, [walletAddress]);
+
+  useEffect(() => {
     if (activeTab === 'pricing') {
       loadSettings();
     } else if (activeTab === 'reports') {
-      loadReports();
-    } else if (activeTab === 'paused') {
-      loadPausedItems();
+      loadReportedItems();
     }
   }, [activeTab]);
 
@@ -111,100 +113,104 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const loadReports = async () => {
+
+  const loadReportedItems = async () => {
     if (!walletAddress) return;
     
     try {
       setLoading(true);
       setError(null);
-      console.log('[FRONTEND] Loading active reports...');
-      const response = await fetch('/api/reports', {
+      console.log('Loading reported items...');
+      
+      // Fetch all reports first
+      const reportsResponse = await fetch('/api/reports', {
         headers: { 'x-wallet-address': walletAddress }
       });
-      const data = await response.json();
-      console.log('[FRONTEND] Active reports loaded:', data.reports?.length || 0, 'reports');
-      setReports(data.reports || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load reports');
-      console.error('[FRONTEND] Error loading reports:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  const loadPausedItems = async () => {
-    if (!walletAddress) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('Loading paused items...');
-      // Fetch paused projects and jobs, plus reports for paused items
-      const [pausedProjects, pausedJobs, pausedReports] = await Promise.all([
-        fetch('/api/projects?status=paused', {
-          headers: { 'x-wallet-address': walletAddress }
-        }).then(res => res.json()),
-        fetch('/api/jobs?status=paused', {
-          headers: { 'x-wallet-address': walletAddress }
-        }).then(res => res.json()),
-        fetch('/api/reports?paused=true', {
-          headers: { 'x-wallet-address': walletAddress }
-        }).then(res => res.json())
-      ]);
       
-      console.log('Paused data loaded:', {
-        projects: pausedProjects.projects?.length || 0,
-        jobs: Array.isArray(pausedJobs) ? pausedJobs.length : 0,
-        reports: pausedReports.reports?.length || 0
-      });
-      console.log('Paused reports data:', pausedReports.reports);
-      
-      const combined = [
-        ...(pausedProjects.projects || []).map((p: any) => ({ ...p, type: 'project' })),
-        ...(Array.isArray(pausedJobs) ? pausedJobs : []).map((j: any) => ({ ...j, type: 'job' }))
-      ];
-      
-      // Add reports for paused items to show in pause menu
-      if (pausedReports.reports && pausedReports.reports.length > 0) {
-        pausedReports.reports.forEach((report: any) => {
-          const existingItem = combined.find(item => item.id === report.scam_identifier);
-          if (existingItem) {
-            // Handle multiple reports for the same item
-            if (!existingItem.reports) {
-              existingItem.reports = [];
-            }
-            existingItem.reports.push(report);
-            // Keep the first report as the main report for display
-            if (!existingItem.report) {
-              existingItem.report = report;
-            }
-          } else {
-            // If no matching project/job found, the report might be for a paused item
-            // that wasn't returned by the projects/jobs API, so add it as a standalone item
-            console.log('Adding standalone paused report:', report);
-            combined.push({
-              id: report.scam_identifier,
-              title: report.project_name || report.title,
-              description: report.description,
-              type: report.item_type || 'project',
-              created_at: report.created_at,
-              updated_at: report.updated_at,
-              report: report,
-              reports: [report]
-            });
-          }
-        });
+      if (!reportsResponse.ok) {
+        throw new Error(`HTTP error! status: ${reportsResponse.status}`);
       }
       
-      setPausedItems(combined);
+      const reportsData = await reportsResponse.json();
+      const allReports = reportsData.reports || [];
+      console.log('All reports loaded:', allReports);
+      
+      // Group reports by scam_identifier (project/job ID)
+      const reportsByItem = new Map();
+      allReports.forEach((report: any) => {
+        const itemId = report.scam_identifier;
+        if (!reportsByItem.has(itemId)) {
+          reportsByItem.set(itemId, []);
+        }
+        reportsByItem.get(itemId).push(report);
+      });
+      
+      // Fetch project and job details for each reported item
+      const reportedItems = [];
+      for (const [itemId, reports] of reportsByItem.entries()) {
+        const firstReport = reports[0];
+        let itemData = null;
+        
+        try {
+          // Try to fetch as project first
+          const projectResponse = await fetch(`/api/projects?id=${itemId}`);
+          if (projectResponse.ok) {
+            const projectData = await projectResponse.json();
+            const projects = Array.isArray(projectData) ? projectData : (projectData.projects || []);
+            if (projects.length > 0) {
+              itemData = { ...projects[0], type: 'project' };
+            }
+          }
+          
+          // If not found as project, try as job
+          if (!itemData) {
+            const jobResponse = await fetch(`/api/jobs?id=${itemId}`);
+            if (jobResponse.ok) {
+              const jobData = await jobResponse.json();
+              const jobs = Array.isArray(jobData) ? jobData : (jobData.jobs || []);
+              if (jobs.length > 0) {
+                itemData = { ...jobs[0], type: 'job' };
+              }
+            }
+          }
+          
+          // If we found the item, add it with its reports
+          if (itemData) {
+            reportedItems.push({
+              ...itemData,
+              reports: reports,
+              reportCount: reports.length,
+              primaryReport: firstReport
+            });
+          } else {
+            // If item not found, create a placeholder from report data
+            reportedItems.push({
+              id: itemId,
+              title: firstReport.project_name || firstReport.title || 'Unknown Item',
+              description: firstReport.description || 'No description available',
+              type: firstReport.item_type || 'project',
+              created_at: firstReport.created_at,
+              reports: reports,
+              reportCount: reports.length,
+              primaryReport: firstReport,
+              isPlaceholder: true
+            });
+          }
+        } catch (error) {
+          console.error(`Error fetching details for item ${itemId}:`, error);
+        }
+      }
+      
+      console.log('Reported items processed:', reportedItems);
+      setReportedItems(reportedItems);
     } catch (err: any) {
-      setError(err.message || 'Failed to load paused items');
-      console.error('Error loading paused items:', err);
+      setError(err.message || 'Failed to load reported items');
+      console.error('Error loading reported items:', err);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string) => {
     if (!walletAddress) return;
@@ -237,10 +243,7 @@ const AdminPanel: React.FC = () => {
       
       // Reload all relevant data
       console.log('[FRONTEND] Reloading all data...');
-      await Promise.all([
-        loadReports(),
-        loadPausedItems()
-      ]);
+      await loadReportedItems();
       console.log('[FRONTEND] All data reloaded successfully');
     } catch (err: any) {
       setError(err.message || 'Failed to process report');
@@ -257,7 +260,7 @@ const AdminPanel: React.FC = () => {
       setLoading(true);
       
       // Find the related report first
-      const relatedItem = pausedItems.find(item => item.id === itemId);
+      const relatedItem = reportedItems.find(item => item.id === itemId);
       if (relatedItem && relatedItem.report) {
         // Use the reports API to restore the project/job
         await handleProcessReport(relatedItem.report.id, 'restore', itemId);
@@ -281,8 +284,7 @@ const AdminPanel: React.FC = () => {
       }
       
       // Reload all data to reflect changes
-      await loadPausedItems();
-      await loadReports();
+      await loadReportedItems();
     } catch (err: any) {
       setError(err.message || 'Failed to restore item');
       console.error('Error restoring item:', err);
@@ -364,17 +366,6 @@ const AdminPanel: React.FC = () => {
                 Reports
               </button>
               <button
-                onClick={() => setActiveTab('paused')}
-                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                  activeTab === 'paused'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-blue-600 hover:bg-blue-50'
-                }`}
-              >
-                <FaClock className="mr-2 h-4 w-4" />
-                Paused
-              </button>
-              <button
                 onClick={() => setActiveTab('pricing')}
                 className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                   activeTab === 'pricing'
@@ -415,7 +406,7 @@ const AdminPanel: React.FC = () => {
                     </div>
                   </div>
                   <div className="bg-red-100 px-3 py-1 rounded-full">
-                    <span className="text-sm font-medium text-red-800">{reports.length} Reports</span>
+                    <span className="text-sm font-medium text-red-800">{reportedItems.length} Items</span>
                   </div>
                 </div>
               </div>
@@ -451,154 +442,61 @@ const AdminPanel: React.FC = () => {
                     </select>
                   </div>
                 </div>
-                {reports.length === 0 ? (
+                {reportedItems.length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <FaExclamationTriangle className="h-10 w-10 text-blue-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reports Yet</h3>
-                    <p className="text-blue-600">No scam reports have been submitted</p>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reported Items</h3>
+                    <p className="text-blue-600">No projects or jobs have been reported yet</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {reports
-                      .filter(report => {
-                        const matchesSearch = report.title.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
-                          report.description.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
-                          report.project_name?.toLowerCase().includes(reportsSearchTerm.toLowerCase());
-                        const matchesSeverity = severityFilter === 'all' || report.severity === severityFilter;
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {reportedItems
+                      .filter(item => {
+                        const matchesSearch = item.title?.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                          item.description?.toLowerCase().includes(reportsSearchTerm.toLowerCase()) ||
+                          item.company?.toLowerCase().includes(reportsSearchTerm.toLowerCase());
+                        const matchesSeverity = severityFilter === 'all' || 
+                          item.reports?.some((report: any) => report.severity === severityFilter);
                         return matchesSearch && matchesSeverity;
                       })
                       .sort((a, b) => {
                         if (reportsSortBy === 'oldest') {
-                          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                          return new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime();
                         } else if (reportsSortBy === 'severity') {
                           const severityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
-                          return (severityOrder[b.severity as keyof typeof severityOrder] || 0) - (severityOrder[a.severity as keyof typeof severityOrder] || 0);
+                          const aMaxSeverity = Math.max(...(a.reports?.map((r: any) => severityOrder[r.severity as keyof typeof severityOrder] || 0) || [0]));
+                          const bMaxSeverity = Math.max(...(b.reports?.map((r: any) => severityOrder[r.severity as keyof typeof severityOrder] || 0) || [0]));
+                          return bMaxSeverity - aMaxSeverity;
                         } else {
-                          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                          return new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime();
                         }
                       })
-                      .map((report) => (
-                      <ReportCard 
-                        key={report.id} 
-                        report={report} 
-                        onProcess={handleProcessReport}
-                        loading={loading}
-                        onSelectProject={setSelectedProject}
-                        onSelectJob={setSelectedJob}
-                        onDeleteConfirm={setDeleteConfirm}
-                      />
-                    ))}
+                      .map((item) => (
+                        <ReportedItemCard 
+                          key={item.id} 
+                          item={item} 
+                          onPause={(itemId, itemType) => handleProcessReport(item.primaryReport?.id, 'pause', itemId)}
+                          onDelete={(itemId, itemType) => setDeleteConfirm({show: true, type: 'item', id: itemId, itemId})}
+                          onShowReports={(item) => {
+                            setSelectedReport({
+                              ...item.primaryReport,
+                              itemType: item.type,
+                              itemTitle: item.title,
+                              allReports: item.reports || []
+                            });
+                            setShowReportSidePanel(true);
+                          }}
+                          loading={loading}
+                        />
+                      ))}
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Paused Items Tab */}
-          {activeTab === 'paused' && (
-            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
-              <div className="px-6 py-5 border-b border-blue-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <FaClock className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Paused Items</h2>
-                      <p className="text-sm text-blue-600">Manage paused projects and job listings</p>
-                    </div>
-                  </div>
-                  <div className="bg-yellow-100 px-3 py-1 rounded-full">
-                    <span className="text-sm font-medium text-yellow-800">{pausedItems.length} Paused</span>
-                  </div>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="mb-6 space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Search paused items..."
-                    value={pausedSearchTerm}
-                    onChange={(e) => setPausedSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <div className="flex gap-4 flex-wrap">
-                    <select
-                      value={pausedSortBy}
-                      onChange={(e) => setPausedSortBy(e.target.value as 'newest' | 'oldest')}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="newest">Newest First</option>
-                      <option value="oldest">Oldest First</option>
-                    </select>
-                  </div>
-                </div>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-600">Loading paused items...</p>
-                  </div>
-                ) : pausedItems
-                  .filter(item => 
-                    item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                    item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                    item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
-                  )
-                  .sort((a, b) => {
-                    if (pausedSortBy === 'oldest') {
-                      return new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime();
-                    } else {
-                      return new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime();
-                    }
-                  })
-                  .length === 0 ? (
-                  <div className="text-center py-16">
-                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <FaClock className="h-10 w-10 text-blue-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Paused Items</h3>
-                    <p className="text-blue-600">No projects or jobs are currently paused</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {pausedItems
-                      .filter(item => 
-                        item.title?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                        item.description?.toLowerCase().includes(pausedSearchTerm.toLowerCase()) ||
-                        item.company?.toLowerCase().includes(pausedSearchTerm.toLowerCase())
-                      )
-                      .sort((a, b) => {
-                        if (pausedSortBy === 'oldest') {
-                          return new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime();
-                        } else {
-                          return new Date(b.created_at || b.createdAt).getTime() - new Date(a.created_at || a.createdAt).getTime();
-                        }
-                      })
-                      .map((item) => (
-                      <PausedItemCard 
-                        key={item.id} 
-                        item={item} 
-                        onRestore={handleRestoreItem}
-                        loading={loading}
-                        onDeleteConfirm={setDeleteConfirm}
-                        onShowReport={(report) => {
-                          setSelectedReport({
-                            ...report, 
-                            itemType: item.type, 
-                            itemTitle: item.title,
-                            allReports: item.reports || [report]
-                          });
-                          setShowReportSidePanel(true);
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
 
           {/* Pricing Tab */}
@@ -1305,136 +1203,157 @@ const ReportCard: React.FC<{
   );
 };
 
-// Paused Item Card Component
-const PausedItemCard: React.FC<{
-  item: any;
-  onRestore: (itemId: string, itemType: 'project' | 'job') => Promise<void>;
-  loading: boolean;
-  onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
-  onShowReport: (report: any) => void;
-}> = ({ item, onRestore, loading, onDeleteConfirm, onShowReport }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    const diffInMonths = Math.floor(diffInDays / 30);
-    const diffInYears = Math.floor(diffInDays / 365);
 
-    if (diffInMinutes < 1) return 'just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
-    if (diffInWeeks < 4) return `${diffInWeeks} week${diffInWeeks !== 1 ? 's' : ''} ago`;
-    if (diffInMonths < 12) return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''} ago`;
-    return `${diffInYears} year${diffInYears !== 1 ? 's' : ''} ago`;
+// Reported Item Card Component (styled like MyJobs/MyProjects)
+const ReportedItemCard: React.FC<{
+  item: any;
+  onPause: (itemId: string, itemType: 'project' | 'job') => void;
+  onDelete: (itemId: string, itemType: 'project' | 'job') => void;
+  onShowReports: (item: any) => void;
+  loading: boolean;
+}> = ({ item, onPause, onDelete, onShowReports, loading }) => {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    return date.toLocaleDateString();
   };
 
+  const getHighestSeverity = () => {
+    if (!item.reports || item.reports.length === 0) return 'low';
+    const severityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+    return item.reports.reduce((highest: string, report: any) => {
+      const currentLevel = severityOrder[report.severity as keyof typeof severityOrder] || 1;
+      const highestLevel = severityOrder[highest as keyof typeof severityOrder] || 1;
+      return currentLevel > highestLevel ? report.severity : highest;
+    }, 'low');
+  };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't trigger if clicking on action buttons
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'bg-red-600 text-white';
+      case 'high': return 'bg-red-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
-    
-    // Show report details in side panel
-    if (item.report) {
-      onShowReport(item.report);
-    }
+  };
+
+  const handleCardClick = () => {
+    onShowReports(item);
   };
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
       onClick={handleCardClick}
     >
-      <div className="flex items-start gap-4">
-        {/* Circular Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-          {item.logo ? (
-            <img src={item.logo} alt={item.title} className="w-10 h-10 rounded-full object-cover" />
-          ) : (
-            <span className="text-white font-bold text-lg">
-              {item.title?.charAt(0)?.toUpperCase() || '?'}
-            </span>
-          )}
-        </div>
-        
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              {/* Title with badges */}
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-gray-900 text-lg truncate">{item.title}</h3>
-                {item.report && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    item.report.severity === 'high' ? 'bg-red-500 text-white' :
-                    item.report.severity === 'medium' ? 'bg-yellow-500 text-white' :
-                    item.report.severity === 'low' ? 'bg-green-500 text-white' :
-                    'bg-purple-600 text-white'
-                  }`}>
-                    REPORTED
-                  </span>
-                )}
-                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full font-medium text-xs">
-                  PAUSED
-                </span>
-              </div>
-              
-              {/* Subtitle */}
-              <p className="text-sm text-gray-600 mb-3">
-                {item.type === 'project' && item.category && (
-                  <span className="capitalize">{item.category}</span>
-                )}
-                {item.type === 'job' && item.company && (
-                  <span>{item.company}</span>
-                )}
-              </p>
-              
-              {/* Description */}
-              <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
-                {item.description}
-              </p>
-              
-              {/* Footer */}
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>Created {formatDate(item.created_at)}</span>
-                {item.report && (
-                  <span className="text-red-600 font-medium">Click to view report details →</span>
-                )}
-              </div>
+      <div className="p-6">
+        <div className="flex items-center mb-4">
+          {/* Circular Avatar */}
+          <div className="w-12 h-12 rounded-full mr-4 bg-white border border-gray-200 flex items-center justify-center">
+            {item.logo || item.companyLogo ? (
+              <img 
+                src={item.logo || item.companyLogo} 
+                alt={`${item.title} logo`}
+                className="w-full h-full rounded-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const parent = (e.target as HTMLImageElement).parentElement;
+                  if (parent) {
+                    parent.innerHTML = '<div class="text-blue-600 text-lg"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                  }
+                }}
+              />
+            ) : (
+              <FaBuilding className="text-blue-600 text-lg" />
+            )}
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center">
+              <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+              {item.isVerified && (
+                <div 
+                  className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                  title="Verified project"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex items-center gap-1 ml-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRestore(item.id, item.type);
-                }}
-                disabled={loading}
-                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                title="Resume"
-              >
-                <FaPlay className="h-4 w-4" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteConfirm({show: true, type: 'item', id: item.id, itemId: item.id});
-                }}
-                disabled={loading}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Delete"
-              >
-                <FaTrashAlt className="h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                {item.type === 'project' ? item.category : item.company}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(getHighestSeverity())}`}>
+                REPORTED
+              </span>
+              {item.reportCount > 1 && (
+                <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                  {item.reportCount} Reports
+                </span>
+              )}
             </div>
           </div>
+          
+          {/* Action Buttons */}
+          <div className="flex space-x-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPause(item.id, item.type);
+              }}
+              disabled={loading}
+              className="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
+              title="Pause item"
+            >
+              <FaPause className="h-4 w-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(item.id, item.type);
+              }}
+              disabled={loading}
+              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+              title="Delete item"
+            >
+              <FaTrash className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+          {item.description}
+        </p>
+        
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex space-x-2">
+            {item.website && (
+              <a href={item.website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <FaGlobe className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+              </a>
+            )}
+            {item.twitter && (
+              <a href={typeof item.twitter === 'string' ? item.twitter : `https://twitter.com/${item.twitter.username}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <FaTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+              </a>
+            )}
+            {item.discord && (
+              <a href={typeof item.discord === 'string' ? item.discord : item.discord.inviteUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <FaDiscord className="h-4 w-4 text-gray-400 hover:text-indigo-600" />
+              </a>
+            )}
+          </div>
+          <span className="text-red-600 font-medium text-xs">Click to view reports →</span>
+        </div>
+        
+        <div className="text-xs text-gray-500">
+          Created {formatDate(item.created_at || item.createdAt)}
         </div>
       </div>
     </div>
