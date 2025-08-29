@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle } from 'react-icons/fa';
+import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaPlay, FaEyeSlash, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -198,12 +198,16 @@ const AdminPanel: React.FC = () => {
   };
 
 
-  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string) => {
-    if (!walletAddress) return;
+  const handleRemoveFromReports = async (reportId: string, itemId: string) => {
+    if (!walletAddress) {
+      setError('Wallet not connected');
+      return;
+    }
     
     try {
       setLoading(true);
-      console.log(`[FRONTEND] Processing report ${reportId} with action: ${action}, projectId: ${projectId}`);
+      setError(null);
+      console.log('[FRONTEND] Removing from reports:', { reportId, itemId });
       
       const response = await fetch('/api/reports', {
         method: 'PUT',
@@ -213,7 +217,53 @@ const AdminPanel: React.FC = () => {
         },
         body: JSON.stringify({
           reportId,
-          action,
+          action: 'delete',
+          itemId
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[FRONTEND] API Error:', response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('[FRONTEND] Remove API Response:', result);
+      
+      // Reload data
+      await loadReportedItems();
+    } catch (err: any) {
+      setError(err.message || 'Failed to remove from reports');
+      console.error('[FRONTEND] Error removing from reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProcessReport = async (reportId: string, action: 'pause' | 'delete' | 'restore' | 'permanent_delete', projectId?: string, currentStatus?: string) => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      
+      // Determine the correct action based on current status
+      let finalAction = action;
+      if (action === 'pause') {
+        finalAction = currentStatus === 'paused' ? 'restore' : 'pause';
+      }
+      
+      console.log(`[FRONTEND] Processing report ${reportId} with action: ${finalAction}, projectId: ${projectId}, currentStatus: ${currentStatus}`);
+      
+      const response = await fetch('/api/reports', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          reportId,
+          action: finalAction,
           projectId
         })
       });
@@ -424,7 +474,8 @@ const AdminPanel: React.FC = () => {
                         <ReportedItemCard 
                           key={item.id} 
                           item={item} 
-                          onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId)}
+                          onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.status)}
+                          onRemove={(itemId) => handleRemoveFromReports(item.primaryReport?.id, itemId)}
                           onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: itemId, itemId})}
                           onShowReports={(item) => {
                             setSelectedReport({
@@ -977,14 +1028,31 @@ const AdminPanel: React.FC = () => {
 const ReportedItemCard: React.FC<{
   item: any;
   onPause: (itemId: string, itemType: 'project' | 'job') => void;
+  onRemove: (itemId: string, itemType: 'project' | 'job') => void;
   onDelete: (itemId: string, itemType: 'project' | 'job') => void;
   onShowReports: (item: any) => void;
   loading: boolean;
-}> = ({ item, onPause, onDelete, onShowReports, loading }) => {
+}> = ({ item, onPause, onRemove, onDelete, onShowReports, loading }) => {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Unknown';
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Invalid date';
+    
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    
+    if (diffSeconds < 60) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffWeeks < 4) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+    if (diffMonths < 12) return `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
     return date.toLocaleDateString();
   };
 
@@ -998,10 +1066,10 @@ const ReportedItemCard: React.FC<{
       className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300"
       onClick={handleCardClick}
     >
-      <div className="p-4">
-        <div className="flex items-start gap-3 mb-3">
+      <div className="p-6">
+        <div className="flex items-start gap-4 mb-4">
           {/* Circular Avatar */}
-          <div className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="w-16 h-16 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
             {item.avatar || item.logo || item.companyLogo || item.company_logo ? (
               <img 
                 src={item.avatar || item.logo || item.companyLogo || item.company_logo} 
@@ -1035,13 +1103,11 @@ const ReportedItemCard: React.FC<{
               )}
             </div>
             
-            <div className="flex items-center gap-2 mt-1">
-              <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                {item.type === 'project' ? item.category : item.company}
-              </span>
-              <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                {item.reportCount || 1} Report{(item.reportCount || 1) > 1 ? 's' : ''}
-              </span>
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">{item.reportCount || 1}</div>
+                <div className="text-xs text-gray-500">report{(item.reportCount || 1) > 1 ? 's' : ''}</div>
+              </div>
             </div>
           </div>
           
@@ -1054,9 +1120,20 @@ const ReportedItemCard: React.FC<{
               }}
               disabled={loading}
               className="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
-              title="Pause item"
+              title={item.status === 'paused' ? 'Resume item' : 'Pause item'}
             >
-              <FaPause className="h-4 w-4" />
+              {item.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(item.id, item.type);
+              }}
+              disabled={loading}
+              className="p-2 text-gray-400 hover:text-orange-600 transition-colors"
+              title="Remove from reports"
+            >
+              <FaEyeSlash className="h-4 w-4" />
             </button>
             <button
               onClick={(e) => {
@@ -1065,14 +1142,14 @@ const ReportedItemCard: React.FC<{
               }}
               disabled={loading}
               className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-              title="Delete item"
+              title="Delete item permanently"
             >
               <FaTrash className="h-4 w-4" />
             </button>
           </div>
         </div>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
           {item.description}
         </p>
         
