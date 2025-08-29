@@ -166,7 +166,8 @@ const AdminPanel: React.FC = () => {
               ...itemData,
               reports: reports,
               reportCount: reports.length,
-              primaryReport: firstReport
+              primaryReport: firstReport,
+              status: itemData.status // Ensure status is preserved
             });
           } else {
             // If item not found, create a placeholder from report data
@@ -179,6 +180,7 @@ const AdminPanel: React.FC = () => {
               reports: reports,
               reportCount: reports.length,
               primaryReport: firstReport,
+              status: 'active', // Default status for placeholder items
               isPlaceholder: true
             });
           }
@@ -476,7 +478,7 @@ const AdminPanel: React.FC = () => {
                           item={item} 
                           onPause={(itemId) => handleProcessReport(item.primaryReport?.id, 'pause', itemId, item.status)}
                           onRemove={(itemId) => handleRemoveFromReports(item.primaryReport?.id, itemId)}
-                          onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: itemId, itemId})}
+                          onDelete={(itemId) => setDeleteConfirm({show: true, type: 'item', id: item.primaryReport?.id, itemId})}
                           onShowReports={(item) => {
                             setSelectedReport({
                               ...item.primaryReport,
