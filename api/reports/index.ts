@@ -176,6 +176,7 @@ async function handleGetReports(req: any, res: any) {
                END as project_name,
                CASE 
                  WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'job' THEN 'job'
                  WHEN r.scam_type = 'user' THEN 'job'
                  ELSE r.scam_type
                END as item_type
@@ -197,6 +198,7 @@ async function handleGetReports(req: any, res: any) {
                END as project_name,
                CASE 
                  WHEN r.scam_type = 'project' THEN 'project'
+                 WHEN r.scam_type = 'job' THEN 'job'
                  WHEN r.scam_type = 'user' THEN 'job'
                  ELSE r.scam_type
                END as item_type
@@ -350,6 +352,8 @@ async function handleUpdateReport(req: any, res: any) {
         console.log(`[API] scam_identifier from report: ${reportData.scam_identifier}`);
         console.log(`[API] projectId parameter: ${projectId}`);
         console.log(`[API] Are they equal? ${reportData.scam_identifier === projectId}`);
+        console.log(`[API] reportData.item_type:`, reportData.item_type);
+        console.log(`[API] Will process item update: ${itemType === 'project' || itemType === 'job'}`);
         
         // Skip processing if this is not a project or job (e.g., website, user, etc.)
         if (itemType !== 'project' && itemType !== 'job') {
