@@ -165,6 +165,11 @@ const AdminPanel: React.FC = () => {
           // If we found the item, add it with its reports
           if (itemData) {
             console.log(`[FRONTEND] Item ${itemId} found with status: ${itemData.status}`);
+            // Determine if item is paused based on status
+            // Projects: paused when status === 'paused'
+            // Jobs: paused when status === 'paused', active when status === 'confirmed'
+            const isPaused = itemData.status === 'paused';
+            
             reportedItems.push({
               ...itemData,
               reports: reports,
@@ -172,7 +177,7 @@ const AdminPanel: React.FC = () => {
               primaryReport: firstReport,
               status: itemData.status, // Current database status
               currentStatus: itemData.status, // Track current status for UI
-              isPaused: itemData.status === 'paused' // Explicit pause state
+              isPaused: isPaused // Explicit pause state based on actual status
             });
           } else {
             // If item not found, create a placeholder from report data
