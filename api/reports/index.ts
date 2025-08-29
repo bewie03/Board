@@ -186,26 +186,6 @@ async function handleGetReports(req: any, res: any) {
         ORDER BY r.updated_at DESC
       `;
       console.log('Paused reports query:', query);
-    } else if (archived === 'true') {
-      // Get archived/resolved reports (status = 'resolved')
-      query = `
-        SELECT r.*, 
-               CASE 
-                 WHEN r.scam_type = 'project' THEN p.title
-                 WHEN r.scam_type = 'user' THEN j.title
-                 ELSE r.scam_identifier
-               END as project_name,
-               CASE 
-                 WHEN r.scam_type = 'project' THEN 'project'
-                 WHEN r.scam_type = 'user' THEN 'job'
-                 ELSE r.scam_type
-               END as item_type
-        FROM scam_reports r
-        LEFT JOIN projects p ON (r.scam_identifier ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND CAST(r.scam_identifier AS UUID) = p.id AND r.scam_type = 'project')
-        LEFT JOIN job_listings j ON (r.scam_identifier ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND CAST(r.scam_identifier AS UUID) = j.id AND r.scam_type = 'user')
-        WHERE r.status = 'resolved'
-        ORDER BY r.updated_at DESC
-      `;
     } else {
       // Get active/pending reports (status = 'pending')
       query = `
@@ -281,17 +261,15 @@ async function handleUpdateReport(req: any, res: any) {
         reportStatus = null; // Will delete the report
         projectStatus = 'deleted'; // Mark project/job for permanent deletion
         break;
-      case 'archive':
-        reportStatus = 'resolved'; // Move report to archive menu
-        projectStatus = null; // Don't change job/project status
-        break;
       case 'restore':
-        reportStatus = 'pending'; // Move report back to active reports when unarchiving
-        projectStatus = null; // Don't change job/project status when restoring from archive
+        reportStatus = 'pending'; // Move report back to active reports when restoring from pause
+        projectStatus = 'active'; // Restore project/job to active status
         break;
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
+    
+    console.log(`[API] Action: ${action}, reportStatus: ${reportStatus}, projectStatus: ${projectStatus}`);
 
     // Start transaction
     const client = await getPool().connect();
@@ -362,7 +340,7 @@ async function handleUpdateReport(req: any, res: any) {
       }
 
       // Take action on the project/job if needed
-      if (action && projectId && projectStatus !== null) {
+      if (action && projectId && (projectStatus !== null || action === 'pause')) {
         // First, determine if this is a project or job by checking the report
         const reportData = reportResult.rows[0];
         const scamType = reportData.scam_type;
@@ -408,11 +386,6 @@ async function handleUpdateReport(req: any, res: any) {
             break;
           case 'delete':
             // Delete report only: Don't affect project/job status
-            updateQuery = '';
-            updateValues = [];
-            break;
-          case 'archive':
-            // Archive report only: Don't affect project/job status
             updateQuery = '';
             updateValues = [];
             break;

@@ -21,9 +21,8 @@ interface ScamReport {
 
 const AdminPanel: React.FC = () => {
   const { walletAddress } = useWallet();
-  const [activeTab, setActiveTab] = useState<'reports' | 'paused' | 'archived' | 'pricing'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'paused' | 'pricing'>('reports');
   const [reports, setReports] = useState<ScamReport[]>([]);
-  const [archivedReports, setArchivedReports] = useState<ScamReport[]>([]);
   const [pausedItems, setPausedItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +32,8 @@ const AdminPanel: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{show: boolean, type: 'report' | 'item', id: string, itemId?: string} | null>(null);
   const [reportsSearchTerm, setReportsSearchTerm] = useState('');
   const [pausedSearchTerm, setPausedSearchTerm] = useState('');
-  const [archivedSearchTerm, setArchivedSearchTerm] = useState('');
   const [reportsSortBy, setReportsSortBy] = useState<'newest' | 'oldest' | 'severity'>('newest');
   const [pausedSortBy, setPausedSortBy] = useState<'newest' | 'oldest'>('newest');
-  const [archivedSortBy, setArchivedSortBy] = useState<'newest' | 'oldest'>('newest');
   const [severityFilter, setSeverityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'critical'>('all');
 
   // Check admin access
@@ -63,8 +60,6 @@ const AdminPanel: React.FC = () => {
       loadReports();
     } else if (activeTab === 'paused') {
       loadPausedItems();
-    } else if (activeTab === 'archived') {
-      loadArchivedReports();
     }
   }, [activeTab]);
 
@@ -135,26 +130,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const loadArchivedReports = async () => {
-    if (!walletAddress) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('[FRONTEND] Loading archived reports...');
-      const response = await fetch('/api/reports?archived=true', {
-        headers: { 'x-wallet-address': walletAddress }
-      });
-      const data = await response.json();
-      console.log('[FRONTEND] Archived reports loaded:', data.reports?.length || 0, 'reports');
-      setArchivedReports(data.reports || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load archived reports');
-      console.error('[FRONTEND] Error loading archived reports:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadPausedItems = async () => {
     if (!walletAddress) return;
@@ -253,7 +228,6 @@ const AdminPanel: React.FC = () => {
       console.log('[FRONTEND] Reloading all data...');
       await Promise.all([
         loadReports(),
-        loadArchivedReports(),
         loadPausedItems()
       ]);
       console.log('[FRONTEND] All data reloaded successfully');
@@ -297,7 +271,6 @@ const AdminPanel: React.FC = () => {
       
       // Reload all data to reflect changes
       await loadPausedItems();
-      await loadArchivedReports();
       await loadReports();
     } catch (err: any) {
       setError(err.message || 'Failed to restore item');
@@ -389,17 +362,6 @@ const AdminPanel: React.FC = () => {
               >
                 <FaClock className="mr-2 h-4 w-4" />
                 Paused
-              </button>
-              <button
-                onClick={() => setActiveTab('archived')}
-                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
-                  activeTab === 'archived'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-blue-600 hover:bg-blue-50'
-                }`}
-              >
-                <FaArchive className="mr-2 h-4 w-4" />
-                Archived
               </button>
               <button
                 onClick={() => setActiveTab('pricing')}
@@ -620,103 +582,6 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
-          {/* Archived Reports Tab */}
-          {activeTab === 'archived' && (
-            <div className="bg-white shadow-sm rounded-xl border border-blue-100">
-              <div className="px-6 py-5 border-b border-blue-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <FaArchive className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Archived Reports</h2>
-                      <p className="text-sm text-blue-600">View resolved and archived reports</p>
-                    </div>
-                  </div>
-                  <div className="bg-gray-100 px-3 py-1 rounded-full">
-                    <span className="text-sm font-medium text-gray-800">{archivedReports.length} Archived</span>
-                  </div>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="mb-6 space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Search archived reports..."
-                    value={archivedSearchTerm}
-                    onChange={(e) => setArchivedSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <div className="flex gap-4 flex-wrap">
-                    <select
-                      value={archivedSortBy}
-                      onChange={(e) => setArchivedSortBy(e.target.value as 'newest' | 'oldest')}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="newest">Newest First</option>
-                      <option value="oldest">Oldest First</option>
-                    </select>
-                  </div>
-                </div>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-gray-600">Loading archived reports...</p>
-                  </div>
-                ) : archivedReports
-                  .filter(report => 
-                    report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                    report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                    report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
-                  )
-                  .sort((a, b) => {
-                    if (archivedSortBy === 'oldest') {
-                      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-                    } else {
-                      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                    }
-                  })
-                  .length === 0 ? (
-                  <div className="text-center py-16">
-                    <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <FaArchive className="h-10 w-10 text-blue-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Archived Reports</h3>
-                    <p className="text-blue-600">No reports have been archived yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {archivedReports
-                      .filter(report => 
-                        report.title.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                        report.description.toLowerCase().includes(archivedSearchTerm.toLowerCase()) ||
-                        report.project_name?.toLowerCase().includes(archivedSearchTerm.toLowerCase())
-                      )
-                      .sort((a, b) => {
-                        if (archivedSortBy === 'oldest') {
-                          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-                        } else {
-                          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                        }
-                      })
-                      .map((report) => (
-                      <ReportCard 
-                        key={report.id} 
-                        report={report} 
-                        onProcess={handleProcessReport}
-                        loading={false}
-                        isArchived={true}
-                        onSelectProject={setSelectedProject}
-                        onSelectJob={setSelectedJob}
-                        onDeleteConfirm={setDeleteConfirm}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Pricing Tab */}
           {activeTab === 'pricing' && (
@@ -1056,11 +921,10 @@ const ReportCard: React.FC<{
   report: ScamReport;
   onProcess: (reportId: string, action: 'pause' | 'delete' | 'archive' | 'restore' | 'permanent_delete', projectId?: string) => Promise<void>;
   loading: boolean;
-  isArchived?: boolean;
   onSelectProject: (project: any) => void;
   onSelectJob: (job: any) => void;
   onDeleteConfirm: (confirm: {show: boolean, type: 'report' | 'item', id: string, itemId?: string}) => void;
-}> = ({ report, onProcess, loading, isArchived = false, onSelectProject, onSelectJob, onDeleteConfirm }) => {
+}> = ({ report, onProcess, loading, onSelectProject, onSelectJob, onDeleteConfirm }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'bg-red-500 text-white';
@@ -1221,90 +1085,39 @@ const ReportCard: React.FC<{
           Report ID: {report.id.slice(0, 8)}...
         </div>
         <div className="flex items-center gap-2">
-          {isArchived ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProcess(report.id, 'restore', report.scam_identifier);
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaArchive className="h-3 w-3" />
-                Unarchive
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProcess(report.id, 'delete', report.scam_identifier);
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaTrash className="h-3 w-3" />
-                Remove
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier});
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaTrashAlt className="h-3 w-3" />
-                Delete
-              </button>
-            </div>
-          ) : (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProcess(report.id, 'pause', report.scam_identifier);
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaClock className="h-3 w-3" />
-                Pause
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProcess(report.id, 'archive', report.scam_identifier);
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaArchive className="h-3 w-3" />
-                Archive
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProcess(report.id, 'delete', report.scam_identifier);
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaTrash className="h-3 w-3" />
-                Remove
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier});
-                }}
-                disabled={loading}
-                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
-              >
-                <FaTrashAlt className="h-3 w-3" />
-                Delete
-              </button>
-            </>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onProcess(report.id, 'pause', report.scam_identifier);
+            }}
+            disabled={loading}
+            className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200 flex items-center gap-1"
+          >
+            <FaClock className="h-3 w-3" />
+            Pause
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onProcess(report.id, 'delete', report.scam_identifier);
+            }}
+            disabled={loading}
+            className="px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 flex items-center gap-1"
+          >
+            <FaTrash className="h-3 w-3" />
+            Remove
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteConfirm({show: true, type: 'item', id: report.id, itemId: report.scam_identifier});
+            }}
+            disabled={loading}
+            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-1"
+          >
+            <FaTrashAlt className="h-3 w-3" />
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -1435,7 +1248,7 @@ const PausedItemCard: React.FC<{
             className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 flex items-center gap-1"
           >
             <FaPlay className="h-3 w-3" />
-            Resume
+            Play
           </button>
           <button
             onClick={(e) => {
