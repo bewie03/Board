@@ -266,6 +266,7 @@ const AdminPanel: React.FC = () => {
         finalAction = currentStatus === 'paused' ? 'restore' : 'pause';
       }
       
+      console.log(`[FRONTEND] Input action: ${action}, currentStatus: ${currentStatus}, finalAction: ${finalAction}`);
       console.log(`[FRONTEND] Processing ${finalAction} for item ${projectId} with current status: ${currentStatus}`);
       
       const response = await fetch('/api/reports', {

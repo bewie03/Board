@@ -432,17 +432,29 @@ async function handleUpdateReport(req: any, res: any) {
             break;
         }
 
-        if (updateQuery) {
-          console.log(`[API] Executing query: ${updateQuery} with values:`, updateValues);
+        // Execute the update query if we have one
+        if (updateQuery && updateValues.length > 0) {
+          console.log(`[API] Executing update query: ${updateQuery}`);
+          console.log(`[API] Update values:`, updateValues);
+          console.log(`[API] Target table: ${tableName}, actualItemType: ${actualItemType}`);
+          
           const updateResult = await client.query(updateQuery, updateValues);
           console.log(`[API] Update result: ${updateResult.rowCount} rows affected`);
+          
           if (updateResult.rowCount === 0) {
-            console.log(`[API] WARNING: No rows affected when trying to ${action} ${itemType} ${projectId}`);
+            console.log(`[API] WARNING: No rows were updated. Item may not exist or query failed.`);
+            // Let's check if the item actually exists with current status
+            const checkQuery = `SELECT id, status FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
+            const checkResult = await client.query(checkQuery, [projectId]);
+            console.log(`[API] Item check result:`, checkResult.rows);
           } else {
-            console.log(`[API] SUCCESS: ${itemType} ${projectId} ${action}d by admin ${walletAddress}`);
+            // Verify the update worked by checking current status
+            const verifyQuery = `SELECT id, status FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
+            const verifyResult = await client.query(verifyQuery, [projectId]);
+            console.log(`[API] Post-update verification:`, verifyResult.rows);
           }
         } else {
-          console.log(`[API] No query to execute for action: ${action}`);
+          console.log(`[API] No update query to execute for action: ${action}`);
         }
       }
 
