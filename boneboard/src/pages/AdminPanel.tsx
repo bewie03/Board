@@ -170,7 +170,15 @@ const AdminPanel: React.FC = () => {
         pausedReports.reports.forEach((report: any) => {
           const existingItem = combined.find(item => item.id === report.scam_identifier);
           if (existingItem) {
-            existingItem.report = report;
+            // Handle multiple reports for the same item
+            if (!existingItem.reports) {
+              existingItem.reports = [];
+            }
+            existingItem.reports.push(report);
+            // Keep the first report as the main report for display
+            if (!existingItem.report) {
+              existingItem.report = report;
+            }
           } else {
             // If no matching project/job found, the report might be for a paused item
             // that wasn't returned by the projects/jobs API, so add it as a standalone item
@@ -182,7 +190,8 @@ const AdminPanel: React.FC = () => {
               type: report.item_type || 'project',
               created_at: report.created_at,
               updated_at: report.updated_at,
-              report: report
+              report: report,
+              reports: [report]
             });
           }
         });
@@ -575,7 +584,12 @@ const AdminPanel: React.FC = () => {
                         loading={loading}
                         onDeleteConfirm={setDeleteConfirm}
                         onShowReport={(report) => {
-                          setSelectedReport(report);
+                          setSelectedReport({
+                            ...report, 
+                            itemType: item.type, 
+                            itemTitle: item.title,
+                            allReports: item.reports || [report]
+                          });
                           setShowReportSidePanel(true);
                         }}
                       />
@@ -964,6 +978,10 @@ const AdminPanel: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <span className="capitalize">{selectedReport.scam_type}</span>
                       <span>•</span>
+                      <span className="capitalize font-medium text-blue-600">
+                        {selectedReport.itemType || 'Unknown'} Report
+                      </span>
+                      <span>•</span>
                       <span>{new Date(selectedReport.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -974,7 +992,52 @@ const AdminPanel: React.FC = () => {
                     <p className="text-gray-700 leading-relaxed">{selectedReport.description}</p>
                   </div>
 
-                  {/* Scam Identifier */}
+                  {/* Reported Item */}
+                  {selectedReport.itemTitle && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Reported {selectedReport.itemType}</h4>
+                      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <p className="text-sm font-medium text-blue-900">{selectedReport.itemTitle}</p>
+                        {selectedReport.allReports && selectedReport.allReports.length > 1 && (
+                          <p className="text-xs text-blue-700 mt-1">
+                            {selectedReport.allReports.length} reports total
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* All Reports */}
+                  {selectedReport.allReports && selectedReport.allReports.length > 1 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">All Reports ({selectedReport.allReports.length})</h4>
+                      <div className="space-y-3">
+                        {selectedReport.allReports.map((report: any, index: number) => (
+                          <div key={report.id} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm font-medium text-gray-900">Report #{index + 1}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                report.severity === 'high' ? 'bg-red-500 text-white' :
+                                report.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                                report.severity === 'low' ? 'bg-green-500 text-white' :
+                                'bg-purple-600 text-white'
+                              }`}>
+                                {report.severity?.toUpperCase()}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(report.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <h5 className="font-medium text-gray-900 mb-1">{report.title}</h5>
+                            <p className="text-sm text-gray-700 mb-2">{report.description}</p>
+                            <p className="text-xs text-gray-600 capitalize">{report.scam_type}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Target Identifier */}
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Target Identifier</h4>
                     <div className="bg-gray-50 p-3 rounded-lg">
@@ -1251,11 +1314,23 @@ const PausedItemCard: React.FC<{
   onShowReport: (report: any) => void;
 }> = ({ item, onRestore, loading, onDeleteConfirm, onShowReport }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    const diffInMonths = Math.floor(diffInDays / 30);
+    const diffInYears = Math.floor(diffInDays / 365);
+
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+    if (diffInWeeks < 4) return `${diffInWeeks} week${diffInWeeks !== 1 ? 's' : ''} ago`;
+    if (diffInMonths < 12) return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''} ago`;
+    return `${diffInYears} year${diffInYears !== 1 ? 's' : ''} ago`;
   };
 
 
@@ -1277,7 +1352,7 @@ const PausedItemCard: React.FC<{
       onClick={handleCardClick}
     >
       <div className="flex items-start gap-4">
-        {/* Circular Logo */}
+        {/* Circular Avatar */}
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
           {item.logo ? (
             <img src={item.logo} alt={item.title} className="w-10 h-10 rounded-full object-cover" />
@@ -1290,8 +1365,9 @@ const PausedItemCard: React.FC<{
         
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start justify-between">
             <div className="flex-1">
+              {/* Title with badges */}
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-900 text-lg truncate">{item.title}</h3>
                 {item.report && (
@@ -1304,60 +1380,37 @@ const PausedItemCard: React.FC<{
                     REPORTED
                   </span>
                 )}
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium text-xs">
+                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full font-medium text-xs">
                   PAUSED
                 </span>
               </div>
               
-              {/* Project/Job specific info */}
-              {item.type === 'project' && (
-                <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+              {/* Subtitle */}
+              <p className="text-sm text-gray-600 mb-3">
+                {item.type === 'project' && item.category && (
                   <span className="capitalize">{item.category}</span>
-                  {item.funding_goal && (
-                    <>
-                      <span>•</span>
-                      <span className="text-green-600 font-medium">
-                        Goal: ${parseFloat(item.funding_goal).toLocaleString()}
-                      </span>
-                    </>
-                  )}
-                  {item.current_funding && (
-                    <>
-                      <span>•</span>
-                      <span className="text-blue-600">
-                        Raised: ${parseFloat(item.current_funding).toLocaleString()}
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
-              
-              {item.type === 'job' && (
-                <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                )}
+                {item.type === 'job' && item.company && (
                   <span>{item.company}</span>
-                  {item.location && (
-                    <>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <FaMapMarkerAlt className="h-3 w-3" />
-                        {item.location}
-                      </span>
-                    </>
-                  )}
-                  {item.salary && (
-                    <>
-                      <span>•</span>
-                      <span className="text-green-600 font-medium">
-                        ${parseFloat(item.salary).toLocaleString()} {item.custom_salary_type || item.salary_type}
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
+                )}
+              </p>
+              
+              {/* Description */}
+              <p className="text-gray-700 text-sm mb-3 line-clamp-2 leading-relaxed">
+                {item.description}
+              </p>
+              
+              {/* Footer */}
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>Created {formatDate(item.created_at)}</span>
+                {item.report && (
+                  <span className="text-red-600 font-medium">Click to view report details →</span>
+                )}
+              </div>
             </div>
             
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-1 ml-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1381,75 +1434,6 @@ const PausedItemCard: React.FC<{
                 <FaTrashAlt className="h-4 w-4" />
               </button>
             </div>
-          </div>
-          
-          {/* Description */}
-          <p className="text-gray-700 text-sm mb-3 line-clamp-3 leading-relaxed">
-            {item.description}
-          </p>
-          
-          {/* Additional project/job details */}
-          {item.type === 'project' && (
-            <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
-              {item.website && (
-                <a 
-                  href={item.website} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <FaGlobe className="h-3 w-3" />
-                  Website
-                </a>
-              )}
-              {item.twitter_link && (
-                <a 
-                  href={item.twitter_link} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <FaExternalLinkAlt className="h-3 w-3" />
-                  Twitter
-                </a>
-              )}
-              {item.discord_link && (
-                <a 
-                  href={item.discord_link} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <FaExternalLinkAlt className="h-3 w-3" />
-                  Discord
-                </a>
-              )}
-            </div>
-          )}
-          
-          {item.type === 'job' && (
-            <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
-              {item.expires_at && (
-                <span className="flex items-center gap-1">
-                  <FaClock className="h-3 w-3" />
-                  Expires {formatDate(item.expires_at)}
-                </span>
-              )}
-              {item.category && (
-                <span className="capitalize">{item.category}</span>
-              )}
-            </div>
-          )}
-          
-          {/* Footer Info */}
-          <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-            <span>Created {formatDate(item.created_at)}</span>
-            {item.report && (
-              <span className="text-red-600 font-medium">Click to view report details →</span>
-            )}
           </div>
         </div>
       </div>
