@@ -589,7 +589,7 @@ const JobListings: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="ml-4 flex-shrink-0 h-18 w-18 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                        <div className="ml-4 flex-shrink-0 h-16 w-16 rounded-full border border-gray-200 flex items-center justify-center bg-white">
                           {job.logo ? (
                             <img 
                               className="h-full w-full rounded-full object-cover"
