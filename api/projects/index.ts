@@ -136,6 +136,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     downvotes: 0, // Not implemented yet
     userVote: null,
     logo: row.logo,
+    logo_url: row.logo_url,
     website: row.website,
     fundingAddress: row.funding_address,
     discordLink: row.discord_link,
@@ -146,6 +147,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     txHash: row.tx_hash,
     expiresAt: row.expires_at,
     isVerified: row.is_verified || row.status === 'verified',
+    is_verified: row.is_verified || row.status === 'verified',
     verifiedAt: row.verified_at,
     verifiedBy: row.verified_by
   }));

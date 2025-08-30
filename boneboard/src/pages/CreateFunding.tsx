@@ -15,6 +15,18 @@ interface Project {
   category: string;
   logo_url?: string;
   is_verified?: boolean;
+  website?: string;
+  discord_link?: string;
+  discord_invite?: string;
+  twitter_link?: string;
+  twitter_username?: string;
+  github_repo?: string;
+  wallet_address: string;
+  status: string;
+  created_at: string;
+  funding_goal?: number;
+  payment_amount?: number;
+  payment_currency?: string;
 }
 
 const CreateFunding: React.FC = () => {
@@ -280,13 +292,13 @@ const CreateFunding: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
             {/* Form Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white shadow-sm rounded-lg p-6"
+              className="xl:col-span-2 bg-white shadow-sm rounded-lg p-8"
             >
               {currentStep === 1 && (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -746,12 +758,12 @@ const CreateFunding: React.FC = () => {
             </motion.div>
 
             {/* Preview Section */}
-            {formData.project_id && formData.funding_goal && formData.funding_deadline && (
+            {formData.project_id && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="bg-white shadow-sm rounded-lg p-6"
+                className="bg-white shadow-sm rounded-lg p-6 sticky top-6"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
                 <p className="text-sm text-gray-600 mb-4">This is how your funding project will appear on the funding page:</p>
@@ -805,7 +817,7 @@ const CreateFunding: React.FC = () => {
                         <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: '0%' }}></div>
                       </div>
                       <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-                        <span>Goal: {formData.funding_goal} ADA</span>
+                        <span>Goal: {formData.funding_goal || '0'} ADA</span>
                         <span className="flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -828,7 +840,7 @@ const CreateFunding: React.FC = () => {
                           <svg className="w-4 h-4 text-blue-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                           </svg>
-                          {new Date(formData.funding_deadline).toLocaleDateString()}
+                          {formData.funding_deadline ? new Date(formData.funding_deadline).toLocaleDateString() : 'No deadline set'}
                         </span>
                       </div>
                     </div>
