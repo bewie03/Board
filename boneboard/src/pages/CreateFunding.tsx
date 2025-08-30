@@ -56,10 +56,11 @@ const CreateFunding: React.FC = () => {
         console.log('Current wallet:', walletAddress);
         
         const userOwnedProjects = data.filter((project: any) => {
-          console.log('Checking project:', project.title, 'user_wallet:', project.user_wallet, 'wallet_address:', project.wallet_address, 'has_active_funding:', project.has_active_funding);
-          // Check both user_wallet and wallet_address fields
-          const isOwner = project.user_wallet === walletAddress || project.wallet_address === walletAddress;
-          return isOwner && !project.has_active_funding;
+          console.log('Checking project:', project.title, 'walletAddress:', project.walletAddress, 'has_active_funding:', project.has_active_funding);
+          // Check if user owns this project
+          const isOwner = project.walletAddress === walletAddress;
+          // For now, allow all user projects since we don't have active funding check implemented
+          return isOwner;
         });
         setUserProjects(userOwnedProjects);
       }

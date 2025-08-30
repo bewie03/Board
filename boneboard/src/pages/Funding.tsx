@@ -15,7 +15,7 @@ const Funding: React.FC = () => {
   const [projects, setProjects] = useState<FundingProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
@@ -26,10 +26,13 @@ const Funding: React.FC = () => {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [contributing, setContributing] = useState(false);
 
-  const categories = [
-    { value: 'all', label: 'All Categories' },
-    ...PROJECT_CATEGORIES.map(cat => ({ value: cat.toLowerCase().replace(/[^a-z0-9]/g, '-'), label: cat }))
-  ];
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
 
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
@@ -63,7 +66,8 @@ const Funding: React.FC = () => {
     .filter((project: FundingProject) => {
       const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            project.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || project.category === selectedCategory;
+      const matchesCategory = selectedCategories.length === 0 || 
+        selectedCategories.includes(project.category);
       const matchesVerified = !showVerifiedOnly || project.is_verified;
       return matchesSearch && matchesCategory && matchesVerified;
     })
@@ -187,14 +191,38 @@ const Funding: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="min-w-[200px]">
-                    <CustomSelect
-                      options={categories}
-                      value={selectedCategory}
-                      onChange={setSelectedCategory}
-                      placeholder="Select category"
-                      className=""
-                    />
+                  <div className="min-w-[200px] relative">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm sm:leading-6"
+                        onClick={() => setShowFilters(!showFilters)}
+                      >
+                        <span className="text-gray-700">
+                          {selectedCategories.length === 0 
+                            ? 'All Categories' 
+                            : selectedCategories.length === 1 
+                              ? selectedCategories[0]
+                              : `${selectedCategories.length} categories selected`
+                          }
+                        </span>
+                      </button>
+                      {showFilters && (
+                        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                          {PROJECT_CATEGORIES.map(category => (
+                            <label key={category} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedCategories.includes(category)}
+                                onChange={() => toggleCategory(category)}
+                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <span className="text-gray-900">{category}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="min-w-[220px]">
