@@ -8,6 +8,13 @@ interface PendingTransaction {
   timestamp: number;
 }
 
+interface PendingFundingTransaction {
+  txHash: string;
+  fundingData: any;
+  walletAddress: string;
+  timestamp: number;
+}
+
 class TransactionMonitor {
   private checkInterval: NodeJS.Timeout | null = null;
   private isChecking = false;
@@ -44,16 +51,26 @@ class TransactionMonitor {
   }
 
   private async checkAllPendingTransactions() {
-    // Find all pending transactions in localStorage
-    const pendingKeys = Object.keys(localStorage).filter(key => key.startsWith('pendingTx_'));
+    // Find all pending job transactions in localStorage
+    const pendingJobKeys = Object.keys(localStorage).filter(key => key.startsWith('pendingTx_'));
+    // Find all pending funding transactions in localStorage
+    const pendingFundingKeys = Object.keys(localStorage).filter(key => key.startsWith('pendingFundingTx_'));
     
-    if (pendingKeys.length === 0) return;
+    const totalPending = pendingJobKeys.length + pendingFundingKeys.length;
+    if (totalPending === 0) return;
     
-    console.log(`Found ${pendingKeys.length} pending transaction(s) in localStorage`);
+    console.log(`Found ${totalPending} pending transaction(s) in localStorage (${pendingJobKeys.length} jobs, ${pendingFundingKeys.length} funding)`);
     
-    for (const pendingKey of pendingKeys) {
+    // Check job transactions
+    for (const pendingKey of pendingJobKeys) {
       const walletAddress = pendingKey.replace('pendingTx_', '');
       await this.checkPendingTransactions(walletAddress);
+    }
+    
+    // Check funding transactions
+    for (const pendingKey of pendingFundingKeys) {
+      const txHash = pendingKey.replace('pendingFundingTx_', '');
+      await this.checkPendingFundingTransactions(txHash);
     }
   }
 
@@ -178,6 +195,75 @@ class TransactionMonitor {
     
     await JobService.addJob(jobToSave);
     console.log('Job saved successfully after payment confirmation');
+  }
+
+  private async checkPendingFundingTransactions(txHash: string) {
+    const pendingKey = `pendingFundingTx_${txHash}`;
+    const pendingTxData = localStorage.getItem(pendingKey);
+    
+    if (!pendingTxData) {
+      return;
+    }
+
+    try {
+      const pendingTx: PendingFundingTransaction = JSON.parse(pendingTxData);
+      console.log('Found pending funding transaction:', { txHash: pendingTx.txHash, timestamp: pendingTx.timestamp });
+      
+      // Check if transaction is older than 2 minutes (timeout)
+      const twoMinutesAgo = Date.now() - (2 * 60 * 1000);
+      if (pendingTx.timestamp < twoMinutesAgo) {
+        console.log('Funding transaction timeout reached, removing from localStorage');
+        localStorage.removeItem(pendingKey);
+        toast.error('Funding transaction confirmation timeout. Your payment may still be processing on the blockchain. Please check your wallet and try creating funding again if needed.');
+        return;
+      }
+
+      // Initialize Lucid before checking transaction status
+      try {
+        const walletApi = await this.getWalletApi();
+        if (walletApi) {
+          await contractService.initializeLucid(walletApi);
+        }
+      } catch (error) {
+        console.log('Could not initialize Lucid for funding status check, will retry later');
+      }
+      
+      console.log('Checking funding transaction status for:', pendingTx.txHash);
+      // Check transaction status
+      const status = await contractService.checkTransactionStatus(pendingTx.txHash);
+      console.log('Funding transaction status:', status);
+      
+      if (status === 'confirmed') {
+        console.log('Funding transaction confirmed, creating funding project');
+        
+        // Create funding project in database
+        try {
+          const { fundingService } = await import('./fundingService');
+          await fundingService.createFundingProject(pendingTx.fundingData, pendingTx.walletAddress);
+          
+          // Only remove from localStorage after successful save
+          localStorage.removeItem(pendingKey);
+          
+          // Dispatch custom event for UI to handle success state
+          window.dispatchEvent(new CustomEvent('fundingCreatedSuccessfully', {
+            detail: { txHash: pendingTx.txHash }
+          }));
+          
+          toast.success(`Funding project created successfully! Transaction confirmed: ${pendingTx.txHash.substring(0, 8)}...`);
+          return;
+        } catch (error) {
+          console.error('Error creating funding project:', error);
+          // Don't remove from localStorage if save failed, allow retry
+          toast.error('Transaction confirmed but failed to create funding project. Will retry...');
+        }
+      } else {
+        // For both 'failed' and 'pending', we continue checking until timeout
+        console.log('Funding transaction still being processed, will check again');
+      }
+    } catch (error) {
+      console.error('Error checking pending funding transaction:', error);
+      console.log('Will retry checking funding transaction status');
+    }
   }
 
   private async getWalletApi() {

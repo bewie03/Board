@@ -679,9 +679,9 @@ export class ContractService {
         }
         
         // Check if transaction is confirmed on blockchain
-        const txInfo = await this.lucid.provider.getUtxos(txHash);
+        const status = await this.checkTransactionStatus(txHash);
         
-        if (txInfo && txInfo.length > 0) {
+        if (status === 'confirmed') {
           console.log(`Funding transaction ${txHash} confirmed! Creating funding project...`);
           
           // Remove from localStorage

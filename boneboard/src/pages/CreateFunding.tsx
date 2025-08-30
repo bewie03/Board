@@ -209,25 +209,23 @@ const CreateFunding: React.FC = () => {
         : await contractService.postFundingWithBONE(fundingData);
       
       if (result.success && result.txHash) {
-        // Store pending transaction in localStorage for monitoring
+        // Store pending transaction in localStorage for persistent monitoring
         const pendingTx = {
           txHash: result.txHash,
-          fundingData: {
-            ...formData,
-            bone_posting_fee: totalCost.amount,
-            bone_tx_hash: result.txHash
-          },
-          timestamp: Date.now(),
-          type: 'funding'
+          fundingData: fundingData,
+          walletAddress: walletAddress,
+          timestamp: Date.now()
         };
         
         localStorage.setItem(`pendingFundingTx_${result.txHash}`, JSON.stringify(pendingTx));
         
         setPaymentStatus('success');
+        setFormData(prev => ({ ...prev, txHash: result.txHash }));
+        
         toast.success('Payment submitted! Waiting for blockchain confirmation...');
         
-        // Start monitoring the transaction
-        await contractService.monitorFundingTransaction(result.txHash, fundingData, walletAddress);
+        // The transaction will be monitored by the transactionMonitor service
+        // which is started by WalletContext and persists across page refreshes
         
         setTimeout(() => {
           navigate('/funding');
