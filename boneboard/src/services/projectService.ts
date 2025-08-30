@@ -34,6 +34,8 @@ export interface Project {
   fundingAddress?: string;
   expiresAt?: string;
   isVerified?: boolean; // Computed field based on status
+  is_verified?: boolean; // API field
+  logo_url?: string; // API field
   verifiedAt?: string;
   verifiedBy?: string;
 }

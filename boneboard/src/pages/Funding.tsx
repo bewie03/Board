@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaCalendarAlt, FaTwitter, FaDiscord, FaGlobe } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -292,7 +292,9 @@ const Funding: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <h3 className="text-xl font-semibold text-gray-900 truncate">{project.title}</h3>
                         {project.is_verified && (
-                          <FaCheckCircle className="text-green-500 text-sm" title="Verified Project" />
+                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                            <FaCheck className="text-white text-xs" />
+                          </div>
                         )}
                       </div>
                       {/* Project Logo */}
@@ -304,7 +306,7 @@ const Funding: React.FC = () => {
                         />
                       ) : (
                         <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">Logo</span>
+                          <span className="text-gray-400 text-xs">No Logo</span>
                         </div>
                       )}
                     </div>
@@ -340,11 +342,11 @@ const Funding: React.FC = () => {
                     <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                       <div className="flex items-center space-x-4">
                         <span className="flex items-center">
-                          <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                          <FaUsers className="text-green-500 mr-1 text-sm" />
                           {project.contributor_count} backers
                         </span>
                         <span className="flex items-center">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                          <FaCalendarAlt className="text-blue-500 mr-1 text-sm" />
                           {fundingService.formatDeadline(project.funding_deadline)}
                         </span>
                       </div>
@@ -416,14 +418,16 @@ const Funding: React.FC = () => {
                       />
                     ) : (
                       <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-gray-400 text-xs">Logo</span>
+                        <span className="text-gray-400 text-xs">No Logo</span>
                       </div>
                     )}
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         {selectedProjectForPanel.title}
                         {selectedProjectForPanel.is_verified && (
-                          <FaCheckCircle className="text-green-500 text-lg" title="Verified Project" />
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                            <FaCheck className="text-white text-sm" />
+                          </div>
                         )}
                       </h2>
                       <p className="text-gray-600">{selectedProjectForPanel.description}</p>
@@ -488,8 +492,9 @@ const Funding: React.FC = () => {
                           href={selectedProjectForPanel.website} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
+                          <FaGlobe />
                           Website
                         </a>
                       )}
@@ -498,8 +503,9 @@ const Funding: React.FC = () => {
                           href={selectedProjectForPanel.twitter_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
+                          <FaTwitter />
                           Twitter
                         </a>
                       )}
@@ -508,8 +514,9 @@ const Funding: React.FC = () => {
                           href={selectedProjectForPanel.discord_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
+                          <FaDiscord />
                           Discord
                         </a>
                       )}

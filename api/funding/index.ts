@@ -37,6 +37,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           p.website,
           p.twitter_link,
           p.discord_link,
+          p.discord_invite,
+          p.is_verified,
           p.user_id as project_owner_id,
           u.wallet_address as owner_wallet
         FROM project_funding pf
@@ -94,6 +96,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         p.website,
         p.twitter_link,
         p.discord_link,
+        p.discord_invite,
         p.is_verified,
         CASE 
           WHEN pf.funding_goal > 0 THEN 

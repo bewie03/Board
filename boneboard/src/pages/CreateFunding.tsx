@@ -14,6 +14,7 @@ interface Project {
   description: string;
   category: string;
   logo_url?: string;
+  is_verified?: boolean;
 }
 
 const CreateFunding: React.FC = () => {
@@ -279,14 +280,16 @@ const CreateFunding: React.FC = () => {
             </button>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white shadow-sm rounded-lg p-6"
-          >
-            {currentStep === 1 && (
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Form Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-white shadow-sm rounded-lg p-6"
+            >
+              {currentStep === 1 && (
+              <form onSubmit={handleSubmit} className="space-y-6">
               {/* Project Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -740,7 +743,117 @@ const CreateFunding: React.FC = () => {
                 )}
               </form>
             )}
-        </motion.div>
+            </motion.div>
+
+            {/* Preview Section */}
+            {formData.project_id && formData.funding_goal && formData.funding_deadline && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="bg-white shadow-sm rounded-lg p-6"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
+                <p className="text-sm text-gray-600 mb-4">This is how your funding project will appear on the funding page:</p>
+                
+                {/* Funding Card Preview */}
+                <div className="bg-white shadow-sm rounded-xl overflow-hidden border-2 border-blue-200">
+                  {/* Project Header */}
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-semibold text-gray-900 truncate">
+                          {userProjects.find(p => p.id === formData.project_id)?.title}
+                        </h3>
+                        {userProjects.find(p => p.id === formData.project_id)?.is_verified && (
+                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {/* Project Logo */}
+                      {userProjects.find(p => p.id === formData.project_id)?.logo_url ? (
+                        <img 
+                          src={userProjects.find(p => p.id === formData.project_id)?.logo_url} 
+                          alt="Project logo"
+                          className="w-12 h-12 rounded-lg object-cover border"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-xs">No Logo</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      {userProjects.find(p => p.id === formData.project_id)?.description}
+                    </p>
+
+                    {/* Progress Bar */}
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          0.00 ADA raised
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          0.0%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: '0%' }}></div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
+                        <span>Goal: {formData.funding_goal} ADA</span>
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          0 contributors
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Contributor Stats */}
+                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                      <div className="flex items-center space-x-4">
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                          </svg>
+                          0 backers
+                        </span>
+                        <span className="flex items-center">
+                          <svg className="w-4 h-4 text-blue-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                          </svg>
+                          {new Date(formData.funding_deadline).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        disabled
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md opacity-50 cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+                        </svg>
+                        Contribute
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-4 text-center">
+                  * This is a preview. Your funding project will go live after payment confirmation.
+                </p>
+              </motion.div>
+            )}
+          </div>
         )}
       </div>
     </div>
