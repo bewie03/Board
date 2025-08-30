@@ -14,6 +14,7 @@ interface Project {
   description: string;
   category: string;
   logo_url?: string;
+  logo?: string;
   is_verified?: boolean;
   website?: string;
   discord_link?: string;
@@ -91,26 +92,32 @@ const CreateFunding: React.FC = () => {
   const fetchUserProjects = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/projects', {
-        headers: {
-          'x-wallet-address': walletAddress || ''
-        }
-      });
+      const response = await fetch(`/api/projects?wallet=${encodeURIComponent(walletAddress || '')}`);
       
       if (response.ok) {
         const data = await response.json();
-        // Filter projects that belong to the user and don't already have active funding
-        console.log('All projects:', data);
+        console.log('API Response:', data);
+        console.log('Response status:', response.status);
         console.log('Current wallet:', walletAddress);
         
-        const userOwnedProjects = data.filter((project: any) => {
-          console.log('Checking project:', project.title, 'walletAddress:', project.walletAddress, 'has_active_funding:', project.has_active_funding);
-          // Check if user owns this project
-          const isOwner = project.walletAddress === walletAddress;
-          // For now, allow all user projects since we don't have active funding check implemented
-          return isOwner;
-        });
-        setUserProjects(userOwnedProjects);
+        if (Array.isArray(data) && data.length > 0) {
+          console.log('First project structure:', JSON.stringify(data[0], null, 2));
+          data.forEach((project: any, index: number) => {
+            console.log(`Project ${index + 1}:`, {
+              id: project.id,
+              title: project.title,
+              logo: project.logo,
+              logo_url: project.logo_url,
+              is_verified: project.is_verified,
+              walletAddress: project.walletAddress
+            });
+          });
+        }
+        setUserProjects(data || []);
+      } else {
+        console.error('API Error:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
       }
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -292,13 +299,13 @@ const CreateFunding: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-5 gap-12">
             {/* Form Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="xl:col-span-2 bg-white shadow-sm rounded-lg p-8"
+              className="lg:col-span-3 bg-white shadow-sm rounded-lg p-10"
             >
               {currentStep === 1 && (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -324,17 +331,32 @@ const CreateFunding: React.FC = () => {
                 {formData.project_id && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
                     <div className="flex items-center space-x-4">
-                      {userProjects.find(p => p.id === formData.project_id)?.logo_url ? (
-                        <img 
-                          src={userProjects.find(p => p.id === formData.project_id)?.logo_url} 
-                          alt="Project Logo"
-                          className="w-16 h-16 rounded-lg object-cover border"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">No Logo</span>
-                        </div>
-                      )}
+                      {(() => {
+                        const selectedProject = userProjects.find(p => p.id === formData.project_id);
+                        const logoUrl = selectedProject?.logo_url;
+                        console.log('Form logo debug:', {
+                          selectedProjectId: formData.project_id,
+                          selectedProject: selectedProject,
+                          logoUrl: logoUrl,
+                          logo: selectedProject?.logo
+                        });
+                        
+                        return logoUrl ? (
+                          <img 
+                            src={logoUrl} 
+                            alt="Project Logo"
+                            className="w-16 h-16 rounded-lg object-cover border"
+                            onError={(e) => {
+                              console.error('Form logo failed to load:', logoUrl);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">No Logo</span>
+                          </div>
+                        );
+                      })()}
                       <div>
                         <h4 className="font-medium text-gray-900">
                           {userProjects.find(p => p.id === formData.project_id)?.title}
@@ -763,7 +785,7 @@ const CreateFunding: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="bg-white shadow-sm rounded-lg p-6 sticky top-6"
+                className="lg:col-span-2 bg-white shadow-sm rounded-lg p-8 sticky top-6"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
                 <p className="text-sm text-gray-600 mb-4">This is how your funding project will appear on the funding page:</p>
@@ -786,17 +808,33 @@ const CreateFunding: React.FC = () => {
                         )}
                       </div>
                       {/* Project Logo */}
-                      {userProjects.find(p => p.id === formData.project_id)?.logo_url ? (
-                        <img 
-                          src={userProjects.find(p => p.id === formData.project_id)?.logo_url} 
-                          alt="Project logo"
-                          className="w-12 h-12 rounded-lg object-cover border"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">No Logo</span>
-                        </div>
-                      )}
+                      {(() => {
+                        const selectedProject = userProjects.find(p => p.id === formData.project_id);
+                        const logoUrl = selectedProject?.logo_url;
+                        console.log('Preview logo debug:', {
+                          selectedProjectId: formData.project_id,
+                          selectedProject: selectedProject,
+                          logoUrl: logoUrl,
+                          logo: selectedProject?.logo
+                        });
+                        
+                        return logoUrl ? (
+                          <img 
+                            src={logoUrl} 
+                            alt="Project logo"
+                            className="w-12 h-12 rounded-lg object-cover border"
+                            onError={(e) => {
+                              console.error('Logo failed to load:', logoUrl);
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">No Logo</span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
