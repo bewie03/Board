@@ -413,8 +413,7 @@ const AdminPanel: React.FC = () => {
 
         {/* Navigation Tabs */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-          <div className="bg-white rounded-xl shadow-sm border border-blue-100">
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-8 max-w-md">
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg max-w-md">
               <button
                 onClick={() => setActiveTab('reports')}
                 className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
@@ -438,7 +437,6 @@ const AdminPanel: React.FC = () => {
                 Pricing
               </button>
             </div>
-          </div>
         </div>
 
         {/* Content */}
