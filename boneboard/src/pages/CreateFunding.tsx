@@ -158,14 +158,16 @@ const CreateFunding: React.FC = () => {
 
         {userProjects.length === 0 ? (
           <div className="bg-white shadow-sm rounded-lg p-8 text-center">
-            <div className="text-gray-400 text-6xl mb-4">📋</div>
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaInfoCircle className="text-blue-600 text-2xl" />
+            </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No eligible projects found</h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-gray-500 mb-6">
               You need to create a project first, or all your projects already have active funding campaigns.
             </p>
             <button
-              onClick={() => navigate('/create-project')}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+              onClick={() => navigate('/projects/create')}
+              className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
             >
               Create New Project
             </button>
@@ -174,26 +176,29 @@ const CreateFunding: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white shadow-sm rounded-lg"
+            transition={{ duration: 0.4 }}
+            className="bg-white shadow-sm rounded-lg p-6"
           >
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Project Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Your Project *
+                  Select Project *
                 </label>
-                <CustomSelect
-                  options={userProjects.map(project => ({
-                    value: project.id,
-                    label: project.title
-                  }))}
-                  value={formData.project_id}
-                  onChange={(value) => setFormData(prev => ({ ...prev, project_id: value }))}
-                  placeholder="Choose one of your projects..."
-                  className=""
-                />
+                <div className="relative">
+                  <CustomSelect
+                    options={userProjects.map(project => ({
+                      value: project.id,
+                      label: project.title
+                    }))}
+                    value={formData.project_id}
+                    onChange={(value) => setFormData(prev => ({ ...prev, project_id: value }))}
+                    placeholder="Choose a project to create funding for"
+                    className=""
+                  />
+                </div>
                 <p className="mt-1 text-sm text-gray-500">
-                  Only your projects without existing funding campaigns are shown
+                  Only projects you own that don't have active funding are shown
                 </p>
               </div>
 
@@ -292,94 +297,118 @@ const CreateFunding: React.FC = () => {
                 </p>
               </div>
 
-              {/* Funding Cost Notice */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <span className="text-2xl">💰</span>
-                  </div>
-                  <div className="ml-3">
-                    <h4 className="text-lg font-semibold text-yellow-900">Funding Creation Fee</h4>
-                    <p className="text-sm text-yellow-800">
-                      Creating a funding campaign costs <strong>2 ADA</strong> (testing rate). This helps prevent spam and ensures serious projects.
+            {/* Funding Cost Notice */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <FaInfoCircle className="text-blue-600 text-lg" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    Funding Creation Fee
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>
+                      Creating a funding campaign costs <strong>2 ADA</strong> (testing rate). This helps prevent spam
+                      and ensures serious projects.
                     </p>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Info Box */}
-              <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-                <div className="text-center mb-4">
-                  <FaInfoCircle className="text-blue-500 text-2xl mx-auto mb-2" />
-                  <h4 className="text-xl font-bold text-blue-900">How BoneBoard Funding Works</h4>
-                </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column */}
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
-                        <h5 className="font-semibold text-blue-900">Direct Wallet Funding</h5>
-                      </div>
-                      <p className="text-sm text-blue-700 ml-11">Contributors send ADA directly to your project wallet - no middleman fees</p>
+            {/* How BoneBoard Funding Works */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <FaInfoCircle className="text-blue-600 text-xl mr-3" />
+                <h3 className="text-lg font-semibold text-blue-900">How BoneBoard Funding Works</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                      1
                     </div>
-                    
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
-                        <h5 className="font-semibold text-green-900">Blockchain Security</h5>
-                      </div>
-                      <p className="text-sm text-green-700 ml-11">All transactions are permanently recorded on Cardano blockchain</p>
+                    <div>
+                      <h4 className="font-medium text-blue-900">Direct Wallet Funding</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Contributors send ADA directly to your project wallet - no middleman fees
+                      </p>
                     </div>
                   </div>
                   
-                  {/* Right Column */}
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
-                        <h5 className="font-semibold text-purple-900">Real-time Analytics</h5>
-                      </div>
-                      <p className="text-sm text-purple-700 ml-11">Track funding progress, contributors, and engagement metrics live</p>
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                      2
                     </div>
-                    
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
-                        <h5 className="font-semibold text-orange-900">Community Driven</h5>
-                      </div>
-                      <p className="text-sm text-orange-700 ml-11">Build a community around your project with contributor recognition</p>
+                    <div>
+                      <h4 className="font-medium text-blue-900">Blockchain Security</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        All transactions are permanently recorded on Cardano blockchain
+                      </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                  <p className="text-sm text-blue-800 text-center">
-                    <strong>💡 Pro Tip:</strong> Projects with clear funding purposes and realistic goals get 3x more contributions!
-                  </p>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                      3
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-900">Real-time Analytics</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Track funding progress, contributors, and engagement metrics live
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                      4
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-900">Community Driven</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Build a community around your project with contributor recognition
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Submit Button */}
-              <div className="flex gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => navigate('/funding')}
-                  className="flex-1 px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="flex-1 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  {creating ? 'Creating...' : 'Create Funding Project'}
-                </button>
+              
+              <div className="mt-6 p-4 bg-white border border-blue-200 rounded-lg">
+                <div className="flex items-center">
+                  <FaInfoCircle className="text-blue-600 text-lg mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">
+                      Pro Tip: Projects with clear funding purposes and realistic goals get 3x more contributions!
+                    </p>
+                  </div>
+                </div>
               </div>
-            </form>
-          </motion.div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex gap-4 pt-6">
+              <button
+                type="button"
+                onClick={() => navigate('/funding')}
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creating}
+                className="flex-1 px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {creating ? 'Creating...' : 'Create Funding Project'}
+              </button>
+            </div>
+          </form>
+        </motion.div>
         )}
       </div>
     </div>

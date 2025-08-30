@@ -140,23 +140,38 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Verify project ownership
+      console.log('DEBUG: Checking project ownership for project_id:', project_id, 'wallet:', walletAddress);
+      
       const projectCheck = await pool.query(
         'SELECT user_id FROM projects WHERE id = $1',
         [project_id]
       );
 
       if (projectCheck.rows.length === 0) {
+        console.log('DEBUG: Project not found:', project_id);
         return res.status(404).json({ error: 'Project not found' });
       }
+
+      console.log('DEBUG: Project found, user_id:', projectCheck.rows[0].user_id);
 
       const userCheck = await pool.query(
         'SELECT id FROM users WHERE wallet_address = $1',
         [walletAddress]
       );
 
-      if (userCheck.rows.length === 0 || userCheck.rows[0].id !== projectCheck.rows[0].user_id) {
+      console.log('DEBUG: User lookup result:', userCheck.rows);
+
+      if (userCheck.rows.length === 0) {
+        console.log('DEBUG: No user found with wallet address:', walletAddress);
+        return res.status(403).json({ error: 'User not found with this wallet address' });
+      }
+
+      if (userCheck.rows[0].id !== projectCheck.rows[0].user_id) {
+        console.log('DEBUG: User ID mismatch. User ID:', userCheck.rows[0].id, 'Project user_id:', projectCheck.rows[0].user_id);
         return res.status(403).json({ error: 'Not authorized to create funding for this project' });
       }
+
+      console.log('DEBUG: Authorization successful');
 
       // Check if project already has active funding (enforce one funding per project)
       const existingFunding = await pool.query(
