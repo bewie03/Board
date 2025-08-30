@@ -53,7 +53,9 @@ const Funding: React.FC = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
+      console.log('Fetching all funding projects for main page...');
       const data = await fundingService.getAllFundingProjects();
+      console.log('Funding projects received:', data.length, data);
       setProjects(data);
     } catch (error) {
       console.error('Error fetching projects:', error);
