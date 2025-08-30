@@ -662,6 +662,64 @@ export class ContractService {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   }
+
+  async monitorFundingTransaction(txHash: string, fundingData: any, walletAddress: string): Promise<void> {
+    console.log(`Starting monitoring for funding transaction: ${txHash}`);
+    
+    const maxAttempts = 30; // 5 minutes with 10-second intervals
+    let attempts = 0;
+    
+    const checkTransaction = async (): Promise<void> => {
+      try {
+        attempts++;
+        console.log(`Checking funding transaction ${txHash} (attempt ${attempts}/${maxAttempts})`);
+        
+        if (!this.lucid) {
+          throw new Error('Lucid not initialized');
+        }
+        
+        // Check if transaction is confirmed on blockchain
+        const txInfo = await this.lucid.provider.getUtxos(txHash);
+        
+        if (txInfo && txInfo.length > 0) {
+          console.log(`Funding transaction ${txHash} confirmed! Creating funding project...`);
+          
+          // Remove from localStorage
+          localStorage.removeItem(`pendingFundingTx_${txHash}`);
+          
+          // Create funding project in database
+          const { fundingService } = await import('./fundingService');
+          await fundingService.createFundingProject(fundingData, walletAddress);
+          
+          console.log('Funding project created successfully after blockchain confirmation');
+          return;
+        }
+        
+        if (attempts >= maxAttempts) {
+          console.error(`Funding transaction ${txHash} not confirmed after ${maxAttempts} attempts`);
+          // Keep in localStorage for manual retry
+          return;
+        }
+        
+        // Continue monitoring
+        setTimeout(checkTransaction, 10000); // Check again in 10 seconds
+        
+      } catch (error) {
+        console.error(`Error checking funding transaction ${txHash}:`, error);
+        
+        if (attempts >= maxAttempts) {
+          console.error(`Giving up on funding transaction ${txHash} after ${maxAttempts} attempts`);
+          return;
+        }
+        
+        // Retry on error
+        setTimeout(checkTransaction, 10000);
+      }
+    };
+    
+    // Start monitoring
+    setTimeout(checkTransaction, 5000); // Initial delay of 5 seconds
+  }
 }
 
 export const contractService = new ContractService();

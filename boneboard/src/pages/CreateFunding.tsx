@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import CustomSelect from '../components/CustomSelect';
-import { fundingService, CreateFundingData } from '../services/fundingService';
+import { CreateFundingData } from '../services/fundingService';
 import { contractService } from '../services/contractService';
 
 interface Project {
@@ -188,22 +188,30 @@ const CreateFunding: React.FC = () => {
         ? await contractService.postFundingWithADA(fundingData)
         : await contractService.postFundingWithBONE(fundingData);
       
-      if (result.success) {
-        // Save funding to database after successful payment
-        const fundingToSave: CreateFundingData = {
-          ...formData,
-          bone_posting_fee: totalCost.amount,
-          bone_tx_hash: result.txHash || 'contract_tx_' + Date.now()
+      if (result.success && result.txHash) {
+        // Store pending transaction in localStorage for monitoring
+        const pendingTx = {
+          txHash: result.txHash,
+          fundingData: {
+            ...formData,
+            bone_posting_fee: totalCost.amount,
+            bone_tx_hash: result.txHash
+          },
+          timestamp: Date.now(),
+          type: 'funding'
         };
-
-        await fundingService.createFundingProject(fundingToSave, walletAddress);
+        
+        localStorage.setItem(`pendingFundingTx_${result.txHash}`, JSON.stringify(pendingTx));
         
         setPaymentStatus('success');
-        toast.success('Funding project created successfully!');
+        toast.success('Payment submitted! Waiting for blockchain confirmation...');
+        
+        // Start monitoring the transaction
+        await contractService.monitorFundingTransaction(result.txHash, fundingData, walletAddress);
         
         setTimeout(() => {
           navigate('/funding');
-        }, 2000);
+        }, 3000);
       } else {
         setPaymentStatus('error');
         toast.error(result.error || 'Payment failed');

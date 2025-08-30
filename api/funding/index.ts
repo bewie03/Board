@@ -74,7 +74,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         contributions,
         progress_percentage: project.funding_goal > 0 
           ? Math.min((project.current_funding / project.funding_goal) * 100, 100)
-          : 0
+          : 0,
+        contributor_count: contributions.length
       });
     }
 
@@ -91,7 +92,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         p.discord_link,
         CASE 
           WHEN pf.funding_goal > 0 THEN 
-            LEAST((pf.current_funding / pf.funding_goal) * 100, 100)
+            LEAST(COALESCE((pf.current_funding / pf.funding_goal) * 100, 0), 100)
           ELSE 0 
         END as progress_percentage,
         (
