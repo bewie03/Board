@@ -168,14 +168,14 @@ class TransactionMonitor {
     const jobToSave = {
       title: jobData.title,
       company: jobData.company,
-      description: jobData.description,
-      salary: jobData.salary,
-      salaryType: jobData.salaryType as 'ADA' | 'FIAT' | 'Other',
+      jobType: jobData.jobType,
       category: jobData.category,
-      type: jobData.type,
-      contactEmail: jobData.contactEmail,
-      howToApply: jobData.howToApply,
-      duration: jobData.duration,
+      description: jobData.description,
+      requirements: jobData.requirements,
+      applicationInstructions: jobData.applicationInstructions,
+      salary: jobData.salary,
+      currency: jobData.currency,
+      location: jobData.location,
       paymentAmount: jobData.paymentAmount,
       paymentCurrency: jobData.paymentCurrency,
       walletAddress: jobData.walletAddress,
@@ -190,7 +190,8 @@ class TransactionMonitor {
       website: jobData.website,
       twitter: jobData.twitter,
       discord: jobData.discord,
-      featured: jobData.featured
+      featured: jobData.featured,
+      selectedProjectId: jobData.selectedProjectId
     };
     
     await JobService.addJob(jobToSave);
@@ -263,10 +264,25 @@ class TransactionMonitor {
           
           toast.success(`Funding project created successfully! Transaction confirmed: ${pendingTx.txHash.substring(0, 8)}...`);
           return;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error creating funding project:', error);
-          // Don't remove from localStorage if save failed, allow retry
-          toast.error('Transaction confirmed but failed to create funding project. Will retry...');
+          
+          // Check if it's a duplicate funding campaign error
+          if (error.message && error.message.includes('already has an active funding campaign')) {
+            console.log('Duplicate funding campaign detected, removing from localStorage');
+            localStorage.removeItem(pendingKey);
+            toast.error('This project already has an active funding campaign. Please check your funding page.');
+            return;
+          }
+          
+          // For other errors, don't spam notifications - only show once per transaction
+          const errorKey = `fundingError_${pendingTx.txHash}`;
+          const hasShownError = localStorage.getItem(errorKey);
+          
+          if (!hasShownError) {
+            localStorage.setItem(errorKey, 'true');
+            toast.error('Transaction confirmed but failed to create funding project. Will retry...');
+          }
         }
       } else {
         // For both 'failed' and 'pending', we continue checking until timeout

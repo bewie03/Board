@@ -361,22 +361,18 @@ const PostJob: React.FC = () => {
         const expectedTruncated = `${walletAddress?.slice(0, 8)}...${walletAddress?.slice(-8)}`;
         throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
-      
-      // Prepare job data for smart contract
+
+      // Prepare job data for posting
       const jobData = {
         title: formData.title,
         company: formData.company,
+        type: formData.type,
+        workArrangement: formData.workArrangement,
+        category: formData.category,
         description: formData.description,
         salary: formData.salary,
         salaryType: formData.salaryType,
-        category: formData.category,
-        type: formData.type,
-        contactEmail: formData.contactEmail,
-        howToApply: formData.howToApply,
-        duration: formData.listingDuration,
-        paymentAmount: totalCost.amount,
-        paymentCurrency: formData.paymentMethod,
-        workArrangement: formData.workArrangement,
+        customCurrency: formData.customCurrency,
         requiredSkills: formData.requiredSkills,
         additionalInfo: formData.additionalInfo,
         companyWebsite: formData.companyWebsite,
@@ -384,10 +380,13 @@ const PostJob: React.FC = () => {
         website: formData.website,
         twitter: formData.twitter,
         discord: formData.discord,
-        walletAddress: walletAddress,
-        timestamp: Date.now(),
-        status: 'pending' as const,
-        featured: formData.featured
+        contactEmail: formData.contactEmail,
+        howToApply: formData.howToApply,
+        duration: formData.listingDuration,
+        featured: formData.featured,
+        selectedProjectId: selectedProject,
+        paymentAmount: totalCost.amount,
+        paymentCurrency: totalCost.currency as 'BONE' | 'ADA'
       };
       
       // Post job using smart contract

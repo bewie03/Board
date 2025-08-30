@@ -239,6 +239,23 @@ const CreateFunding: React.FC = () => {
       
       await contractService.initializeLucid(walletApi);
       
+      // Check if project already has active funding before payment
+      try {
+        const { fundingService } = await import('../services/fundingService');
+        const existingFunding = await fundingService.getFundingProject(formData.project_id);
+        
+        if (existingFunding && existingFunding.is_active) {
+          throw new Error('This project already has an active funding campaign. Only one funding campaign per project is allowed.');
+        }
+      } catch (error: any) {
+        if (error.message.includes('already has an active funding campaign')) {
+          toast.error('This project already has an active funding campaign. Please check your funding page.');
+          setPaymentStatus('error');
+          return;
+        }
+        console.warn('Could not check existing funding, proceeding with payment:', error);
+      }
+      
       // Prepare funding data for smart contract
       const fundingData = {
         project_id: formData.project_id,
