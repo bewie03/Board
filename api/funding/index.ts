@@ -69,14 +69,18 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const project = fundingResult.rows[0];
       const contributions = contributionsResult.rows;
 
-      return res.status(200).json({
+      const processedProject = {
         ...project,
         contributions,
         progress_percentage: project.funding_goal > 0 
-          ? Math.min((project.current_funding / project.funding_goal) * 100, 100)
+          ? Math.min((parseFloat(project.current_funding) / parseFloat(project.funding_goal)) * 100, 100)
           : 0,
-        contributor_count: contributions.length
-      });
+        contributor_count: contributions.length,
+        current_funding: parseFloat(project.current_funding) || 0,
+        funding_goal: parseFloat(project.funding_goal) || 0
+      };
+      
+      return res.status(200).json(processedProject);
     }
 
     // Get all active funding projects
@@ -107,7 +111,17 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     `;
 
     const result = await pool.query(query);
-    return res.status(200).json(result.rows);
+    
+    // Convert progress_percentage to number to ensure .toFixed() works on frontend
+    const processedRows = result.rows.map(row => ({
+      ...row,
+      progress_percentage: parseFloat(row.progress_percentage) || 0,
+      contributor_count: parseInt(row.contributor_count) || 0,
+      current_funding: parseFloat(row.current_funding) || 0,
+      funding_goal: parseFloat(row.funding_goal) || 0
+    }));
+    
+    return res.status(200).json(processedRows);
 
   } catch (error) {
     console.error('Error fetching funding projects:', error);
