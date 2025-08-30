@@ -222,7 +222,7 @@ const FundingDetail: React.FC = () => {
                 </div>
               </motion.div>
 
-              {/* Recent Contributions */}
+              {/* Top Contributors */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -230,35 +230,138 @@ const FundingDetail: React.FC = () => {
                 className="bg-white shadow-sm rounded-lg p-6"
               >
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Recent Contributions ({project.contributions.length})
+                  Top Contributors
                 </h2>
                 
                 {project.contributions.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-gray-400 text-4xl mb-2">💝</div>
+                    <div className="text-gray-400 text-4xl mb-2">🏆</div>
                     <p className="text-gray-500">No contributions yet. Be the first to support this project!</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {project.contributions.slice(0, 10).map((contribution) => (
-                      <div key={contribution.id} className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="flex items-center mb-1">
+                  <div className="space-y-3">
+                    {project.contributions
+                      .filter(c => !c.is_anonymous)
+                      .sort((a, b) => b.ada_amount - a.ada_amount)
+                      .slice(0, 5)
+                      .map((contribution, index) => (
+                      <div key={contribution.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                        <div className="flex items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3 ${
+                            index === 0 ? 'bg-yellow-500 text-white' :
+                            index === 1 ? 'bg-gray-400 text-white' :
+                            index === 2 ? 'bg-orange-600 text-white' :
+                            'bg-blue-100 text-blue-600'
+                          }`}>
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                          </div>
+                          <div>
                             <span className="font-medium text-gray-900">
                               {contribution.display_name}
                             </span>
-                            <span className="ml-2 text-sm text-gray-500">
-                              {formatDate(contribution.created_at)}
-                            </span>
+                            {contribution.message && (
+                              <p className="text-gray-600 text-sm mt-1 italic">"{contribution.message}"</p>
+                            )}
                           </div>
-                          {contribution.message && (
-                            <p className="text-gray-700 text-sm">{contribution.message}</p>
-                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-green-600 text-lg">
+                            {fundingService.formatADA(contribution.ada_amount)} ADA
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(contribution.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Anonymous contributions summary */}
+                    {project.contributions.filter(c => c.is_anonymous).length > 0 && (
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm mr-3">
+                            🕶️
+                          </div>
+                          <span className="font-medium text-gray-700">
+                            {project.contributions.filter(c => c.is_anonymous).length} Anonymous Contributors
+                          </span>
                         </div>
                         <div className="text-right">
                           <span className="font-semibold text-green-600">
-                            +{fundingService.formatADA(contribution.ada_amount)} ADA
+                            {fundingService.formatADA(
+                              project.contributions
+                                .filter(c => c.is_anonymous)
+                                .reduce((sum, c) => sum + c.ada_amount, 0)
+                            )} ADA
                           </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+              
+              {/* Contribution Timeline */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white shadow-sm rounded-lg p-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Contribution Timeline ({project.contributions.length})
+                  </h2>
+                  <div className="flex gap-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Total: {fundingService.formatADA(project.current_funding)} ADA
+                    </span>
+                  </div>
+                </div>
+                
+                {project.contributions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-gray-400 text-4xl mb-2">📈</div>
+                    <p className="text-gray-500">No contributions yet. Your contribution will be the first!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {project.contributions
+                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                      .map((contribution, index) => (
+                      <div key={contribution.id} className="relative">
+                        {/* Timeline line */}
+                        {index < project.contributions.length - 1 && (
+                          <div className="absolute left-4 top-8 w-0.5 h-16 bg-gray-200"></div>
+                        )}
+                        
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">💰</span>
+                          </div>
+                          <div className="ml-4 flex-1 bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center">
+                                <span className="font-medium text-gray-900 mr-2">
+                                  {contribution.display_name}
+                                </span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                  +{fundingService.formatADA(contribution.ada_amount)} ADA
+                                </span>
+                              </div>
+                              <span className="text-sm text-gray-500">
+                                {formatDate(contribution.created_at)}
+                              </span>
+                            </div>
+                            {contribution.message && (
+                              <p className="text-gray-700 text-sm bg-white p-2 rounded border-l-4 border-blue-200 italic">
+                                "{contribution.message}"
+                              </p>
+                            )}
+                            <div className="mt-2 text-xs text-gray-500">
+                              TX: {contribution.ada_tx_hash.substring(0, 20)}...
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -322,14 +425,94 @@ const FundingDetail: React.FC = () => {
                 )}
               </motion.div>
 
-              {/* Project Stats */}
+              {/* Contribution Analytics */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
                 className="bg-white shadow-sm rounded-lg p-6"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Stats</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 Analytics</h3>
+                <div className="space-y-4">
+                  {/* Funding Stats */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
+                      <div className="text-2xl font-bold text-green-600">
+                        {project.contributor_count}
+                      </div>
+                      <div className="text-sm text-green-700">Total Backers</div>
+                    </div>
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-3 rounded-lg border border-blue-200">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {fundingService.formatADA(
+                          project.contributions.length > 0 
+                            ? project.contributions.reduce((sum, c) => sum + c.ada_amount, 0) / project.contributions.length
+                            : 0
+                        )}
+                      </div>
+                      <div className="text-sm text-blue-700">Avg. Contribution</div>
+                    </div>
+                  </div>
+                  
+                  {/* Contribution Breakdown */}
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-700">Contribution Breakdown</h4>
+                    <div className="space-y-2">
+                      {[
+                        { range: '1000+ ADA', count: project.contributions.filter(c => c.ada_amount >= 1000).length, color: 'bg-purple-500' },
+                        { range: '100-999 ADA', count: project.contributions.filter(c => c.ada_amount >= 100 && c.ada_amount < 1000).length, color: 'bg-blue-500' },
+                        { range: '10-99 ADA', count: project.contributions.filter(c => c.ada_amount >= 10 && c.ada_amount < 100).length, color: 'bg-green-500' },
+                        { range: '1-9 ADA', count: project.contributions.filter(c => c.ada_amount >= 1 && c.ada_amount < 10).length, color: 'bg-yellow-500' },
+                        { range: '<1 ADA', count: project.contributions.filter(c => c.ada_amount < 1).length, color: 'bg-gray-400' }
+                      ].map((tier, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className={`w-3 h-3 rounded-full ${tier.color} mr-2`}></div>
+                            <span className="text-sm text-gray-600">{tier.range}</span>
+                          </div>
+                          <span className="text-sm font-medium">{tier.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Anonymous vs Public */}
+                  <div className="pt-3 border-t border-gray-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700">Contribution Privacy</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                          <span className="text-sm text-gray-600">Public</span>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {project.contributions.filter(c => !c.is_anonymous).length}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+                          <span className="text-sm text-gray-600">Anonymous</span>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {project.contributions.filter(c => c.is_anonymous).length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              {/* Project Stats */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+                className="bg-white shadow-sm rounded-lg p-6"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">📋 Project Info</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Created</span>
@@ -341,14 +524,20 @@ const FundingDetail: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Status</span>
-                    <span className={`font-medium ${
+                    <span className={`font-medium flex items-center ${
                       project.is_funded ? 'text-green-600' : 
                       isExpired ? 'text-red-600' : 
                       'text-blue-600'
                     }`}>
-                      {project.is_funded ? 'Fully Funded' : 
-                       isExpired ? 'Expired' : 
-                       'Active'}
+                      {project.is_funded ? '✅ Fully Funded' : 
+                       isExpired ? '⏰ Expired' : 
+                       '🟢 Active'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Messages</span>
+                    <span className="font-medium">
+                      {project.contributions.filter(c => c.message && c.message.trim()).length} with notes
                     </span>
                   </div>
                 </div>

@@ -26,7 +26,8 @@ const CreateFunding: React.FC = () => {
     project_id: '',
     funding_goal: 0,
     funding_deadline: '',
-    wallet_address: ''
+    wallet_address: '',
+    funding_purpose: ''
   });
 
   useEffect(() => {
@@ -69,7 +70,7 @@ const CreateFunding: React.FC = () => {
       return;
     }
 
-    if (!formData.project_id || !formData.funding_goal || !formData.funding_deadline || !formData.wallet_address) {
+    if (!formData.project_id || !formData.funding_goal || !formData.funding_deadline || !formData.wallet_address || !formData.funding_purpose) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -231,37 +232,88 @@ const CreateFunding: React.FC = () => {
                 </p>
               </div>
 
+              {/* Funding Purpose */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Funding Purpose *
+                </label>
+                <textarea
+                  name="funding_purpose"
+                  value={formData.funding_purpose}
+                  onChange={handleInputChange}
+                  required
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Explain what you need the funding for and how it will be used..."
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Describe your funding goals, milestones, and how the funds will be allocated
+                </p>
+              </div>
+
               {/* Funding Deadline */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Funding Deadline *
                 </label>
-                <input
-                  type="datetime-local"
-                  name="funding_deadline"
-                  value={formData.funding_deadline}
-                  onChange={handleInputChange}
-                  required
-                  min={new Date().toISOString().slice(0, 16)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    name="funding_deadline"
+                    value={formData.funding_deadline}
+                    onChange={handleInputChange}
+                    required
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  />
+                </div>
                 <p className="mt-1 text-sm text-gray-500">
                   When the funding period should end
                 </p>
               </div>
 
               {/* Info Box */}
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <div className="flex">
-                  <FaInfoCircle className="text-blue-400 mt-0.5 mr-3" />
-                  <div className="text-sm text-blue-700">
-                    <h4 className="font-medium mb-1">How it works:</h4>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Contributors send ADA directly to your project wallet</li>
-                      <li>All transactions are recorded on the blockchain</li>
-                      <li>You can track funding progress in real-time</li>
-                      <li>Funding continues until the deadline or goal is reached</li>
-                    </ul>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <FaInfoCircle className="text-blue-500 text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-blue-900 mb-3">How Funding Works</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start">
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</div>
+                          <div>
+                            <h5 className="font-medium text-blue-800">Direct Wallet Funding</h5>
+                            <p className="text-sm text-blue-700">Contributors send ADA directly to your project wallet</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start">
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</div>
+                          <div>
+                            <h5 className="font-medium text-blue-800">Blockchain Recording</h5>
+                            <p className="text-sm text-blue-700">All transactions are permanently recorded on Cardano</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start">
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</div>
+                          <div>
+                            <h5 className="font-medium text-blue-800">Real-time Tracking</h5>
+                            <p className="text-sm text-blue-700">Monitor funding progress and contributor activity live</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start">
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</div>
+                          <div>
+                            <h5 className="font-medium text-blue-800">Flexible Duration</h5>
+                            <p className="text-sm text-blue-700">Funding continues until deadline or goal is reached</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaFilter, FaCalendarAlt, FaUsers, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFilter, FaUsers, FaTimes } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -255,10 +255,24 @@ const Funding: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Deadline */}
-                    <div className="flex items-center text-sm text-gray-500 mb-4">
-                      <FaCalendarAlt className="mr-2" />
-                      {fundingService.formatDeadline(project.funding_deadline)}
+
+                    {/* Contributor Stats */}
+                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                      <div className="flex items-center space-x-4">
+                        <span className="flex items-center">
+                          <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                          {project.contributor_count} backers
+                        </span>
+                        <span className="flex items-center">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                          {fundingService.formatDeadline(project.funding_deadline)}
+                        </span>
+                      </div>
+                      {project.contributor_count > 0 && (
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
+                          🔥 Trending
+                        </span>
+                      )}
                     </div>
 
                     {/* Action Buttons */}
@@ -271,15 +285,15 @@ const Funding: React.FC = () => {
                         disabled={fundingService.isExpired(project.funding_deadline) || project.is_funded}
                         className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
                       >
-                        {project.is_funded ? 'Fully Funded' : 
-                         fundingService.isExpired(project.funding_deadline) ? 'Expired' : 
-                         'Contribute'}
+                        {project.is_funded ? '✅ Fully Funded' : 
+                         fundingService.isExpired(project.funding_deadline) ? '⏰ Expired' : 
+                         '💰 Contribute'}
                       </button>
                       <button
                         onClick={() => navigate(`/funding/${project.id}`)}
                         className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm"
                       >
-                        View Details
+                        📊 Details
                       </button>
                     </div>
                   </div>

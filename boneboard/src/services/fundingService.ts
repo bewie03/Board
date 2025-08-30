@@ -38,6 +38,7 @@ interface CreateFundingData {
   bone_posting_fee?: number;
   bone_tx_hash?: string;
   wallet_address: string;
+  funding_purpose: string;
 }
 
 interface ContributeData {

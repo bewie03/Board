@@ -125,16 +125,17 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     if (action === 'create') {
       // Create new funding project
-      const {
-        project_id,
-        funding_goal,
-        funding_deadline,
-        bone_posting_fee,
-        bone_tx_hash,
-        wallet_address: project_wallet
+      const { 
+        project_id, 
+        funding_goal, 
+        funding_deadline, 
+        bone_posting_fee = 0, 
+        bone_tx_hash = 'placeholder',
+        wallet_address,
+        funding_purpose
       } = req.body;
 
-      if (!project_id || !funding_goal || !funding_deadline || !project_wallet) {
+      if (!project_id || !funding_goal || !funding_deadline || !wallet_address) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
@@ -170,8 +171,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       const insertQuery = `
         INSERT INTO project_funding (
           project_id, funding_goal, funding_deadline, bone_posting_fee, 
-          bone_tx_hash, wallet_address, is_active, is_funded
-        ) VALUES ($1, $2, $3, $4, $5, $6, true, false)
+          bone_tx_hash, wallet_address, funding_purpose, is_active, is_funded
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, true, false)
         RETURNING *
       `;
 
@@ -181,7 +182,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         funding_deadline,
         bone_posting_fee,
         bone_tx_hash,
-        project_wallet
+        wallet_address,
+        funding_purpose
       ]);
 
       return res.status(201).json(result.rows[0]);
