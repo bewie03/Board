@@ -714,8 +714,6 @@ const Projects: React.FC = () => {
                           <div>
                             <div className="font-medium text-gray-900">Discord</div>
                             <div className="text-sm text-gray-500">Join community</div>
-                            <div className="text-sm font-medium text-gray-900">Discord</div>
-                            <div className="text-xs text-gray-500">Join server</div>
                           </div>
                           <FaExternalLinkAlt className="h-3 w-3 text-gray-400 ml-auto" />
                         </a>

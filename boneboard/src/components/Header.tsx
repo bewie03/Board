@@ -57,6 +57,7 @@ const Header: React.FC = () => {
   const navItems = [
     { path: '/jobs', label: 'Job Search' },
     { path: '/projects', label: 'Projects' },
+    { path: '/funding', label: 'Funding' },
     { path: '/post-job', label: 'Post Job' },
   ];
 
@@ -104,6 +105,16 @@ const Header: React.FC = () => {
                 }
               >
                 Projects
+              </NavLink>
+              <NavLink 
+                to="/funding" 
+                className={({ isActive }) => 
+                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                    isActive ? 'text-blue-600 bg-blue-50' : ''
+                  }`
+                }
+              >
+                Funding
               </NavLink>
               {isConnected && walletAddress && isAdminWallet(walletAddress) && (
                 <div className="flex items-center px-3 py-1 bg-blue-100 rounded-full">
