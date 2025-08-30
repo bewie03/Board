@@ -554,9 +554,7 @@ const CreateFunding: React.FC = () => {
                               className="sr-only"
                             />
                             <div className="flex items-center">
-                              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                                B
-                              </div>
+                              <span className="text-2xl mr-3">🦴</span>
                               <div>
                                 <div className="text-sm font-medium text-gray-900">BONE Token</div>
                                 <div className="text-xs text-gray-500">Recommended</div>

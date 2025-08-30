@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaFilter, FaUsers, FaTimes, FaSort, FaCheckCircle } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -191,12 +191,11 @@ const Funding: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="min-w-[200px] relative">
+                  <div className="relative min-w-[220px]">
                     <div className="relative">
                       <button
-                        type="button"
-                        className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm sm:leading-6"
                         onClick={() => setShowFilters(!showFilters)}
+                        className="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
                       >
                         <span className="text-gray-700">
                           {selectedCategories.length === 0 
@@ -235,47 +234,24 @@ const Funding: React.FC = () => {
                     />
                   </div>
                   
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${
-                      showFilters ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <FaFilter />
-                    More Filters
-                  </button>
+                  <div className="flex items-center min-w-[220px]">
+                    <button
+                      onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors mr-3 ${
+                        showVerifiedOnly 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
+                      }`}
+                    >
+                      <FaCheckCircle className="w-3 h-3" />
+                    </button>
+                    <label className="text-sm text-gray-700 cursor-pointer" onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}>
+                      Show only verified projects
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              {showFilters && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-6 p-4 bg-gray-50 rounded-lg"
-                >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Filters</h3>
-                  
-                  <div className="space-y-4">
-                    {/* Verified Projects Filter */}
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
-                        className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
-                          showVerifiedOnly 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
-                        }`}
-                      >
-                        <FaCheckCircle className="w-3 h-3" />
-                      </button>
-                      <label className="ml-3 text-sm text-gray-700 cursor-pointer" onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}>
-                        Show only verified projects
-                      </label>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
             </div>
           </div>
 

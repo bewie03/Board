@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaPlay, FaEyeSlash, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle } from 'react-icons/fa';
+import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaPlay, FaEyeSlash, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle, FaFolder } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 import { toast } from 'react-toastify';
@@ -414,30 +414,30 @@ const AdminPanel: React.FC = () => {
         {/* Navigation Tabs */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
           <div className="bg-white rounded-xl shadow-sm border border-blue-100">
-            <nav className="flex space-x-1 p-2">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-8 max-w-md">
               <button
                 onClick={() => setActiveTab('reports')}
-                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'reports'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-blue-600 hover:bg-blue-50'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <FaChartBar className="mr-2 h-4 w-4" />
+                <FaChartBar className="inline mr-2" />
                 Reports
               </button>
               <button
                 onClick={() => setActiveTab('pricing')}
-                className={`flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'pricing'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-blue-600 hover:bg-blue-50'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <FaDollarSign className="mr-2 h-4 w-4" />
+                <FaDollarSign className="inline mr-2" />
                 Pricing
               </button>
-            </nav>
+            </div>
           </div>
         </div>
 
@@ -1272,7 +1272,7 @@ const PricingSettings: React.FC<{
         <div className="bg-white rounded-xl p-6 border border-blue-200">
           <div className="flex items-center mb-6">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
-              <FaCoins className="h-6 w-6 text-blue-600" />
+              <FaFolder className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900">Project Listing Fees</h3>
@@ -1388,10 +1388,7 @@ const PricingSettings: React.FC<{
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
               <label className="block text-sm font-semibold text-gray-800 mb-3">
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs mr-2 inline-block">
-                  B
-                </div>
-                BONE Price (Base Price)
+                🦴 BONE Price (Base Price)
               </label>
               <div className="relative">
                 <input
