@@ -19,7 +19,7 @@ export interface JobPostingData {
   company: string;
   description: string;
   salary: string;
-  salaryType: string;
+  salaryType: 'ADA' | 'FIAT' | 'Other';
   category: string;
   type: string;
   contactEmail: string;
@@ -38,6 +38,7 @@ export interface JobPostingData {
   twitter?: string;
   discord?: string;
   featured?: boolean;
+  selectedProjectId?: string | null;
 }
 
 export interface ProjectPostingData {

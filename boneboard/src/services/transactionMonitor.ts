@@ -168,14 +168,11 @@ class TransactionMonitor {
     const jobToSave = {
       title: jobData.title,
       company: jobData.company,
-      jobType: jobData.jobType,
+      type: jobData.type,
       category: jobData.category,
       description: jobData.description,
-      requirements: jobData.requirements,
-      applicationInstructions: jobData.applicationInstructions,
       salary: jobData.salary,
-      currency: jobData.currency,
-      location: jobData.location,
+      salaryType: jobData.salaryType,
       paymentAmount: jobData.paymentAmount,
       paymentCurrency: jobData.paymentCurrency,
       walletAddress: jobData.walletAddress,
@@ -190,6 +187,9 @@ class TransactionMonitor {
       website: jobData.website,
       twitter: jobData.twitter,
       discord: jobData.discord,
+      contactEmail: jobData.contactEmail,
+      howToApply: jobData.howToApply,
+      duration: jobData.duration,
       featured: jobData.featured,
       selectedProjectId: jobData.selectedProjectId
     };
