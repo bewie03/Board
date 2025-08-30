@@ -81,7 +81,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     FROM job_listings j
     LEFT JOIN projects p ON (
       LOWER(j.company) = LOWER(p.title) OR
-      (j.selected_project_id IS NOT NULL AND j.selected_project_id = p.id)
+      j.user_id = p.wallet_address
     )
   `;
   const params: any[] = [];
