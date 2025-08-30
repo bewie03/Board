@@ -82,6 +82,19 @@ class FundingService {
     }
   }
 
+  async getFundingByWallet(walletAddress: string): Promise<FundingProject[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}?owner=${walletAddress}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch funding projects by wallet');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching funding projects by wallet:', error);
+      throw error;
+    }
+  }
+
   async createFundingProject(data: CreateFundingData, walletAddress: string): Promise<any> {
     try {
       const response = await fetch(`${this.baseUrl}?action=create`, {

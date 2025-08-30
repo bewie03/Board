@@ -304,6 +304,7 @@ CREATE TABLE project_funding (
     bone_posting_fee DECIMAL(10,2),
     bone_tx_hash VARCHAR(128),
     funding_deadline TIMESTAMP WITH TIME ZONE,
+    funding_purpose TEXT,
     is_active BOOLEAN DEFAULT true,
     is_funded BOOLEAN DEFAULT false,
     wallet_address VARCHAR(255) NOT NULL,
@@ -368,15 +369,16 @@ CREATE TABLE project_votes (
     UNIQUE(project_id, wallet_address)
 );
 
-CREATE TABLE project_fundings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    wallet_address VARCHAR(255) NOT NULL,
-    amount DECIMAL(15,6) NOT NULL,
-    tx_hash VARCHAR(128) NOT NULL,
-    message TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Legacy table - replaced by project_funding system above
+-- CREATE TABLE project_fundings (
+--     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+--     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+--     wallet_address VARCHAR(255) NOT NULL,
+--     amount DECIMAL(15,6) NOT NULL,
+--     tx_hash VARCHAR(128) NOT NULL,
+--     message TEXT,
+--     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- );
 
 -- Additional indexes for BoneBoard features
 CREATE INDEX idx_scam_reports_type ON scam_reports(scam_type);
@@ -386,7 +388,7 @@ CREATE INDEX idx_project_funding_project_id ON project_funding(project_id);
 CREATE INDEX idx_project_funding_is_active ON project_funding(is_active);
 CREATE INDEX idx_funding_contributions_project_id ON funding_contributions(project_funding_id);
 CREATE INDEX idx_project_votes_project_id ON project_votes(project_id);
-CREATE INDEX idx_project_fundings_project_id ON project_fundings(project_id);
+-- CREATE INDEX idx_project_fundings_project_id ON project_fundings(project_id);
 CREATE INDEX idx_bone_transactions_user_id ON bone_transactions(user_id);
 CREATE INDEX idx_bone_transactions_type ON bone_transactions(transaction_type);
 CREATE INDEX idx_ada_transactions_tx_hash ON ada_transactions(tx_hash);
