@@ -304,6 +304,34 @@ const CreateFunding: React.FC = () => {
                     className=""
                   />
                 </div>
+                
+                {/* Selected Project Logo Preview */}
+                {formData.project_id && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center space-x-4">
+                      {userProjects.find(p => p.id === formData.project_id)?.logo_url ? (
+                        <img 
+                          src={userProjects.find(p => p.id === formData.project_id)?.logo_url} 
+                          alt="Project Logo"
+                          className="w-16 h-16 rounded-lg object-cover border"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-xs">No Logo</span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {userProjects.find(p => p.id === formData.project_id)?.title}
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          {userProjects.find(p => p.id === formData.project_id)?.description?.substring(0, 100)}...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <p className="mt-1 text-sm text-gray-500">
                   Only projects you own that don't have active funding are shown
                 </p>

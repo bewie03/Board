@@ -94,6 +94,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         p.website,
         p.twitter_link,
         p.discord_link,
+        p.is_verified,
         CASE 
           WHEN pf.funding_goal > 0 THEN 
             LEAST(COALESCE((pf.current_funding / pf.funding_goal) * 100, 0), 100)

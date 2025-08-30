@@ -4,6 +4,7 @@ interface FundingProject {
   funding_goal: number;
   current_funding: number;
   funding_deadline: string;
+  funding_purpose?: string;
   is_active: boolean;
   is_funded: boolean;
   is_verified?: boolean;
@@ -18,17 +19,19 @@ interface FundingProject {
   progress_percentage: number;
   contributor_count: number;
   created_at: string;
+  contributions?: FundingContribution[];
 }
 
 interface FundingContribution {
   id: string;
   project_funding_id: string;
   contributor_wallet: string;
+  display_name?: string;
+  amount: number;
   ada_amount: number;
   ada_tx_hash: string;
   message?: string;
   is_anonymous: boolean;
-  display_name: string;
   created_at: string;
 }
 

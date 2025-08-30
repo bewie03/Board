@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -20,6 +20,7 @@ const Funding: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
+  const [selectedProjectForPanel, setSelectedProjectForPanel] = useState<FundingProject | null>(null);
   const [showContributeModal, setShowContributeModal] = useState(false);
   const [contributeAmount, setContributeAmount] = useState('');
   const [contributeMessage, setContributeMessage] = useState('');
@@ -282,7 +283,8 @@ const Funding: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0 }}
-                  className="bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+                  onClick={() => setSelectedProjectForPanel(project)}
                 >
                   {/* Project Header */}
                   <div className="p-6">
@@ -293,9 +295,18 @@ const Funding: React.FC = () => {
                           <FaCheckCircle className="text-green-500 text-sm" title="Verified Project" />
                         )}
                       </div>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                        {PROJECT_CATEGORIES.find(cat => cat.toLowerCase().replace(/[^a-z0-9]/g, '-') === project.category) || project.category}
-                      </span>
+                      {/* Project Logo */}
+                      {project.logo_url ? (
+                        <img 
+                          src={project.logo_url} 
+                          alt={`${project.title} logo`}
+                          className="w-12 h-12 rounded-lg object-cover border"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-xs">Logo</span>
+                        </div>
+                      )}
                     </div>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
@@ -337,32 +348,35 @@ const Funding: React.FC = () => {
                           {fundingService.formatDeadline(project.funding_deadline)}
                         </span>
                       </div>
-                      {project.contributor_count > 0 && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
-                          🔥 Trending
-                        </span>
-                      )}
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedProject(project);
                           setShowContributeModal(true);
                         }}
                         disabled={fundingService.isExpired(project.funding_deadline) || project.is_funded}
-                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
                       >
-                        {project.is_funded ? '✅ Fully Funded' : 
-                         fundingService.isExpired(project.funding_deadline) ? '⏰ Expired' : 
-                         '💰 Contribute'}
-                      </button>
-                      <button
-                        onClick={() => navigate(`/funding/${project.id}`)}
-                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm"
-                      >
-                        📊 Details
+                        {project.is_funded ? (
+                          <>
+                            <FaCheckCircle />
+                            Fully Funded
+                          </>
+                        ) : fundingService.isExpired(project.funding_deadline) ? (
+                          <>
+                            <FaClock />
+                            Expired
+                          </>
+                        ) : (
+                          <>
+                            <FaDollarSign />
+                            Contribute
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -372,6 +386,202 @@ const Funding: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Project Details Side Panel */}
+      <AnimatePresence>
+        {selectedProjectForPanel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end p-4 z-50"
+            onClick={() => setSelectedProjectForPanel(null)}
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              className="bg-white h-full w-full max-w-2xl rounded-l-lg overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-4">
+                    {selectedProjectForPanel.logo_url ? (
+                      <img 
+                        src={selectedProjectForPanel.logo_url} 
+                        alt={`${selectedProjectForPanel.title} logo`}
+                        className="w-16 h-16 rounded-lg object-cover border"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">Logo</span>
+                      </div>
+                    )}
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        {selectedProjectForPanel.title}
+                        {selectedProjectForPanel.is_verified && (
+                          <FaCheckCircle className="text-green-500 text-lg" title="Verified Project" />
+                        )}
+                      </h2>
+                      <p className="text-gray-600">{selectedProjectForPanel.description}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedProjectForPanel(null)}
+                    className="text-gray-400 hover:text-gray-600 p-2"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+
+                {/* Funding Progress */}
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        {fundingService.formatADA(selectedProjectForPanel.current_funding)} ADA
+                      </h3>
+                      <p className="text-gray-600">raised of {fundingService.formatADA(selectedProjectForPanel.funding_goal)} ADA goal</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-blue-600">
+                        {(selectedProjectForPanel.progress_percentage || 0).toFixed(1)}%
+                      </p>
+                      <p className="text-sm text-gray-500">funded</p>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                    <div
+                      className="bg-blue-600 h-4 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(selectedProjectForPanel.progress_percentage || 0, 100)}%` }}
+                    ></div>
+                  </div>
+                  
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <FaUsers />
+                      {selectedProjectForPanel.contributor_count} contributors
+                    </span>
+                    <span>{fundingService.formatDeadline(selectedProjectForPanel.funding_deadline)}</span>
+                  </div>
+                </div>
+
+                {/* Funding Purpose */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Funding Purpose</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {selectedProjectForPanel.funding_purpose || 'No specific funding purpose provided.'}
+                  </p>
+                </div>
+
+                {/* Project Links */}
+                {(selectedProjectForPanel.website || selectedProjectForPanel.twitter_link || selectedProjectForPanel.discord_link) && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Links</h3>
+                    <div className="flex gap-4">
+                      {selectedProjectForPanel.website && (
+                        <a 
+                          href={selectedProjectForPanel.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Website
+                        </a>
+                      )}
+                      {selectedProjectForPanel.twitter_link && (
+                        <a 
+                          href={selectedProjectForPanel.twitter_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Twitter
+                        </a>
+                      )}
+                      {selectedProjectForPanel.discord_link && (
+                        <a 
+                          href={selectedProjectForPanel.discord_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Discord
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contributors Section */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Contributors</h3>
+                  <div className="space-y-3">
+                    {selectedProjectForPanel.contributions && selectedProjectForPanel.contributions.length > 0 ? (
+                      selectedProjectForPanel.contributions.map((contribution: any, index: number) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {contribution.display_name || contribution.contributor_wallet}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(contribution.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <span className="text-lg font-semibold text-blue-600">
+                              {fundingService.formatADA(contribution.amount)} ADA
+                            </span>
+                          </div>
+                          {contribution.message && (
+                            <p className="text-gray-700 text-sm italic">"{contribution.message}"</p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No contributions yet. Be the first to support this project!</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Contribute Button */}
+                <div className="sticky bottom-0 bg-white border-t pt-4">
+                  <button
+                    onClick={() => {
+                      setSelectedProject(selectedProjectForPanel);
+                      setSelectedProjectForPanel(null);
+                      setShowContributeModal(true);
+                    }}
+                    disabled={fundingService.isExpired(selectedProjectForPanel.funding_deadline) || selectedProjectForPanel.is_funded}
+                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    {selectedProjectForPanel.is_funded ? (
+                      <>
+                        <FaCheckCircle />
+                        Fully Funded
+                      </>
+                    ) : fundingService.isExpired(selectedProjectForPanel.funding_deadline) ? (
+                      <>
+                        <FaClock />
+                        Funding Expired
+                      </>
+                    ) : (
+                      <>
+                        <FaDollarSign />
+                        Contribute Now
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Contribute Modal */}
       <AnimatePresence>
