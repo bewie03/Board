@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaArrowLeft, FaInfoCircle } from 'react-icons/fa';
 import CustomSelect from '../components/CustomSelect';
-import { PROJECT_CATEGORIES } from '../constants/categories';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, CreateFundingData } from '../services/fundingService';
 import { toast } from 'react-toastify';
