@@ -26,6 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function handleGet(req: VercelRequest, res: VercelResponse) {
   try {
     const { action, id, owner } = req.query;
+    console.log('Funding API GET request:', { action, id, owner });
 
     if (action === 'single' && id) {
       // Get single funding project with contributions
@@ -91,9 +92,11 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     let query = `
       SELECT 
         pf.*,
+        p.title,
         p.title as project_title,
         p.description,
         p.category,
+        p.logo_url,
         p.logo_url as project_logo,
         p.website,
         p.twitter_link,
@@ -111,8 +114,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           WHERE fc.project_funding_id = pf.id
         ) as contributor_count
       FROM project_funding pf
-      JOIN projects p ON pf.project_id = p.id
-      JOIN users u ON p.user_id = u.id
+      LEFT JOIN projects p ON pf.project_id = p.id
+      LEFT JOIN users u ON p.user_id = u.id
     `;
 
     const queryParams: any[] = [];
@@ -130,7 +133,10 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 
     query += ' ORDER BY pf.created_at DESC';
 
+    console.log('Executing funding query:', query);
+    console.log('Query params:', queryParams);
     const result = await pool.query(query, queryParams);
+    console.log('Raw database result:', result.rows.length, 'rows');
     
     // Convert progress_percentage to number to ensure .toFixed() works on frontend
     const processedRows = result.rows.map(row => ({
@@ -141,6 +147,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       funding_goal: parseFloat(row.funding_goal) || 0
     }));
     
+    console.log('Processed rows:', processedRows.length);
     return res.status(200).json(processedRows);
 
   } catch (error) {
