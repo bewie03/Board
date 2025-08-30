@@ -12,6 +12,7 @@ import SubmitProject from './pages/SubmitProject';
 import CreateProject from './pages/CreateProject';
 import MyProjects from './pages/profile/MyProjects';
 import MyJobs from './pages/profile/MyJobs';
+import MyFunding from './pages/profile/MyFunding';
 import AccountSettings from './pages/profile/AccountSettings';
 import SavedJobs from './pages/SavedJobs';
 import Funding from './pages/Funding';
@@ -69,6 +70,7 @@ function AnimatedRoutes() {
         {/* Profile Routes */}
         <Route path="/my-projects" element={<MyProjects />} />
         <Route path="/my-jobs" element={<MyJobs />} />
+        <Route path="/my-funding" element={<MyFunding />} />
         <Route path="/saved-jobs" element={<SavedJobs />} />
         <Route path="/profile" element={<AccountSettings />} />
         

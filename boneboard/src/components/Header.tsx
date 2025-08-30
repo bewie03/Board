@@ -239,6 +239,17 @@ const Header: React.FC = () => {
                           My Projects
                         </button>
                         
+                        <button
+                          onClick={() => {
+                            setShowProfile(false);
+                            navigate('/my-funding');
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200 flex items-center"
+                        >
+                          <FaBriefcase className="w-5 h-5 mr-3 text-green-600" />
+                          My Project Funding
+                        </button>
+                        
                         {/* Admin Panel Button - Only show for admin wallet */}
                         {isAdminWallet(walletAddress) && (
                           <button

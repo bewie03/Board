@@ -15,15 +15,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return handlePost(req, res);
   } else if (req.method === 'PUT') {
     return handlePut(req, res);
+  } else if (req.method === 'DELETE') {
+    return handleDelete(req, res);
   } else {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 }
 
 async function handleGet(req: VercelRequest, res: VercelResponse) {
   try {
-    const { action, id } = req.query;
+    const { action, id, owner } = req.query;
 
     if (action === 'single' && id) {
       // Get single funding project with contributions
@@ -85,14 +87,14 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(processedProject);
     }
 
-    // Get all active funding projects
-    const query = `
+    // Get funding projects - filter by owner if specified
+    let query = `
       SELECT 
         pf.*,
-        p.title,
+        p.title as project_title,
         p.description,
         p.category,
-        p.logo_url,
+        p.logo_url as project_logo,
         p.website,
         p.twitter_link,
         p.discord_link,
@@ -110,11 +112,26 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         ) as contributor_count
       FROM project_funding pf
       JOIN projects p ON pf.project_id = p.id
-      WHERE pf.is_active = true
-      ORDER BY pf.created_at DESC
+      JOIN users u ON p.user_id = u.id
     `;
 
-    const result = await pool.query(query);
+    const queryParams: any[] = [];
+    const conditions: string[] = [];
+
+    if (owner) {
+      conditions.push('u.wallet_address = $' + (queryParams.length + 1));
+      queryParams.push(owner);
+    } else {
+      conditions.push('pf.is_active = true');
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY pf.created_at DESC';
+
+    const result = await pool.query(query, queryParams);
     
     // Convert progress_percentage to number to ensure .toFixed() works on frontend
     const processedRows = result.rows.map(row => ({
@@ -348,7 +365,7 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    const { is_active, funding_goal, funding_deadline } = req.body;
+    const { is_active, funding_goal, funding_deadline, funding_purpose } = req.body;
 
     // Verify ownership
     const ownershipCheck = await pool.query(`
@@ -373,8 +390,9 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
         is_active = COALESCE($1, is_active),
         funding_goal = COALESCE($2, funding_goal),
         funding_deadline = COALESCE($3, funding_deadline),
+        funding_purpose = COALESCE($4, funding_purpose),
         updated_at = NOW()
-      WHERE id = $4
+      WHERE id = $5
       RETURNING *
     `;
 
@@ -382,6 +400,7 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
       is_active,
       funding_goal,
       funding_deadline,
+      funding_purpose,
       id
     ]);
 
@@ -389,6 +408,59 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
   } catch (error) {
     console.error('Error updating funding project:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function handleDelete(req: VercelRequest, res: VercelResponse) {
+  try {
+    const { id } = req.query;
+    const walletAddress = req.headers['x-wallet-address'] as string;
+
+    if (!walletAddress || !id) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
+    // Verify ownership
+    const ownershipCheck = await pool.query(`
+      SELECT pf.*, p.user_id, u.wallet_address 
+      FROM project_funding pf
+      JOIN projects p ON pf.project_id = p.id
+      JOIN users u ON p.user_id = u.id
+      WHERE pf.id = $1
+    `, [id]);
+
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Funding project not found' });
+    }
+
+    if (ownershipCheck.rows[0].wallet_address !== walletAddress) {
+      return res.status(403).json({ error: 'Not authorized to delete this funding project' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Delete contributions first (foreign key constraint)
+      await client.query('DELETE FROM funding_contributions WHERE project_funding_id = $1', [id]);
+      
+      // Delete funding project
+      const result = await client.query('DELETE FROM project_funding WHERE id = $1 RETURNING *', [id]);
+
+      await client.query('COMMIT');
+
+      return res.status(200).json({ message: 'Funding project deleted successfully', deleted: result.rows[0] });
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+  } catch (error) {
+    console.error('Error deleting funding project:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
