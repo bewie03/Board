@@ -52,9 +52,15 @@ const CreateFunding: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         // Filter projects that belong to the user and don't already have active funding
-        const userOwnedProjects = data.filter((project: any) => 
-          project.user_wallet === walletAddress && !project.has_active_funding
-        );
+        console.log('All projects:', data);
+        console.log('Current wallet:', walletAddress);
+        
+        const userOwnedProjects = data.filter((project: any) => {
+          console.log('Checking project:', project.title, 'user_wallet:', project.user_wallet, 'wallet_address:', project.wallet_address, 'has_active_funding:', project.has_active_funding);
+          // Check both user_wallet and wallet_address fields
+          const isOwner = project.user_wallet === walletAddress || project.wallet_address === walletAddress;
+          return isOwner && !project.has_active_funding;
+        });
         setUserProjects(userOwnedProjects);
       }
     } catch (error) {

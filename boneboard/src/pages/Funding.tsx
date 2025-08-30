@@ -231,37 +231,19 @@ const Funding: React.FC = () => {
                   <div className="space-y-4">
                     {/* Verified Projects Filter */}
                     <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="verified-filter"
-                        checked={showVerifiedOnly}
-                        onChange={(e) => setShowVerifiedOnly(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="verified-filter" className="ml-3 flex items-center text-sm text-gray-700">
-                        <FaCheckCircle className="text-green-500 mr-2" />
+                      <button
+                        onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
+                        className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                          showVerifiedOnly 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
+                        }`}
+                      >
+                        <FaCheckCircle className="w-3 h-3" />
+                      </button>
+                      <label className="ml-3 text-sm text-gray-700 cursor-pointer" onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}>
                         Show only verified projects
                       </label>
-                    </div>
-                    
-                    {/* Quick Category Buttons */}
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Quick Category Filter</h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                        {categories.map(category => (
-                          <button
-                            key={category.value}
-                            onClick={() => setSelectedCategory(category.value)}
-                            className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                              selectedCategory === category.value
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                          >
-                            {category.label}
-                          </button>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </motion.div>
