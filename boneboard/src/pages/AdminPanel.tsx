@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaPlay, FaEyeSlash, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
+import { toast } from 'react-toastify';
 
 
 const AdminPanel: React.FC = () => {
@@ -82,10 +83,24 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      // Mock settings for now
+      
+      const response = await fetch('/api/admin?type=settings', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load settings: ${response.status}`);
+      }
+      
+      const settingsData = await response.json();
+      console.log('Loaded settings:', settingsData);
+      
       setSettings({
-        projectListingFee: 10,
-        jobListingFee: 5,
+        ...settingsData,
         maxProjectDuration: 365,
         maxJobDuration: 30,
         enablePayments: true,
@@ -318,27 +333,47 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-
   const handleUpdateSettings = async (newSettings: any) => {
-    if (!walletAddress) {
-      setError('Wallet not connected');
-      return;
-    }
+    if (!walletAddress) return;
     
     try {
       setLoading(true);
       setError(null);
-      // Mock update for now - would call API in real implementation
-      console.log('Updating settings:', newSettings);
-      await loadSettings(); // Reload to get updated data
+      
+      const response = await fetch('/api/admin?type=settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify(newSettings)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update settings: ${response.status}`);
+      }
+      
+      const updatedSettings = await response.json();
+      console.log('Updated settings:', updatedSettings);
+      
+      setSettings({ 
+        ...updatedSettings,
+        maxProjectDuration: 365,
+        maxJobDuration: 30,
+        enablePayments: true,
+        maintenanceMode: false
+      });
+      toast.success('Settings updated successfully!');
     } catch (err: any) {
       setError(err.message || 'Failed to update settings');
       console.error('Error updating settings:', err);
+      toast.error('Failed to update settings');
     } finally {
       setLoading(false);
     }
   };
 
+// ... (rest of the code remains the same)
   if (!walletAddress || walletAddress !== ADMIN_WALLET) {
     return (
       <PageTransition>
@@ -1210,18 +1245,23 @@ const PricingSettings: React.FC<{
 }> = ({ settings, onUpdate, loading }) => {
   const [projectFeeBone, setProjectFeeBone] = useState(settings.projectListingFee);
   const [jobFeeBone, setJobFeeBone] = useState(settings.jobListingFee);
+  const [fundingFeeBone, setFundingFeeBone] = useState(settings.fundingListingFee || 500);
   const [projectFeeAda, setProjectFeeAda] = useState((settings as any).projectListingFeeAda || settings.projectListingFee);
   const [jobFeeAda, setJobFeeAda] = useState((settings as any).jobListingFeeAda || settings.jobListingFee);
+  const [fundingFeeAda, setFundingFeeAda] = useState((settings as any).fundingListingFeeAda || 50);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onUpdate({
       projectListingFee: projectFeeBone,
       jobListingFee: jobFeeBone,
+      fundingListingFee: fundingFeeBone,
       projectListingFeeAda: projectFeeAda,
       jobListingFeeAda: jobFeeAda,
+      fundingListingFeeAda: fundingFeeAda,
       projectListingCurrency: settings.projectListingCurrency,
       jobListingCurrency: settings.jobListingCurrency,
+      fundingListingCurrency: settings.fundingListingCurrency || 'BONE',
     });
   };
 
@@ -1334,6 +1374,62 @@ const PricingSettings: React.FC<{
           </div>
         </div>
 
+        {/* Funding Campaign Fees */}
+        <div className="bg-white rounded-xl p-6 border border-blue-200">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+              <FaCoins className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Funding Campaign Fees</h3>
+              <p className="text-sm text-blue-700">Set pricing for funding campaign creation</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs mr-2 inline-block">
+                  B
+                </div>
+                BONE Price (Base Price)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={fundingFeeBone}
+                  onChange={(e) => setFundingFeeBone(parseFloat(e.target.value))}
+                  className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500 font-medium">BONE</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                ₳ ADA Price (Alternative)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={fundingFeeAda}
+                  onChange={(e) => setFundingFeeAda(parseFloat(e.target.value))}
+                  className="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500 font-medium">ADA</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Pricing Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
           <div className="flex items-center mb-6">
@@ -1354,7 +1450,7 @@ const PricingSettings: React.FC<{
                 <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
                   <span className="text-white text-xs font-bold">2</span>
                 </div>
-                <span className="text-sm text-gray-700">Project listings get 20% discount</span>
+                <span className="text-sm text-gray-700">Funding campaigns are one-time fees</span>
               </div>
             </div>
             <div className="space-y-4">

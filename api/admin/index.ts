@@ -145,18 +145,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (result.rows.length === 0) {
             // Create default settings if none exist
             const defaultSettings = await pool.query(
-              `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, project_listing_fee_ada, job_listing_fee_ada, project_listing_currency, job_listing_currency, updated_by) 
-               VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-              [500.0, 250.0, 50.0, 25.0, 'BONE', 'ADA', 'system']
+              `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, funding_listing_fee, project_listing_fee_ada, job_listing_fee_ada, funding_listing_fee_ada, project_listing_currency, job_listing_currency, funding_listing_currency, updated_by) 
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+              [500.0, 250.0, 500.0, 50.0, 25.0, 50.0, 'BONE', 'ADA', 'BONE', 'system']
             );
             const settings = defaultSettings.rows[0];
             return res.status(200).json({
               projectListingFee: parseFloat(settings.project_listing_fee),
               jobListingFee: parseFloat(settings.job_listing_fee),
+              fundingListingFee: parseFloat(settings.funding_listing_fee || 500),
               projectListingFeeAda: parseFloat(settings.project_listing_fee_ada || settings.project_listing_fee),
               jobListingFeeAda: parseFloat(settings.job_listing_fee_ada || settings.job_listing_fee),
+              fundingListingFeeAda: parseFloat(settings.funding_listing_fee_ada || 50),
               projectListingCurrency: settings.project_listing_currency,
               jobListingCurrency: settings.job_listing_currency,
+              fundingListingCurrency: settings.funding_listing_currency || 'BONE',
               lastUpdated: settings.created_at,
               updatedBy: settings.updated_by
             });
@@ -166,10 +169,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json({
             projectListingFee: parseFloat(settings.project_listing_fee),
             jobListingFee: parseFloat(settings.job_listing_fee),
+            fundingListingFee: parseFloat(settings.funding_listing_fee || 500),
             projectListingFeeAda: parseFloat(settings.project_listing_fee_ada || settings.project_listing_fee),
             jobListingFeeAda: parseFloat(settings.job_listing_fee_ada || settings.job_listing_fee),
+            fundingListingFeeAda: parseFloat(settings.funding_listing_fee_ada || 50),
             projectListingCurrency: settings.project_listing_currency,
             jobListingCurrency: settings.job_listing_currency,
+            fundingListingCurrency: settings.funding_listing_currency || 'BONE',
             lastUpdated: settings.created_at,
             updatedBy: settings.updated_by
           });
@@ -199,12 +205,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Update platform settings
         if (isSettingsRequest) {
           const adminWallet = requireAdmin(req);
-          const { projectListingFee, jobListingFee, projectListingFeeAda, jobListingFeeAda, projectListingCurrency, jobListingCurrency } = req.body;
+          const { projectListingFee, jobListingFee, fundingListingFee, projectListingFeeAda, jobListingFeeAda, fundingListingFeeAda, projectListingCurrency, jobListingCurrency, fundingListingCurrency } = req.body;
 
           await pool.query(
-            `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, project_listing_fee_ada, job_listing_fee_ada, project_listing_currency, job_listing_currency, updated_by)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [projectListingFee, jobListingFee, projectListingFeeAda, jobListingFeeAda, projectListingCurrency, jobListingCurrency, adminWallet]
+            `INSERT INTO platform_settings (project_listing_fee, job_listing_fee, funding_listing_fee, project_listing_fee_ada, job_listing_fee_ada, funding_listing_fee_ada, project_listing_currency, job_listing_currency, funding_listing_currency, updated_by)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [projectListingFee, jobListingFee, fundingListingFee, projectListingFeeAda, jobListingFeeAda, fundingListingFeeAda, projectListingCurrency, jobListingCurrency, fundingListingCurrency, adminWallet]
           );
 
           await logAdminActivity(adminWallet, 'UPDATE_SETTINGS', 'settings', undefined, req.body);
@@ -212,10 +218,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json({
             projectListingFee,
             jobListingFee,
+            fundingListingFee,
             projectListingFeeAda,
             jobListingFeeAda,
+            fundingListingFeeAda,
             projectListingCurrency,
             jobListingCurrency,
+            fundingListingCurrency,
             lastUpdated: new Date().toISOString(),
             updatedBy: adminWallet
           });
