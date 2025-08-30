@@ -393,7 +393,16 @@ const CreateProject: React.FC = () => {
       console.error('Error creating project:', err);
       setPaymentStatus('error');
       const errorMessage = err instanceof Error ? err.message : 'Failed to create project. Please try again.';
-      toast.error(errorMessage);
+      
+      // Check if it's a wallet address mismatch error
+      if (errorMessage && errorMessage.includes('Address mismatch detected')) {
+        toast.error('❌ Wallet Address Mismatch\n\n' + errorMessage, {
+          autoClose: 8000,
+          style: { whiteSpace: 'pre-line' }
+        });
+      } else {
+        toast.error(errorMessage);
+      }
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);

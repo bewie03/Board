@@ -173,22 +173,70 @@ const CreateFunding: React.FC = () => {
     }
     
     if (!isConnected || !walletAddress) {
-      toast.error('Please connect your wallet');
+      toast.error('Please connect your wallet first');
       return;
     }
 
-    setPaymentStatus('processing');
+    const selectedProject = userProjects.find(p => p.id === formData.project_id);
+    if (!selectedProject) {
+      toast.error('Please select a project');
+      return;
+    }
 
     try {
-      // Get wallet API
+      setPaymentStatus('processing');
+      
+      // Validate wallet address matches current extension wallet for the specific connected wallet type
       const cardano = (window as any).cardano;
       const connectedWallet = localStorage.getItem('connectedWallet');
       
       if (!cardano || !connectedWallet || !cardano[connectedWallet]) {
-        throw new Error(`${connectedWallet} wallet not available. Please make sure your wallet is enabled.`);
+        throw new Error(`${connectedWallet} wallet not available. Please make sure your ${connectedWallet} wallet is enabled.`);
       }
       
+      // Only check the specific wallet that was originally connected
       const walletApi = await cardano[connectedWallet].enable();
+      const currentAddresses = await walletApi.getUsedAddresses();
+      
+      if (currentAddresses.length === 0) {
+        throw new Error(`No addresses found in ${connectedWallet} wallet. Please check your wallet connection.`);
+      }
+      
+      // Get current wallet address from the specific connected wallet extension
+      let currentAddress = currentAddresses[0];
+      
+      // Convert hex address to bech32 using the same logic as WalletContext
+      if (currentAddress && (currentAddress.startsWith('0x') || /^[0-9a-fA-F]+$/.test(currentAddress)) && !currentAddress.startsWith('addr')) {
+        try {
+          const CML = await import('@dcspark/cardano-multiplatform-lib-browser');
+          const cleanHex = currentAddress.startsWith('0x') ? currentAddress.slice(2) : currentAddress;
+          const bytes = new Uint8Array(Math.ceil(cleanHex.length / 2));
+          for (let i = 0; i < cleanHex.length; i += 2) {
+            bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+          }
+          const addr = CML.Address.from_bytes(bytes);
+          currentAddress = addr.to_bech32();
+          addr.free();
+        } catch (error) {
+          console.warn('Failed to convert hex address to bech32:', error);
+        }
+      }
+      
+      // Add debug logging
+      console.log('Funding wallet validation debug:', {
+        connectedWallet,
+        currentAddress: currentAddress?.slice(0, 20) + '...',
+        storedAddress: walletAddress?.slice(0, 20) + '...',
+        addressesMatch: currentAddress === walletAddress
+      });
+      
+      // Compare with stored wallet address from the same wallet type
+      if (currentAddress !== walletAddress) {
+        const currentTruncated = `${currentAddress?.slice(0, 8)}...${currentAddress?.slice(-8)}`;
+        const expectedTruncated = `${walletAddress?.slice(0, 8)}...${walletAddress?.slice(-8)}`;
+        throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
+      }
+      
       await contractService.initializeLucid(walletApi);
       
       // Prepare funding data for smart contract
@@ -219,17 +267,35 @@ const CreateFunding: React.FC = () => {
         
         localStorage.setItem(`pendingFundingTx_${result.txHash}`, JSON.stringify(pendingTx));
         
-        setPaymentStatus('success');
+        // Keep status as 'processing' until blockchain confirmation
         setFormData(prev => ({ ...prev, txHash: result.txHash }));
         
-        toast.success('Payment submitted! Waiting for blockchain confirmation...');
+        toast.success('Payment transaction submitted! Monitoring blockchain for confirmation...');
         
-        // The transaction will be monitored by the transactionMonitor service
-        // which is started by WalletContext and persists across page refreshes
+        // Listen for successful funding creation event
+        const handleFundingSuccess = (event: any) => {
+          if (event.detail.txHash === result.txHash) {
+            setPaymentStatus('success');
+            toast.success('Funding project created successfully!');
+            setTimeout(() => {
+              navigate('/funding');
+            }, 2000);
+            window.removeEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
+          }
+        };
         
+        window.addEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
+        
+        // Set a timeout to handle cases where the event doesn't fire
         setTimeout(() => {
-          navigate('/funding');
-        }, 3000);
+          window.removeEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
+          // Check if still processing after 3 minutes
+          if (paymentStatus === 'processing') {
+            toast.info('Transaction is taking longer than expected. Please check your wallet or try again.');
+            navigate('/funding');
+          }
+        }, 180000); // 3 minutes timeout
+        
       } else {
         setPaymentStatus('error');
         toast.error(result.error || 'Payment failed');
@@ -238,7 +304,16 @@ const CreateFunding: React.FC = () => {
     } catch (error: any) {
       console.error('Error creating funding:', error);
       setPaymentStatus('error');
-      toast.error(error.message || 'Failed to create funding project');
+      
+      // Check if it's a wallet address mismatch error
+      if (error.message && error.message.includes('Address mismatch detected')) {
+        toast.error('❌ Wallet Address Mismatch\n\n' + error.message, {
+          autoClose: 8000,
+          style: { whiteSpace: 'pre-line' }
+        });
+      } else {
+        toast.error(error.message || 'Failed to create funding project');
+      }
     }
   };
 

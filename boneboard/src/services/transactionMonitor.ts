@@ -239,7 +239,19 @@ class TransactionMonitor {
         // Create funding project in database
         try {
           const { fundingService } = await import('./fundingService');
-          await fundingService.createFundingProject(pendingTx.fundingData, pendingTx.walletAddress);
+          
+          // Transform the funding data to match API expectations
+          const createFundingData = {
+            project_id: pendingTx.fundingData.project_id,
+            funding_goal: pendingTx.fundingData.funding_goal,
+            funding_deadline: pendingTx.fundingData.funding_deadline,
+            funding_purpose: pendingTx.fundingData.funding_purpose,
+            bone_posting_fee: pendingTx.fundingData.paymentAmount || 0,
+            bone_tx_hash: pendingTx.txHash,
+            wallet_address: pendingTx.walletAddress
+          };
+          
+          await fundingService.createFundingProject(createFundingData, pendingTx.walletAddress);
           
           // Only remove from localStorage after successful save
           localStorage.removeItem(pendingKey);

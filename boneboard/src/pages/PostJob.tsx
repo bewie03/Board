@@ -402,10 +402,19 @@ const PostJob: React.FC = () => {
       } else {
         setPaymentStatus('error');
       }
-    } catch (error) {
-      console.error('Payment failed:', error);
+    } catch (error: any) {
+      console.error('Error posting job:', error);
       setPaymentStatus('error');
-      toast.error('Failed to post job. Please try again.');
+      
+      // Check if it's a wallet address mismatch error
+      if (error.message && error.message.includes('Address mismatch detected')) {
+        toast.error('❌ Wallet Address Mismatch\n\n' + error.message, {
+          autoClose: 8000,
+          style: { whiteSpace: 'pre-line' }
+        });
+      } else {
+        toast.error(error.message || 'Failed to post job');
+      }
     }
   };
 
