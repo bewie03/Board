@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -8,7 +8,7 @@ const pool = new Pool({
   }
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     return handleGet(req, res);
   } else if (req.method === 'POST') {
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse) {
+async function handleGet(req: VercelRequest, res: VercelResponse) {
   try {
     const { action, id } = req.query;
 
@@ -114,7 +114,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse) {
+async function handlePost(req: VercelRequest, res: VercelResponse) {
   try {
     const { action } = req.query;
     const walletAddress = req.headers['x-wallet-address'] as string;
@@ -139,11 +139,11 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      // Verify project ownership
+      // Verify project ownership - check both user_id match and direct wallet_address match
       console.log('DEBUG: Checking project ownership for project_id:', project_id, 'wallet:', walletAddress);
       
       const projectCheck = await pool.query(
-        'SELECT user_id FROM projects WHERE id = $1',
+        'SELECT user_id, wallet_address FROM projects WHERE id = $1',
         [project_id]
       );
 
@@ -152,26 +152,33 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      console.log('DEBUG: Project found, user_id:', projectCheck.rows[0].user_id);
+      const project = projectCheck.rows[0];
+      console.log('DEBUG: Project found, user_id:', project.user_id, 'wallet_address:', project.wallet_address);
 
-      const userCheck = await pool.query(
-        'SELECT id FROM users WHERE wallet_address = $1',
-        [walletAddress]
-      );
+      // Check if the wallet address matches directly (for legacy projects)
+      if (project.wallet_address === walletAddress) {
+        console.log('DEBUG: Authorization successful via direct wallet match');
+      } else {
+        // Check via users table for newer projects
+        const userCheck = await pool.query(
+          'SELECT id FROM users WHERE wallet_address = $1',
+          [walletAddress]
+        );
 
-      console.log('DEBUG: User lookup result:', userCheck.rows);
+        console.log('DEBUG: User lookup result:', userCheck.rows);
 
-      if (userCheck.rows.length === 0) {
-        console.log('DEBUG: No user found with wallet address:', walletAddress);
-        return res.status(403).json({ error: 'User not found with this wallet address' });
+        if (userCheck.rows.length === 0) {
+          console.log('DEBUG: No user found with wallet address:', walletAddress);
+          return res.status(403).json({ error: 'Not authorized to create funding for this project' });
+        }
+
+        if (userCheck.rows[0].id !== project.user_id) {
+          console.log('DEBUG: User ID mismatch. User ID:', userCheck.rows[0].id, 'Project user_id:', project.user_id);
+          return res.status(403).json({ error: 'Not authorized to create funding for this project' });
+        }
+
+        console.log('DEBUG: Authorization successful via user table match');
       }
-
-      if (userCheck.rows[0].id !== projectCheck.rows[0].user_id) {
-        console.log('DEBUG: User ID mismatch. User ID:', userCheck.rows[0].id, 'Project user_id:', projectCheck.rows[0].user_id);
-        return res.status(403).json({ error: 'Not authorized to create funding for this project' });
-      }
-
-      console.log('DEBUG: Authorization successful');
 
       // Check if project already has active funding (enforce one funding per project)
       const existingFunding = await pool.query(
@@ -313,7 +320,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function handlePut(req: NextApiRequest, res: NextApiResponse) {
+async function handlePut(req: VercelRequest, res: VercelResponse) {
   try {
     const { id } = req.query;
     const walletAddress = req.headers['x-wallet-address'] as string;
