@@ -270,6 +270,11 @@ const CreateFunding: React.FC = () => {
         // Keep status as 'processing' until blockchain confirmation
         setFormData(prev => ({ ...prev, txHash: result.txHash }));
         
+        // Ensure transaction monitoring is running for funding transactions
+        console.log('Starting funding transaction monitoring for:', result.txHash);
+        const { transactionMonitor } = await import('../services/transactionMonitor');
+        transactionMonitor.startMonitoring(walletAddress);
+        
         toast.success('Payment transaction submitted! Monitoring blockchain for confirmation...');
         
         // Listen for successful funding creation event
