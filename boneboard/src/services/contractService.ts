@@ -566,6 +566,102 @@ export class ContractService {
       return 'pending';
     }
   }
+
+  async postFundingWithADA(fundingData: any): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      // Create the funding metadata
+      const metadata = {
+        674: { // Standard metadata label for funding campaigns
+          funding: {
+            project_id: fundingData.project_id.substring(0, 60),
+            goal: fundingData.funding_goal,
+            deadline: fundingData.funding_deadline.substring(0, 30),
+            purpose: fundingData.funding_purpose.substring(0, 60),
+            timestamp: fundingData.timestamp,
+            poster: fundingData.walletAddress.substring(0, 60)
+          }
+        }
+      };
+
+      // Calculate ADA amount in lovelace (1 ADA = 1,000,000 lovelace)
+      const adaAmount = Math.floor(fundingData.paymentAmount * 1_000_000);
+      
+      console.log(`Sending ${fundingData.paymentAmount} ADA (${adaAmount} lovelace) for funding campaign`);
+      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
+      
+      // Build transaction
+      const tx = await this.lucid
+        .newTx()
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: BigInt(adaAmount) })
+        .attachMetadata(674, metadata[674])
+        .complete();
+
+      // Sign and submit transaction
+      const signedTx = await tx.sign().complete();
+      const txHash = await signedTx.submit();
+      
+      console.log(`Funding campaign payment transaction submitted: ${txHash}`);
+      
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting funding with ADA:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
+
+  async postFundingWithBONE(fundingData: any): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      // Create the funding metadata
+      const metadata = {
+        674: { // Standard metadata label for funding campaigns
+          funding: {
+            project_id: fundingData.project_id.substring(0, 60),
+            goal: fundingData.funding_goal,
+            deadline: fundingData.funding_deadline.substring(0, 30),
+            purpose: fundingData.funding_purpose.substring(0, 60),
+            timestamp: fundingData.timestamp,
+            poster: fundingData.walletAddress.substring(0, 60)
+          }
+        }
+      };
+
+      // Calculate BONE amount (assuming whole tokens)
+      const boneAmount = Math.floor(fundingData.paymentAmount);
+      
+      // Construct the full asset ID: policyId + tokenName (hex)
+      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
+      
+      console.log(`Sending ${boneAmount} BONE tokens for funding campaign`);
+      console.log(`Asset ID: ${fullAssetId}`);
+      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
+      
+      // Build transaction with BONE token payment
+      const tx = await this.lucid
+        .newTx()
+        .payToAddress(JOB_POSTING_ADDRESS, { [fullAssetId]: BigInt(boneAmount) })
+        .attachMetadata(674, metadata[674])
+        .complete();
+
+      // Sign and submit transaction
+      const signedTx = await tx.sign().complete();
+      const txHash = await signedTx.submit();
+      
+      console.log(`Funding campaign BONE payment transaction submitted: ${txHash}`);
+      
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error posting funding with BONE:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
+    }
+  }
 }
 
 export const contractService = new ContractService();
