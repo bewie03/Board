@@ -6,6 +6,7 @@ interface FundingProject {
   funding_deadline: string;
   is_active: boolean;
   is_funded: boolean;
+  is_verified?: boolean;
   wallet_address: string;
   title: string;
   description: string;
@@ -149,19 +150,29 @@ class FundingService {
 
   // Wallet integration methods
   async sendADA(recipientAddress: string, amount: number): Promise<string> {
-    try {
-      // For now, return a mock transaction hash
-      // In a real implementation, you would integrate with the wallet API
-      const mockTxHash = 'tx_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log(`Mock ADA transaction: ${amount} ADA to ${recipientAddress}, hash: ${mockTxHash}`);
-      return mockTxHash;
-    } catch (error) {
-      console.error('Error sending ADA:', error);
-      throw new Error('Failed to send ADA transaction');
+    // Mock implementation - in a real app, this would integrate with Cardano wallet
+    console.log(`Sending ${amount} ADA to ${recipientAddress}`);
+    
+    // Simulate transaction processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Return mock transaction hash
+    return `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  async contributeToProject(data: ContributeData, walletAddress: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}?action=contribute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-wallet-address': walletAddress
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to record contribution');
     }
   }
 

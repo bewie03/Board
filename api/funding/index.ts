@@ -158,14 +158,14 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         return res.status(403).json({ error: 'Not authorized to create funding for this project' });
       }
 
-      // Check if funding already exists for this project
+      // Check if project already has active funding (enforce one funding per project)
       const existingFunding = await pool.query(
         'SELECT id FROM project_funding WHERE project_id = $1 AND is_active = true',
         [project_id]
       );
 
       if (existingFunding.rows.length > 0) {
-        return res.status(400).json({ error: 'Active funding already exists for this project' });
+        return res.status(400).json({ error: 'This project already has an active funding campaign. Only one funding campaign per project is allowed.' });
       }
 
       const insertQuery = `

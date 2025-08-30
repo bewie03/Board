@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaArrowLeft, FaInfoCircle } from 'react-icons/fa';
+import CustomSelect from '../components/CustomSelect';
+import { PROJECT_CATEGORIES } from '../constants/categories';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, CreateFundingData } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -50,9 +52,11 @@ const CreateFunding: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // Filter projects that don't already have active funding
-        const projectsWithoutFunding = data.filter((project: any) => !project.has_active_funding);
-        setUserProjects(projectsWithoutFunding);
+        // Filter projects that belong to the user and don't already have active funding
+        const userOwnedProjects = data.filter((project: any) => 
+          project.user_wallet === walletAddress && !project.has_active_funding
+        );
+        setUserProjects(userOwnedProjects);
       }
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -89,12 +93,11 @@ const CreateFunding: React.FC = () => {
     try {
       setCreating(true);
 
-      // For now, we'll skip the BONE payment requirement
-      // In a full implementation, you'd handle BONE token payment here
+      // Set funding creation fee to 2 ADA for testing
       const fundingData: CreateFundingData = {
         ...formData,
-        bone_posting_fee: 0, // Set to 0 for now
-        bone_tx_hash: 'placeholder' // Placeholder for now
+        bone_posting_fee: 2, // 2 ADA for testing
+        bone_tx_hash: 'test_tx_' + Date.now() // Test transaction hash
       };
 
       await fundingService.createFundingProject(fundingData, walletAddress);
@@ -150,15 +153,15 @@ const CreateFunding: React.FC = () => {
         {userProjects.length === 0 ? (
           <div className="bg-white shadow-sm rounded-lg p-8 text-center">
             <div className="text-gray-400 text-6xl mb-4">📋</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects available</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No eligible projects found</h3>
             <p className="text-gray-500 mb-4">
-              You need to create a project first before setting up funding.
+              You need to create a project first, or all your projects already have active funding campaigns.
             </p>
             <button
-              onClick={() => navigate('/projects/create')}
+              onClick={() => navigate('/create-project')}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
             >
-              Create Project
+              Create New Project
             </button>
           </div>
         ) : (
@@ -171,31 +174,27 @@ const CreateFunding: React.FC = () => {
               {/* Project Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Project *
+                  Select Your Project *
                 </label>
-                <select
-                  name="project_id"
+                <CustomSelect
+                  options={userProjects.map(project => ({
+                    value: project.id,
+                    label: project.title
+                  }))}
                   value={formData.project_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Choose a project...</option>
-                  {userProjects.map(project => (
-                    <option key={project.id} value={project.id}>
-                      {project.title}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormData(prev => ({ ...prev, project_id: value }))}
+                  placeholder="Choose one of your projects..."
+                  className=""
+                />
                 <p className="mt-1 text-sm text-gray-500">
-                  Only projects without existing funding are shown
+                  Only your projects without existing funding campaigns are shown
                 </p>
               </div>
 
               {/* Funding Goal */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Funding Goal (ADA) *
+                  Funding Goal (ADA) * <span className="text-xs text-gray-400">(Min: 100 ADA)</span>
                 </label>
                 <input
                   type="number"
@@ -203,20 +202,20 @@ const CreateFunding: React.FC = () => {
                   value={formData.funding_goal || ''}
                   onChange={handleInputChange}
                   step="0.000001"
-                  min="0"
+                  min="100"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter funding goal in ADA"
+                  placeholder="Enter funding goal in ADA (minimum 100)"
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  The total amount you want to raise for this project
+                  The total amount you want to raise for this project (minimum 100 ADA)
                 </p>
               </div>
 
               {/* Project Wallet Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Project Wallet Address *
+                  Project Wallet Address * <span className="text-xs text-gray-400">(Max: 120 chars)</span>
                 </label>
                 <input
                   type="text"
@@ -224,18 +223,24 @@ const CreateFunding: React.FC = () => {
                   value={formData.wallet_address}
                   onChange={handleInputChange}
                   required
+                  maxLength={120}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                   placeholder="addr1..."
                 />
-                <p className="mt-1 text-sm text-gray-500">
-                  The Cardano wallet address where funds will be sent
-                </p>
+                <div className="flex justify-between mt-1">
+                  <p className="text-sm text-gray-500">
+                    The Cardano wallet address where funds will be sent
+                  </p>
+                  <span className="text-xs text-gray-400">
+                    {formData.wallet_address.length}/120
+                  </span>
+                </div>
               </div>
 
               {/* Funding Purpose */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Funding Purpose *
+                  Funding Purpose * <span className="text-xs text-gray-400">(Max: 500 chars)</span>
                 </label>
                 <textarea
                   name="funding_purpose"
@@ -243,12 +248,21 @@ const CreateFunding: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   rows={4}
+                  maxLength={500}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Explain what you need the funding for and how it will be used..."
                 />
-                <p className="mt-1 text-sm text-gray-500">
-                  Describe your funding goals, milestones, and how the funds will be allocated
-                </p>
+                <div className="flex justify-between mt-1">
+                  <p className="text-sm text-gray-500">
+                    Describe your funding goals, milestones, and how the funds will be allocated
+                  </p>
+                  <span className={`text-xs ${
+                    formData.funding_purpose.length > 450 ? 'text-red-500' : 
+                    formData.funding_purpose.length > 400 ? 'text-yellow-500' : 'text-gray-400'
+                  }`}>
+                    {formData.funding_purpose.length}/500
+                  </span>
+                </div>
               </div>
 
               {/* Funding Deadline */}
@@ -272,49 +286,72 @@ const CreateFunding: React.FC = () => {
                 </p>
               </div>
 
-              {/* Info Box */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <div className="flex items-start">
+              {/* Funding Cost Notice */}
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaInfoCircle className="text-blue-500 text-xl" />
+                    <span className="text-2xl">💰</span>
                   </div>
-                  <div className="ml-4">
-                    <h4 className="text-lg font-semibold text-blue-900 mb-3">How Funding Works</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div className="flex items-start">
-                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</div>
-                          <div>
-                            <h5 className="font-medium text-blue-800">Direct Wallet Funding</h5>
-                            <p className="text-sm text-blue-700">Contributors send ADA directly to your project wallet</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</div>
-                          <div>
-                            <h5 className="font-medium text-blue-800">Blockchain Recording</h5>
-                            <p className="text-sm text-blue-700">All transactions are permanently recorded on Cardano</p>
-                          </div>
-                        </div>
+                  <div className="ml-3">
+                    <h4 className="text-lg font-semibold text-yellow-900">Funding Creation Fee</h4>
+                    <p className="text-sm text-yellow-800">
+                      Creating a funding campaign costs <strong>2 ADA</strong> (testing rate). This helps prevent spam and ensures serious projects.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Box */}
+              <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+                <div className="text-center mb-4">
+                  <FaInfoCircle className="text-blue-500 text-2xl mx-auto mb-2" />
+                  <h4 className="text-xl font-bold text-blue-900">How BoneBoard Funding Works</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
+                        <h5 className="font-semibold text-blue-900">Direct Wallet Funding</h5>
                       </div>
-                      <div className="space-y-3">
-                        <div className="flex items-start">
-                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</div>
-                          <div>
-                            <h5 className="font-medium text-blue-800">Real-time Tracking</h5>
-                            <p className="text-sm text-blue-700">Monitor funding progress and contributor activity live</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start">
-                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">4</div>
-                          <div>
-                            <h5 className="font-medium text-blue-800">Flexible Duration</h5>
-                            <p className="text-sm text-blue-700">Funding continues until deadline or goal is reached</p>
-                          </div>
-                        </div>
+                      <p className="text-sm text-blue-700 ml-11">Contributors send ADA directly to your project wallet - no middleman fees</p>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
+                        <h5 className="font-semibold text-green-900">Blockchain Security</h5>
                       </div>
+                      <p className="text-sm text-green-700 ml-11">All transactions are permanently recorded on Cardano blockchain</p>
                     </div>
                   </div>
+                  
+                  {/* Right Column */}
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
+                        <h5 className="font-semibold text-purple-900">Real-time Analytics</h5>
+                      </div>
+                      <p className="text-sm text-purple-700 ml-11">Track funding progress, contributors, and engagement metrics live</p>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
+                        <h5 className="font-semibold text-orange-900">Community Driven</h5>
+                      </div>
+                      <p className="text-sm text-orange-700 ml-11">Build a community around your project with contributor recognition</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                  <p className="text-sm text-blue-800 text-center">
+                    <strong>💡 Pro Tip:</strong> Projects with clear funding purposes and realistic goals get 3x more contributions!
+                  </p>
                 </div>
               </div>
 
