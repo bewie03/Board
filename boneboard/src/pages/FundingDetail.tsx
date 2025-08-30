@@ -392,11 +392,11 @@ const FundingDetail: React.FC = () => {
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
                       className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(project.progress_percentage, 100)}%` }}
+                      style={{ width: `${Math.min(project.progress_percentage || 0, 100)}%` }}
                     ></div>
                   </div>
                   <div className="flex justify-between text-sm text-gray-500 mt-2">
-                    <span>{project.progress_percentage.toFixed(1)}% funded</span>
+                    <span>{(project.progress_percentage || 0).toFixed(1)}% funded</span>
                     <span>{project.contributor_count} contributors</span>
                   </div>
                 </div>

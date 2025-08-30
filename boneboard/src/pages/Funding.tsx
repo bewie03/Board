@@ -307,13 +307,13 @@ const Funding: React.FC = () => {
                           {fundingService.formatADA(project.current_funding)} ADA raised
                         </span>
                         <span className="text-sm text-gray-500">
-                          {project.progress_percentage.toFixed(1)}%
+                          {(project.progress_percentage || 0).toFixed(1)}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min(project.progress_percentage, 100)}%` }}
+                          style={{ width: `${Math.min(project.progress_percentage || 0, 100)}%` }}
                         ></div>
                       </div>
                       <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
