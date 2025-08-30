@@ -237,9 +237,7 @@ const CreateFunding: React.FC = () => {
         throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
       
-      await contractService.initializeLucid(walletApi);
-      
-      // Check if wallet already has active funding campaigns before payment
+      // Check if wallet already has active funding campaigns BEFORE payment
       try {
         const { fundingService } = await import('../services/fundingService');
         const existingFundings = await fundingService.getFundingByWallet(walletAddress);
@@ -253,6 +251,8 @@ const CreateFunding: React.FC = () => {
       } catch (error: any) {
         console.warn('Could not check existing funding, proceeding with payment:', error);
       }
+
+      await contractService.initializeLucid(walletApi);
       
       // Prepare funding data for smart contract
       const fundingData = {

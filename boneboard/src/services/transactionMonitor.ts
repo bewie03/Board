@@ -241,6 +241,17 @@ class TransactionMonitor {
         try {
           const { fundingService } = await import('./fundingService');
           
+          // Check if funding already exists before creating (prevent duplicates)
+          const existingFundings = await fundingService.getFundingByWallet(pendingTx.walletAddress);
+          const activeFunding = existingFundings.find(funding => funding.is_active);
+          
+          if (activeFunding) {
+            console.log('Funding project already exists, removing from localStorage');
+            localStorage.removeItem(pendingKey);
+            toast.success('Funding project already created successfully!');
+            return;
+          }
+          
           // Transform the funding data to match API expectations
           const createFundingData = {
             project_id: pendingTx.fundingData.project_id,

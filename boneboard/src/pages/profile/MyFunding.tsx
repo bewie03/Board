@@ -37,17 +37,21 @@ const MyFunding: React.FC = () => {
   const fetchMyFunding = async () => {
     try {
       setLoading(true);
+      console.log('Fetching funding for wallet:', walletAddress);
       const response = await fetch(`/api/funding?owner=${encodeURIComponent(walletAddress || '')}`, {
         headers: {
           'x-wallet-address': walletAddress || ''
         }
       });
       
+      console.log('Funding API response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Funding projects received:', data.length, data);
         setFundingProjects(data);
       } else {
-        console.error('Failed to fetch funding projects');
+        const errorText = await response.text();
+        console.error('Failed to fetch funding projects:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching funding projects:', error);
