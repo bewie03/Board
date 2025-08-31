@@ -184,7 +184,7 @@ async function removeDuplicateJobs() {
     // Find duplicates by txHash (most reliable identifier)
     const txHashDuplicatesQuery = `
       WITH duplicate_txhash AS (
-        SELECT tx_hash, MIN(id) as keep_id, COUNT(*) as count
+        SELECT tx_hash, MIN(id::text)::uuid as keep_id, COUNT(*) as count
         FROM job_listings 
         WHERE tx_hash IS NOT NULL AND tx_hash != ''
         GROUP BY tx_hash 
@@ -203,7 +203,7 @@ async function removeDuplicateJobs() {
       WITH duplicate_content AS (
         SELECT 
           title, company, user_id,
-          MIN(id) as keep_id,
+          MIN(id::text)::uuid as keep_id,
           COUNT(*) as count,
           MIN(created_at) as first_created
         FROM job_listings 
