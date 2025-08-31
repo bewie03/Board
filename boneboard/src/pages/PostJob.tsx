@@ -10,6 +10,8 @@ import { toast } from 'react-toastify';
 import { ProjectService, Project } from '../services/projectService';
 import PageTransition from '../components/PageTransition';
 import { JOB_CATEGORIES } from '../constants/categories';
+import { isAdminWallet } from '../utils/adminAuth';
+import { JobService } from '../services/jobService';
 
 const PostJob: React.FC = () => {
   const navigate = useNavigate();
@@ -362,44 +364,69 @@ const PostJob: React.FC = () => {
         throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
 
-      // Prepare job data for posting
-      const jobData = {
-        title: formData.title,
-        company: formData.company,
-        type: formData.type,
-        workArrangement: formData.workArrangement,
-        category: formData.category,
-        description: formData.description,
-        salary: formData.salary,
-        salaryType: formData.salaryType,
-        customCurrency: formData.customCurrency,
-        requiredSkills: formData.requiredSkills,
-        additionalInfo: formData.additionalInfo,
-        companyWebsite: formData.companyWebsite,
-        companyLogo: formData.companyLogo,
-        website: formData.website,
-        twitter: formData.twitter,
-        discord: formData.discord,
-        contactEmail: formData.contactEmail,
-        howToApply: formData.howToApply,
-        duration: formData.listingDuration,
-        featured: formData.featured,
-        selectedProjectId: selectedProject,
-        paymentAmount: totalCost.amount,
-        paymentCurrency: totalCost.currency as 'BONE' | 'ADA'
+    // Prepare job data for posting
+    const jobData = {
+      title: formData.title,
+      company: formData.company,
+      type: formData.type,
+      workArrangement: formData.workArrangement,
+      category: formData.category,
+      description: formData.description,
+      salary: formData.salary,
+      salaryType: formData.salaryType,
+      customCurrency: formData.customCurrency,
+      requiredSkills: formData.requiredSkills,
+      additionalInfo: formData.additionalInfo,
+      companyWebsite: formData.companyWebsite,
+      companyLogo: formData.companyLogo,
+      website: formData.website,
+      twitter: formData.twitter,
+      discord: formData.discord,
+      contactEmail: formData.contactEmail,
+      howToApply: formData.howToApply,
+      duration: formData.listingDuration,
+      featured: formData.featured,
+      selectedProjectId: selectedProject,
+      paymentAmount: totalCost.amount,
+      paymentCurrency: totalCost.currency as 'BONE' | 'ADA'
+    };
+    
+    // Check if admin wallet - if so, skip payment and post directly
+    if (isAdminWallet(walletAddress)) {
+      console.log('Admin wallet detected - posting job for free');
+      
+      const adminJobData = {
+        ...jobData,
+        txHash: `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Generate fake txHash for admin
+        status: 'confirmed' as const,
+        timestamp: Date.now(),
+        walletAddress: walletAddress!
       };
       
-      // Post job using smart contract
-      const success = await postJob(jobData);
-      
-      if (success) {
-        setPaymentStatus('processing');
-        // Don't navigate immediately - wait for blockchain confirmation via event listener
-        toast.info('Payment submitted! Waiting for blockchain confirmation...');
-      } else {
+      try {
+        await JobService.addJob(adminJobData);
+        setPaymentStatus('success');
+        toast.success('Admin job posted successfully (no payment required)!');
+        navigate('/my-jobs');
+        return;
+      } catch (error) {
+        console.error('Error posting admin job:', error);
         setPaymentStatus('error');
+        toast.error('Failed to post admin job');
+        return;
       }
-    } catch (error: any) {
+    }
+    
+    // Regular user - use smart contract payment
+    const success = await postJob(jobData);
+    
+    if (success) {
+      setPaymentStatus('processing');
+      toast.info('Payment submitted! Waiting for blockchain confirmation...');
+    } else {
+      setPaymentStatus('error');
+    }
+  } catch (error: any) {
       console.error('Error posting job:', error);
       setPaymentStatus('error');
       
