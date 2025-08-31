@@ -13,10 +13,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { code, state } = req.body;
+    const { code, state, codeVerifier } = req.body;
 
-    if (!code || !state) {
-      return res.status(400).json({ error: 'Missing code or state' });
+    if (!code || !state || !codeVerifier) {
+      return res.status(400).json({ error: 'Missing code, state, or codeVerifier' });
     }
 
     // Exchange code for access token
@@ -29,8 +29,10 @@ export default async function handler(req, res) {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: `${process.env.VERCEL_URL || 'http://localhost:5173'}/auth/twitter/callback`,
-        code_verifier: 'challenge'
+        redirect_uri: process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}/auth/twitter/callback`
+          : 'http://localhost:5173/auth/twitter/callback',
+        code_verifier: codeVerifier
       })
     });
 

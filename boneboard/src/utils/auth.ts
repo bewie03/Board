@@ -1,3 +1,23 @@
+// Generate PKCE code verifier and challenge
+const generateCodeVerifier = (): string => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode.apply(null, Array.from(array)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+};
+
+const generateCodeChallenge = async (verifier: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(digest))))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+};
+
 // OAuth Configuration
 const OAUTH_CONFIG = {
   twitter: {
@@ -7,8 +27,7 @@ const OAUTH_CONFIG = {
       : 'https://bone-board.vercel.app/auth/twitter/callback',
     scope: 'tweet.read users.read',
     responseType: 'code',
-    codeChallenge: 'challenge', // In production, generate this properly
-    codeChallengeMethod: 'plain'
+    codeChallengeMethod: 'S256'
   },
   discord: {
     clientId: import.meta.env.VITE_DISCORD_CLIENT_ID || 'your_discord_client_id',
@@ -56,7 +75,7 @@ const verifyOAuthState = (platform: 'twitter' | 'discord', state: string): boole
 
 // Twitter OAuth functions
 export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }> => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     // Check if we have valid credentials, if not use demo mode
     if (!hasValidCredentials('twitter')) {
       console.log('Using Twitter demo mode - no valid credentials configured');
@@ -77,7 +96,11 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }
     }
 
     const state = generateState();
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    
     storeOAuthState('twitter', state);
+    sessionStorage.setItem('twitter_code_verifier', codeVerifier);
     
     // Build Twitter OAuth URL
     const params = new URLSearchParams({
@@ -86,7 +109,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }
       redirect_uri: OAUTH_CONFIG.twitter.redirectUri,
       scope: OAUTH_CONFIG.twitter.scope,
       state: state,
-      code_challenge: OAUTH_CONFIG.twitter.codeChallenge,
+      code_challenge: codeChallenge,
       code_challenge_method: OAUTH_CONFIG.twitter.codeChallengeMethod
     });
     
@@ -120,6 +143,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }
         clearInterval(checkClosed);
         popup.close();
         window.removeEventListener('message', messageListener);
+        sessionStorage.removeItem('twitter_code_verifier');
         
         if (verifyOAuthState('twitter', event.data.state)) {
           resolve({
@@ -133,6 +157,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }
         clearInterval(checkClosed);
         popup.close();
         window.removeEventListener('message', messageListener);
+        sessionStorage.removeItem('twitter_code_verifier');
         reject(new Error(event.data.error));
       }
     };
@@ -222,20 +247,26 @@ export const initiateDiscordOAuth = (): Promise<{ username: string; id: string }
 // Handle OAuth callbacks (to be used in callback pages)
 export const handleTwitterCallback = async (code: string, state: string): Promise<{ username: string; id: string }> => {
   try {
-    // In a real app, you'd send this to your backend to exchange for tokens
-    // For demo purposes, we'll simulate the response
+    const codeVerifier = sessionStorage.getItem('twitter_code_verifier');
+    if (!codeVerifier) {
+      throw new Error('Missing code verifier');
+    }
+
+    // Exchange code for access token via our API server
     const response = await fetch('/api/auth/twitter/callback', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ code, state })
+      body: JSON.stringify({ code, state, codeVerifier })
     });
-    
+
     if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Twitter callback failed:', errorData);
       throw new Error('Failed to authenticate with Twitter');
     }
-    
+
     const data = await response.json();
     return {
       username: data.username,
