@@ -373,12 +373,10 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
     const { is_active, funding_goal, funding_deadline, funding_purpose } = req.body;
 
-    // Verify ownership
+    // Verify ownership - use pf.wallet_address for funding project ownership
     const ownershipCheck = await pool.query(`
-      SELECT pf.*, p.user_id, u.wallet_address 
+      SELECT pf.* 
       FROM project_funding pf
-      JOIN projects p ON pf.project_id = p.id
-      JOIN users u ON p.user_id = u.id
       WHERE pf.id = $1
     `, [id]);
 
@@ -427,12 +425,10 @@ async function handleDelete(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Verify ownership
+    // Verify ownership - use pf.wallet_address for funding project ownership
     const ownershipCheck = await pool.query(`
-      SELECT pf.*, p.user_id, u.wallet_address 
+      SELECT pf.* 
       FROM project_funding pf
-      JOIN projects p ON pf.project_id = p.id
-      JOIN users u ON p.user_id = u.id
       WHERE pf.id = $1
     `, [id]);
 

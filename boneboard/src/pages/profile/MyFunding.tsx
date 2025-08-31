@@ -226,7 +226,10 @@ const MyFunding: React.FC = () => {
                         <h3 className="text-xl font-semibold text-gray-900">
                           {funding.project_title || funding.title}
                         </h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                        <p className="text-gray-600 text-sm mt-1 line-clamp-2">
+                          {funding.funding_purpose || 'No funding purpose specified'}
+                        </p>
+                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-2">
                           <span className="flex items-center">
                             <FaCalendarAlt className="w-4 h-4 mr-1" />
                             {fundingService.formatDeadline(funding.funding_deadline)}
