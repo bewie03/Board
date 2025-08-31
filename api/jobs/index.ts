@@ -324,43 +324,57 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     discord, featured, txHash, expiresAt
   ];
 
-  const result = await getPool().query(query, params);
-  const job = result.rows[0];
+  try {
+    const result = await getPool().query(query, params);
+    const job = result.rows[0];
 
-  // Transform to frontend format
-  const transformedJob = {
-    id: job.id,
-    title: job.title,
-    company: job.company,
-    description: job.description,
-    salary: job.salary,
-    salaryType: job.salary_type,
-    customSalaryType: job.custom_salary_type,
-    category: job.category,
-    type: job.type,
-    contactEmail: job.contact_email,
-    howToApply: job.how_to_apply,
-    duration: job.listing_duration,
-    paymentAmount: job.payment_amount,
-    paymentCurrency: job.payment_currency,
-    walletAddress: job.user_id,
-    timestamp: new Date(job.created_at).getTime(),
-    txHash: job.tx_hash,
-    status: job.status,
-    createdAt: job.created_at,
-    expiresAt: job.expires_at,
-    workArrangement: job.work_arrangement,
-    requiredSkills: job.required_skills_text ? job.required_skills_text.split(',').map((skill: string) => skill.trim().replace(/^["']|["']$/g, '')).filter((skill: string) => skill.length > 0) : [],
-    additionalInfo: job.additional_info_text ? job.additional_info_text.split('\n').map((info: string) => info.trim().replace(/^["']|["']$/g, '')).filter((info: string) => info.length > 0) : [],
-    companyWebsite: job.company_website,
-    companyLogo: job.company_logo_url,
-    website: job.website,
-    twitter: job.twitter,
-    discord: job.discord,
-    featured: job.is_featured
-  };
+    // Transform to frontend format
+    const transformedJob = {
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      description: job.description,
+      salary: job.salary,
+      salaryType: job.salary_type,
+      customSalaryType: job.custom_salary_type,
+      category: job.category,
+      type: job.type,
+      contactEmail: job.contact_email,
+      howToApply: job.how_to_apply,
+      duration: job.duration,
+      paymentAmount: job.payment_amount,
+      paymentCurrency: job.payment_currency,
+      walletAddress: job.wallet_address,
+      timestamp: new Date(job.created_at).getTime(),
+      txHash: job.tx_hash,
+      status: job.status,
+      createdAt: job.created_at,
+      expiresAt: job.expires_at,
+      workArrangement: job.work_arrangement,
+      requiredSkills: job.required_skills,
+      additionalInfo: job.additional_info,
+      companyWebsite: job.company_website,
+      companyLogo: job.company_logo,
+      website: job.website,
+      twitter: job.twitter,
+      discord: job.discord,
+      featured: job.is_featured
+    };
 
-  return res.status(201).json(transformedJob);
+    return res.status(201).json(transformedJob);
+  } catch (error: any) {
+    // Handle UNIQUE constraint violation specifically
+    if (error.code === '23505' && error.constraint === 'unique_job_tx_hash') {
+      console.log('Duplicate txHash detected by database constraint:', txHash);
+      return res.status(409).json({ 
+        error: 'Job with this transaction hash already exists',
+        code: 'DUPLICATE_TX_HASH'
+      });
+    }
+    
+    console.error('Error creating job:', error);
+    return res.status(500).json({ error: 'Failed to create job' });
+  }
 }
 
 async function handlePut(req: VercelRequest, res: VercelResponse) {
