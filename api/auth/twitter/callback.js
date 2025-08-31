@@ -37,22 +37,23 @@ export default async function handler(req, res) {
     }
 
     // Log environment variables (without exposing secrets)
+    const redirectUri = req.headers.host && req.headers.host !== 'localhost:5173'
+      ? `https://${req.headers.host}/auth/twitter/callback`
+      : 'http://localhost:5173/auth/twitter/callback';
+      
     console.log('Environment check:', {
       hasTwitterClientId: !!process.env.VITE_TWITTER_CLIENT_ID,
       hasTwitterSecret: !!process.env.VITE_TWITTER_CLIENT_SECRET,
       vercelUrl: process.env.VERCEL_URL,
-      redirectUri: process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}/auth/twitter/callback`
-        : 'http://localhost:5173/auth/twitter/callback'
+      requestHost: req.headers.host,
+      redirectUri: redirectUri
     });
 
     // Exchange code for access token
     const tokenRequestBody = new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
-      redirect_uri: process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}/auth/twitter/callback`
-        : 'http://localhost:5173/auth/twitter/callback',
+      redirect_uri: redirectUri,
       code_verifier: codeVerifier
     });
     
