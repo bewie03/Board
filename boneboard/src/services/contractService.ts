@@ -538,7 +538,7 @@ export class ContractService {
     }
   }
 
-  async checkTransactionStatus(txHash: string, timeoutMs: number = 120000): Promise<'pending' | 'confirmed' | 'failed'> {
+  async checkTransactionStatus(txHash: string, timeoutMs: number = 300000): Promise<'pending' | 'confirmed' | 'failed'> {
     if (!this.lucid) {
       console.log('Lucid not initialized, treating transaction as pending');
       return 'pending';

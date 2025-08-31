@@ -287,19 +287,18 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Validate that the project exists if company name matches a project
+  // Optional: Check if company matches an existing project for verification purposes
+  // This is informational only - jobs can be posted without matching projects
   if (company) {
     const projectCheck = await getPool().query(
       'SELECT id FROM projects WHERE LOWER(title) = LOWER($1) OR wallet_address = $2',
       [company, walletAddress]
     );
     
-    if (projectCheck.rows.length === 0 && company !== 'Independent') {
-      console.log('Project not found for company:', company, 'wallet:', walletAddress);
-      return res.status(404).json({ 
-        error: 'Project not found. Cannot create job for non-existent project.',
-        company: company
-      });
+    if (projectCheck.rows.length > 0) {
+      console.log('Job matches existing project:', company);
+    } else {
+      console.log('Job posted without matching project:', company);
     }
   }
 
