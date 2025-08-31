@@ -22,7 +22,7 @@ const generateCodeChallenge = async (verifier: string): Promise<string> => {
 const OAUTH_CONFIG = {
   twitter: {
     clientId: import.meta.env.VITE_TWITTER_CLIENT_ID || 'your_twitter_client_id',
-    redirectUri: window.location.hostname === 'localhost' 
+    redirectUri: window.location.hostname.includes('localhost')
       ? 'http://localhost:5173/auth/twitter/callback'
       : `https://${window.location.hostname}/auth/twitter/callback`,
     scope: 'tweet.read users.read',

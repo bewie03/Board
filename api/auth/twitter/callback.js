@@ -37,9 +37,9 @@ export default async function handler(req, res) {
     }
 
     // Log environment variables (without exposing secrets)
-    const redirectUri = req.headers.host && req.headers.host !== 'localhost:5173'
-      ? `https://${req.headers.host}/auth/twitter/callback`
-      : 'http://localhost:5173/auth/twitter/callback';
+    const redirectUri = req.headers.host && req.headers.host.includes('localhost')
+      ? 'http://localhost:5173/auth/twitter/callback'
+      : `https://${req.headers.host}/auth/twitter/callback`;
       
     console.log('Environment check:', {
       hasTwitterClientId: !!process.env.VITE_TWITTER_CLIENT_ID,
