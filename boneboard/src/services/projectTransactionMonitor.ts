@@ -7,6 +7,7 @@ interface PendingProjectTransaction {
   projectData: ProjectPostingData;
   formData: any;
   logoFile: File | null;
+  logoPreview: string | null;
   timestamp: number;
 }
 
@@ -107,7 +108,7 @@ class ProjectTransactionMonitor {
         
         // Save project to database
         try {
-          await this.saveProjectToDatabase(pendingTx.projectData, pendingTx.formData, pendingTx.logoFile, pendingTx.txHash);
+          await this.saveProjectToDatabase(pendingTx.projectData, pendingTx.formData, pendingTx.logoPreview, pendingTx.txHash);
           
           // Dispatch custom event for UI to handle success state
           window.dispatchEvent(new CustomEvent('projectCreatedSuccessfully', {
@@ -130,16 +131,9 @@ class ProjectTransactionMonitor {
     }
   }
 
-  private async saveProjectToDatabase(projectData: ProjectPostingData, formData: any, logoFile: File | null, txHash: string) {
-    // Convert logo file to base64 data URL for metadata
-    let logoDataUrl = null;
-    if (logoFile) {
-      logoDataUrl = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(logoFile);
-      });
-    }
+  private async saveProjectToDatabase(projectData: ProjectPostingData, formData: any, logoPreview: string | null, txHash: string) {
+    // Use the logoPreview (base64 data URL) directly since it's already converted
+    const logoDataUrl = logoPreview;
 
     const projectForStorage = {
       title: formData.name,
