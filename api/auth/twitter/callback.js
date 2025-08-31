@@ -1,4 +1,10 @@
 export default async function handler(req, res) {
+  console.log('Twitter OAuth callback started', {
+    method: req.method,
+    hasBody: !!req.body,
+    timestamp: new Date().toISOString()
+  });
+
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -9,37 +15,74 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
+    console.error('Invalid method:', req.method);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { code, state, codeVerifier } = req.body;
+    
+    console.log('Request body received:', {
+      hasCode: !!code,
+      hasState: !!state,
+      hasCodeVerifier: !!codeVerifier,
+      codeLength: code?.length,
+      stateLength: state?.length,
+      verifierLength: codeVerifier?.length
+    });
 
     if (!code || !state || !codeVerifier) {
+      console.error('Missing required parameters:', { code: !!code, state: !!state, codeVerifier: !!codeVerifier });
       return res.status(400).json({ error: 'Missing code, state, or codeVerifier' });
     }
 
+    // Log environment variables (without exposing secrets)
+    console.log('Environment check:', {
+      hasTwitterClientId: !!process.env.VITE_TWITTER_CLIENT_ID,
+      hasTwitterSecret: !!process.env.VITE_TWITTER_CLIENT_SECRET,
+      vercelUrl: process.env.VERCEL_URL,
+      redirectUri: process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}/auth/twitter/callback`
+        : 'http://localhost:5173/auth/twitter/callback'
+    });
+
     // Exchange code for access token
+    const tokenRequestBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}/auth/twitter/callback`
+        : 'http://localhost:5173/auth/twitter/callback',
+      code_verifier: codeVerifier
+    });
+    
+    console.log('Token request details:', {
+      url: 'https://api.twitter.com/2/oauth2/token',
+      bodyParams: Object.fromEntries(tokenRequestBody.entries())
+    });
+
     const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': `Basic ${Buffer.from(`${process.env.VITE_TWITTER_CLIENT_ID}:${process.env.VITE_TWITTER_CLIENT_SECRET}`).toString('base64')}`
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: process.env.VERCEL_URL 
-          ? `https://${process.env.VERCEL_URL}/auth/twitter/callback`
-          : 'http://localhost:5173/auth/twitter/callback',
-        code_verifier: codeVerifier
-      })
+      body: tokenRequestBody
     });
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
-      console.error('Twitter token exchange failed:', errorData);
-      return res.status(400).json({ error: 'Token exchange failed' });
+      console.error('Twitter token exchange failed:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        errorData,
+        headers: Object.fromEntries(tokenResponse.headers.entries())
+      });
+      return res.status(400).json({ 
+        error: 'Token exchange failed',
+        details: errorData,
+        status: tokenResponse.status
+      });
     }
 
     const tokenData = await tokenResponse.json();
@@ -53,11 +96,26 @@ export default async function handler(req, res) {
 
     if (!userResponse.ok) {
       const errorData = await userResponse.text();
-      console.error('Twitter user fetch failed:', errorData);
-      return res.status(400).json({ error: 'Failed to get user data' });
+      console.error('Twitter user fetch failed:', {
+        status: userResponse.status,
+        statusText: userResponse.statusText,
+        errorData,
+        headers: Object.fromEntries(userResponse.headers.entries())
+      });
+      return res.status(400).json({ 
+        error: 'Failed to get user data',
+        details: errorData,
+        status: userResponse.status
+      });
     }
 
     const userData = await userResponse.json();
+    
+    console.log('Twitter OAuth success:', {
+      username: userData.data?.username,
+      id: userData.data?.id,
+      name: userData.data?.name
+    });
 
     res.json({
       username: userData.data.username,
@@ -66,7 +124,16 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Twitter OAuth error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Twitter OAuth error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 }

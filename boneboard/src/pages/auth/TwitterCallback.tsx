@@ -33,19 +33,35 @@ const TwitterCallback: React.FC = () => {
           ? 'http://localhost:3001' 
           : '/api';
           
+        const codeVerifier = sessionStorage.getItem('twitter_code_verifier');
+        console.log('Twitter callback attempt:', {
+          hasCode: !!code,
+          hasState: !!state,
+          hasCodeVerifier: !!codeVerifier,
+          apiUrl: `${apiBaseUrl}/api/auth/twitter/callback`
+        });
+
         const response = await fetch(`${apiBaseUrl}/api/auth/twitter/callback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code, state })
+          body: JSON.stringify({ code, state, codeVerifier })
         });
 
         if (!response.ok) {
-          throw new Error('Failed to authenticate with Twitter');
+          const errorData = await response.text();
+          console.error('Twitter callback API error:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData,
+            url: response.url
+          });
+          throw new Error(`Twitter auth failed: ${response.status} - ${errorData}`);
         }
 
         const userData = await response.json();
+        console.log('Twitter callback success:', userData);
 
         // Send success message to parent window
         window.opener?.postMessage({
