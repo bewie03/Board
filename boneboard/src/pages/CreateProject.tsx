@@ -700,7 +700,7 @@ const CreateProject: React.FC = () => {
                       />
                     </div>
                     <p className="mt-1 text-sm text-gray-500">
-                      Optional Discord server invite link for your community
+                      Optional Discord server invite link
                     </p>
                   </div>
                 </div>

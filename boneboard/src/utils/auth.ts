@@ -57,22 +57,87 @@ const verifyOAuthState = (platform: 'twitter' | 'discord', state: string): boole
 // Twitter OAuth functions
 export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }> => {
   return new Promise((resolve, reject) => {
-    // For now, use simple username input until proper OAuth is set up
-    console.log('Using Twitter demo mode - simulating authentication');
+    // Check if we have valid credentials, if not use demo mode
+    if (!hasValidCredentials('twitter')) {
+      console.log('Using Twitter demo mode - no valid credentials configured');
+      // Simulate user input for Twitter username as fallback
+      const username = prompt('Enter your Twitter username (without @) - OAuth not configured:');
+      if (!username) {
+        reject(new Error('Twitter authentication cancelled'));
+        return;
+      }
+      
+      setTimeout(() => {
+        resolve({
+          username: username.replace('@', ''),
+          id: `twitter_${Date.now()}`
+        });
+      }, 500);
+      return;
+    }
+
+    const state = generateState();
+    storeOAuthState('twitter', state);
     
-    // Simulate user input for Twitter username
-    const username = prompt('Enter your Twitter username (without @):');
-    if (!username) {
-      reject(new Error('Twitter authentication cancelled'));
+    // Build Twitter OAuth URL
+    const params = new URLSearchParams({
+      response_type: OAUTH_CONFIG.twitter.responseType,
+      client_id: OAUTH_CONFIG.twitter.clientId,
+      redirect_uri: OAUTH_CONFIG.twitter.redirectUri,
+      scope: OAUTH_CONFIG.twitter.scope,
+      state: state,
+      code_challenge: OAUTH_CONFIG.twitter.codeChallenge,
+      code_challenge_method: OAUTH_CONFIG.twitter.codeChallengeMethod
+    });
+    
+    const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
+    
+    // Open popup window for OAuth
+    const popup = window.open(
+      authUrl,
+      'twitter-oauth',
+      'width=500,height=600,scrollbars=yes,resizable=yes'
+    );
+    
+    if (!popup) {
+      reject(new Error('Popup blocked. Please allow popups for this site.'));
       return;
     }
     
-    setTimeout(() => {
-      resolve({
-        username: username.replace('@', ''),
-        id: `twitter_${Date.now()}`
-      });
-    }, 500);
+    // Listen for the callback
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        reject(new Error('OAuth cancelled by user'));
+      }
+    }, 1000);
+    
+    // Listen for messages from the popup
+    const messageListener = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'TWITTER_OAUTH_SUCCESS') {
+        clearInterval(checkClosed);
+        popup.close();
+        window.removeEventListener('message', messageListener);
+        
+        if (verifyOAuthState('twitter', event.data.state)) {
+          resolve({
+            username: event.data.username,
+            id: event.data.id
+          });
+        } else {
+          reject(new Error('Invalid OAuth state'));
+        }
+      } else if (event.data.type === 'TWITTER_OAUTH_ERROR') {
+        clearInterval(checkClosed);
+        popup.close();
+        window.removeEventListener('message', messageListener);
+        reject(new Error(event.data.error));
+      }
+    };
+    
+    window.addEventListener('message', messageListener);
   });
 };
 
