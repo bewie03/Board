@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaTwitter, FaDiscord, FaGithub } from 'react-icons/fa';
+import { FaDiscord } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import Modal from './Modal';
 
 const Footer: React.FC = () => {
@@ -204,7 +205,7 @@ const Footer: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex justify-center md:justify-start space-x-6 mb-4 md:mb-0">
               <a href="https://twitter.com/boneboard" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-500 transition-colors duration-200">
-                <FaTwitter className="h-6 w-6" />
+                <FaXTwitter className="h-6 w-6" />
               </a>
               <button 
                 onClick={openDiscord}
@@ -213,9 +214,6 @@ const Footer: React.FC = () => {
               >
                 <FaDiscord className="h-6 w-6" />
               </button>
-              <a href="https://github.com/boneboard" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                <FaGithub className="h-6 w-6" />
-              </a>
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm text-gray-500">

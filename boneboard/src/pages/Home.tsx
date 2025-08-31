@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaBriefcase, FaUsers } from 'react-icons/fa';
+import { FaUsers, FaBookOpen } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import { motion } from 'framer-motion';
@@ -279,7 +279,7 @@ const Home: React.FC = () => {
               <Link to="/jobs" className="block">
                 <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 hover:border-blue-300 h-full flex flex-col items-center text-center">
                   <div className="flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl text-white mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
-                    <FaBriefcase className="h-8 w-8" />
+                    <FaBookOpen className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
                     Job Listings

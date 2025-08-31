@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaCalendarAlt, FaTwitter, FaDiscord, FaGlobe } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaCalendarAlt, FaDiscord, FaGlobe } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -507,7 +508,7 @@ const Funding: React.FC = () => {
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
-                          <FaTwitter />
+                          <FaXTwitter />
                           Twitter
                         </a>
                       )}

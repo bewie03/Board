@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaGlobe, FaTwitter,FaLink, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaFlag } from 'react-icons/fa';
+import { FaGlobe, FaLink, FaDiscord, FaExternalLinkAlt, FaTimes, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaBuilding, FaSearch, FaFlag } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { JobService } from '../services/jobService';
 import { ProjectService, Project as ServiceProject } from '../services/projectService';
 import { useWallet } from '../contexts/WalletContext';
@@ -462,7 +463,7 @@ const Projects: React.FC = () => {
                     )}
                     {(project.twitterLink || ((typeof project.twitter === 'string' && project.twitter) || (typeof project.twitter === 'object' && project.twitter?.verified))) && (
                       <div className="flex items-center text-gray-400 hover:text-blue-600">
-                        <FaTwitter className="h-4 w-4" />
+                        <FaXTwitter className="h-4 w-4" />
                       </div>
                     )}
                     {(project.discordLink || ((typeof project.discord === 'string' && project.discord) || (typeof project.discord === 'object' && project.discord?.verified))) && (
@@ -561,7 +562,7 @@ const Projects: React.FC = () => {
                     )}
                     {project.twitter && (
                       <div className="text-blue-400 hover:text-blue-600">
-                        <FaTwitter className="h-4 w-4" />
+                        <FaXTwitter className="h-4 w-4" />
                       </div>
                     )}
                     {project.discord && (
@@ -695,7 +696,7 @@ const Projects: React.FC = () => {
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
-                          <FaTwitter className="h-5 w-5 text-blue-400 mr-3" />
+                          <FaXTwitter className="h-5 w-5 text-blue-400 mr-3" />
                           <div>
                             <div className="font-medium text-gray-900">Twitter</div>
                             <div className="text-sm text-gray-500">Follow updates</div>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaBone, FaWallet, FaBookmark, FaShieldAlt, FaBriefcase, FaFolderOpen, FaCog, FaRocket } from 'react-icons/fa';
+import { FaUserCircle, FaBone, FaWallet, FaBookmark, FaShieldAlt, FaFolderOpen, FaCog, FaDonate, FaBookOpen } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { useWallet } from '../contexts/WalletContext';
@@ -213,7 +213,7 @@ const Header: React.FC = () => {
                           }}
                           className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200 flex items-center"
                         >
-                          <FaBriefcase className="w-5 h-5 mr-3 text-blue-600" />
+                          <FaBookOpen className="w-5 h-5 mr-3 text-blue-600" />
                           My Job Listings
                         </button>
                         
@@ -246,7 +246,7 @@ const Header: React.FC = () => {
                           }}
                           className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors duration-200 flex items-center"
                         >
-                          <FaRocket className="w-5 h-5 mr-3 text-blue-600" />
+                          <FaDonate className="w-5 h-5 mr-3 text-blue-600" />
                           My Project Funding
                         </button>
                         

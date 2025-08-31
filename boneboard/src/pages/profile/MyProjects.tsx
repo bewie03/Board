@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEdit, FaTimes, FaGlobe, FaTwitter, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTimes, FaGlobe, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../../contexts/WalletContext';
 import { ProjectService, Project } from '../../services/projectService';
 import { JobService } from '../../services/jobService';
@@ -306,12 +307,12 @@ const MyProjects: React.FC = () => {
                           )}
                           {(typeof project.twitter === 'object' && project.twitter?.verified) && (
                             <a href={`https://twitter.com/${project.twitter.username}`} target="_blank" rel="noopener noreferrer">
-                              <FaTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                              <FaXTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
                             </a>
                           )}
                           {(typeof project.twitter === 'string' && project.twitter) && (
                             <a href={project.twitter.startsWith('http') ? project.twitter : `https://twitter.com/${project.twitter}`} target="_blank" rel="noopener noreferrer">
-                              <FaTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                              <FaXTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
                             </a>
                           )}
                           {(typeof project.discord === 'object' && project.discord?.verified) && (
@@ -479,7 +480,7 @@ const MyProjects: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <FaTwitter className="inline h-4 w-4 mr-2 text-blue-400" />
+                          <FaXTwitter className="inline h-4 w-4 mr-2 text-blue-400" />
                           Twitter Username
                         </label>
                         <input
@@ -646,7 +647,7 @@ const MyProjects: React.FC = () => {
                           rel="noopener noreferrer"
                           className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
-                          <FaTwitter className="h-5 w-5 text-blue-400 mr-3" />
+                          <FaXTwitter className="h-5 w-5 text-blue-400 mr-3" />
                           <div>
                             <div className="text-sm font-medium text-gray-900">X (Twitter)</div>
                             <div className="text-xs text-gray-500">Follow us</div>

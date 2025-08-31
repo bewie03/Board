@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaRocket, FaUpload, FaCoins, FaLightbulb, FaUsers, FaCheckCircle, FaWallet, FaDiscord, FaTwitter } from 'react-icons/fa';
+import { FaRocket, FaUpload, FaCoins, FaLightbulb, FaUsers, FaCheckCircle, FaWallet, FaDiscord } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 
@@ -338,7 +339,7 @@ const SubmitProject: React.FC = () => {
                   {/* Twitter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">
-                      <FaTwitter className="inline h-4 w-4 mr-1 text-blue-600" />
+                      <FaXTwitter className="inline h-4 w-4 mr-1 text-blue-600" />
                       Twitter/X Profile
                     </label>
                     <input

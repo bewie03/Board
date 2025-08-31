@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaRocket, FaCoins, FaUsers, FaCalendarAlt, FaPlus, FaWallet, FaThumbsUp, FaThumbsDown, FaTimes, FaDiscord, FaTwitter, FaExternalLinkAlt, FaCopy } from 'react-icons/fa';
+import { FaRocket, FaCoins, FaUsers, FaCalendarAlt, FaPlus, FaWallet, FaThumbsUp, FaThumbsDown, FaTimes, FaDiscord, FaExternalLinkAlt, FaCopy } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { motion } from 'framer-motion';
 import PageTransition from '../components/PageTransition';
 import { useWallet } from '../contexts/WalletContext';
@@ -426,7 +427,7 @@ const ProjectFunding: React.FC = () => {
                             rel="noopener noreferrer"
                             className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                           >
-                            <FaTwitter className="h-4 w-4" />
+                            <FaXTwitter className="h-4 w-4" />
                             <span>Twitter</span>
                             <FaExternalLinkAlt className="h-3 w-3" />
                           </a>

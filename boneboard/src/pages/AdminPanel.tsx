@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaPlay, FaEyeSlash, FaBuilding, FaGlobe, FaTwitter, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle, FaFolder } from 'react-icons/fa';
+import { FaShieldAlt, FaChartBar, FaExclamationTriangle, FaDollarSign, FaTrash, FaPause, FaPlay, FaEyeSlash, FaBuilding, FaGlobe, FaDiscord, FaTimes, FaEnvelope, FaCalendarAlt, FaExternalLinkAlt, FaMapMarkerAlt, FaCoins, FaBriefcase, FaInfoCircle, FaFolder } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 import { toast } from 'react-toastify';
@@ -958,7 +959,7 @@ const AdminPanel: React.FC = () => {
                       <a href={typeof selectedReport.twitter === 'string' ? selectedReport.twitter : `https://twitter.com/${selectedReport.twitter.username}`} 
                          target="_blank" rel="noopener noreferrer"
                          className="p-2 text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
-                        <FaTwitter className="h-4 w-4" />
+                        <FaXTwitter className="h-4 w-4" />
                       </a>
                     )}
                     {selectedReport.discord && (

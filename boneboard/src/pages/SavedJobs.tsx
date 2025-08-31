@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaTwitter, FaDiscord, FaEnvelope, FaLink, FaCheck, FaFlag } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaDiscord, FaEnvelope, FaLink, FaCheck, FaFlag } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
@@ -626,7 +627,7 @@ const SavedJobs: React.FC = () => {
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
-                              <FaTwitter className="h-4 w-4 mr-2" />
+                              <FaXTwitter className="h-4 w-4 mr-2" />
                               <span>X (Twitter)</span>
                             </a>
                           )}

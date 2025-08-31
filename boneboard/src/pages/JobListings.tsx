@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaBuilding, FaBookmark, FaRegBookmark, FaTimes, FaLink, FaTwitter, FaDiscord, FaCheck, FaEnvelope, FaFlag } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaBuilding, FaBookmark, FaRegBookmark, FaTimes, FaLink, FaDiscord, FaCheck, FaEnvelope, FaFlag } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { JobService } from '../services/jobService';
 import { ReportModal, ReportData } from '../components/ReportModal';
@@ -1064,7 +1065,7 @@ const JobListings: React.FC = () => {
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
-                              <FaTwitter className="h-4 w-4 mr-2" />
+                              <FaXTwitter className="h-4 w-4 mr-2" />
                               <span>X (Twitter)</span>
                             </a>
                           )}
