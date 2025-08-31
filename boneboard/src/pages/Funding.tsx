@@ -300,9 +300,9 @@ const Funding: React.FC = () => {
                         )}
                       </div>
                       {/* Project Logo */}
-                      {(project.logo_url || project.project_logo) ? (
+                      {(project.logo_url || project.project_logo || project.fallback_logo) ? (
                         <img 
-                          src={project.logo_url || project.project_logo} 
+                          src={project.logo_url || project.project_logo || project.fallback_logo} 
                           alt={`${project.title} logo`}
                           className="w-12 h-12 rounded-lg object-cover border"
                         />
@@ -313,7 +313,7 @@ const Funding: React.FC = () => {
                       )}
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.funding_purpose || project.description}</p>
 
                     {/* Progress Bar */}
                     <div className="mb-4">
@@ -412,9 +412,9 @@ const Funding: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-4">
-                    {selectedProjectForPanel.logo_url ? (
+                    {(selectedProjectForPanel.logo_url || selectedProjectForPanel.project_logo || selectedProjectForPanel.fallback_logo) ? (
                       <img 
-                        src={selectedProjectForPanel.logo_url} 
+                        src={selectedProjectForPanel.logo_url || selectedProjectForPanel.project_logo || selectedProjectForPanel.fallback_logo} 
                         alt={`${selectedProjectForPanel.title} logo`}
                         className="w-16 h-16 rounded-lg object-cover border"
                       />

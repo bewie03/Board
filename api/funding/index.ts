@@ -112,19 +112,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           SELECT COUNT(*) 
           FROM funding_contributions fc 
           WHERE fc.project_funding_id = pf.id
-        ) as contributor_count,
-        -- Get logo from user's projects if project_id is null
-        CASE 
-          WHEN p.logo_url IS NOT NULL THEN p.logo_url
-          ELSE (
-            SELECT pr.logo_url 
-            FROM projects pr 
-            JOIN users usr ON pr.user_id = usr.id 
-            WHERE usr.wallet_address = pf.wallet_address 
-            ORDER BY pr.created_at DESC 
-            LIMIT 1
-          )
-        END as fallback_logo
+        ) as contributor_count
       FROM project_funding pf
       LEFT JOIN projects p ON pf.project_id = p.id
       LEFT JOIN users u ON p.user_id = u.id
@@ -136,8 +124,10 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     if (owner) {
       conditions.push('pf.wallet_address = $' + (queryParams.length + 1));
       queryParams.push(owner);
+    } else {
+      // For main funding page, only show active projects
+      conditions.push('pf.is_active = true');
     }
-    // Note: Removed pf.is_active = true filter for main page to show all funding projects
 
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
