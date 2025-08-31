@@ -1,5 +1,6 @@
 import React from 'react';
-import { FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTwitter, FaDiscord, FaEnvelope, FaLink } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
+import { FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaDiscord, FaEnvelope, FaLink } from 'react-icons/fa';
 
 export interface JobDetailPreviewProps {
   title: string;
@@ -191,8 +192,8 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
                       className="inline-flex items-center text-sm text-gray-900 hover:text-blue-600"
                       title="Twitter"
                     >
-                      <FaTwitter className="h-4 w-4 mr-1.5" />
-                      <span>X</span>
+                      <FaXTwitter className="h-4 w-4 mr-1.5" />
+                      <span>(Twitter)</span>
                     </a>
                   )}
                   
