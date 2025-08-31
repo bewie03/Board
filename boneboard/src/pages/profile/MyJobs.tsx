@@ -68,6 +68,18 @@ const MyJobs: React.FC = () => {
       setLoading(false);
     };
     loadJobs();
+
+    // Listen for job posted successfully event to refresh the list
+    const handleJobPosted = () => {
+      console.log('Job posted successfully, refreshing job list');
+      loadJobs();
+    };
+
+    window.addEventListener('jobPostedSuccessfully', handleJobPosted);
+    
+    return () => {
+      window.removeEventListener('jobPostedSuccessfully', handleJobPosted);
+    };
   }, [isConnected, walletAddress]);
 
   const handleDeleteJob = async (jobId: string) => {
