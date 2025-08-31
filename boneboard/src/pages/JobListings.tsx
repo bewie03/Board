@@ -124,8 +124,21 @@ const JobListings: React.FC = () => {
         setLoading(true);
         const jobsData = await JobService.getActiveJobs();
         
+        // Check for duplicate jobs and remove them automatically
+        const jobIds = new Set();
+        const uniqueJobsData = jobsData.filter(job => {
+          if (jobIds.has(job.id)) {
+            console.warn('Duplicate job detected in main listings, removing from display:', job.id, job.title);
+            // Trigger automatic cleanup in background
+            JobService.removeDuplicateJobs().catch(console.error);
+            return false;
+          }
+          jobIds.add(job.id);
+          return true;
+        });
+        
         // Transform jobs to include display properties
-        const transformedJobs: JobWithDisplayProps[] = jobsData.map(job => ({
+        const transformedJobs: JobWithDisplayProps[] = uniqueJobsData.map(job => ({
           ...job,
           logo: job.companyLogo || null,
           posted: formatRelativeTime(job.timestamp),
