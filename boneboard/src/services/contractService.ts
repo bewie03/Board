@@ -252,19 +252,16 @@ export class ContractService {
       console.log('Creating ADA project posting transaction...');
       
       // Create the project posting metadata - truncate strings to fit Cardano 64 char limit
-      const metadata = {
-        675: { // Standard metadata label for project postings
-          project: {
-            title: projectData.title.substring(0, 60),
-            description: projectData.description.substring(0, 60),
-            fundingGoal: projectData.fundingGoal,
-            category: projectData.category.substring(0, 30),
-            contactEmail: projectData.contactEmail.substring(0, 60),
-            timestamp: projectData.timestamp,
-            poster: projectData.walletAddress.substring(0, 60),
-            fee: `${projectData.paymentAmount} ADA`
-          }
-        }
+      // Use simple object structure to avoid WASM circular reference issues
+      const projectMetadata = {
+        title: projectData.title.substring(0, 60),
+        description: projectData.description.substring(0, 60),
+        fundingGoal: projectData.fundingGoal,
+        category: projectData.category.substring(0, 30),
+        contactEmail: projectData.contactEmail.substring(0, 60),
+        timestamp: projectData.timestamp,
+        poster: projectData.walletAddress.substring(0, 60),
+        fee: `${projectData.paymentAmount} ADA`
       };
 
       // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
@@ -275,7 +272,7 @@ export class ContractService {
       // Build the transaction - send 2 ADA to the posting address
       const tx = this.lucid.newTx()
         .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
-        .attachMetadata(675, metadata[675]);
+        .attachMetadata(675, projectMetadata);
 
       console.log('Building transaction...');
       const completeTx = await tx.complete();
@@ -302,18 +299,15 @@ export class ContractService {
 
     try {
       // Create the project posting metadata - truncate strings to fit Cardano 64 char limit
-      const metadata = {
-        675: { // Standard metadata label for project postings
-          project: {
-            title: projectData.title.substring(0, 60),
-            description: projectData.description.substring(0, 60),
-            fundingGoal: projectData.fundingGoal,
-            category: projectData.category.substring(0, 30),
-            contactEmail: projectData.contactEmail.substring(0, 60),
-            timestamp: projectData.timestamp,
-            poster: projectData.walletAddress.substring(0, 60)
-          }
-        }
+      // Use simple object structure to avoid WASM circular reference issues
+      const projectMetadata = {
+        title: projectData.title.substring(0, 60),
+        description: projectData.description.substring(0, 60),
+        fundingGoal: projectData.fundingGoal,
+        category: projectData.category.substring(0, 30),
+        contactEmail: projectData.contactEmail.substring(0, 60),
+        timestamp: projectData.timestamp,
+        poster: projectData.walletAddress.substring(0, 60)
       };
 
       // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
@@ -334,7 +328,7 @@ export class ContractService {
             [fullAssetId]: BigInt(boneAmount)
           }
         )
-        .attachMetadata(675, metadata[675]);
+        .attachMetadata(675, projectMetadata);
 
       // Complete and submit the transaction
       const completeTx = await tx.complete();
