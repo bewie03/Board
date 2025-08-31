@@ -142,10 +142,16 @@ export class JobService {
   // Remove duplicate jobs from database
   static async removeDuplicateJobs(): Promise<number> {
     try {
-      // Call API with removeDuplicates flag - API returns job list but we only need count
-      await ApiService.getJobs({ removeDuplicates: true });
-      // For now, return 1 to indicate operation completed (API logs actual count)
-      return 1;
+      const API_BASE_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://bone-board.vercel.app/api' 
+        : '/api';
+      
+      const response = await fetch(`${API_BASE_URL}/jobs?removeDuplicates=true`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const result = await response.json();
+      return result.removedCount || 0;
     } catch (error) {
       console.error('Error removing duplicate jobs:', error);
       return 0;

@@ -75,7 +75,20 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 
   // If removeDuplicates flag is set, clean up duplicates first
   if (removeDuplicates === 'true') {
-    await removeDuplicateJobs();
+    try {
+      const removedCount = await removeDuplicateJobs();
+      return res.status(200).json({ 
+        message: 'Duplicate removal completed', 
+        removedCount,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in duplicate removal:', error);
+      return res.status(500).json({ 
+        error: 'Failed to remove duplicates',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   }
 
   let query = `
@@ -173,7 +186,7 @@ async function removeDuplicateJobs() {
       WITH duplicate_txhash AS (
         SELECT tx_hash, MIN(id) as keep_id, COUNT(*) as count
         FROM job_listings 
-        WHERE tx_hash IS NOT NULL 
+        WHERE tx_hash IS NOT NULL AND tx_hash != ''
         GROUP BY tx_hash 
         HAVING COUNT(*) > 1
       )
@@ -194,6 +207,7 @@ async function removeDuplicateJobs() {
           COUNT(*) as count,
           MIN(created_at) as first_created
         FROM job_listings 
+        WHERE title IS NOT NULL AND company IS NOT NULL AND user_id IS NOT NULL
         GROUP BY title, company, user_id
         HAVING COUNT(*) > 1
         AND MAX(created_at) - MIN(created_at) < INTERVAL '5 minutes'
