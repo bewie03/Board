@@ -119,25 +119,6 @@ export class ContractService {
     }
 
     try {
-      // Create the job posting metadata - truncate strings to fit Cardano 64 char limit
-      const metadata = {
-        674: { // Standard metadata label for job postings
-          job: {
-            title: jobData.title.substring(0, 60),
-            company: jobData.company.substring(0, 60),
-            description: jobData.description.substring(0, 60),
-            salary: jobData.salary.substring(0, 30),
-            salaryType: jobData.salaryType.substring(0, 20),
-            category: jobData.category.substring(0, 30),
-            type: jobData.type.substring(0, 20),
-            contactEmail: jobData.contactEmail.substring(0, 60),
-            duration: jobData.duration,
-            timestamp: jobData.timestamp,
-            poster: jobData.walletAddress.substring(0, 60)
-          }
-        }
-      };
-
       // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
       const boneAmount = Math.floor(jobData.paymentAmount);
       
@@ -148,15 +129,15 @@ export class ContractService {
       console.log(`Asset ID: ${fullAssetId}`);
       console.log(`To address: ${JOB_POSTING_ADDRESS}`);
       
-      // Build the transaction
+      // Build the transaction without metadata to avoid WASM issues
+      // Metadata will be handled by the transaction monitor service
       const tx = this.lucid.newTx()
         .payToAddress(
           JOB_POSTING_ADDRESS,
           { 
             [fullAssetId]: BigInt(boneAmount)
           }
-        )
-        .attachMetadata(674, metadata[674]);
+        );
 
       // Complete and submit the transaction
       const completeTx = await tx.complete();
@@ -194,35 +175,15 @@ export class ContractService {
     try {
       console.log('Creating ADA job posting transaction...');
       
-      // Create the job posting metadata - truncate strings to fit Cardano 64 char limit
-      const metadata = {
-        674: { // Standard metadata label for job postings
-          job: {
-            title: jobData.title.substring(0, 60),
-            company: jobData.company.substring(0, 60),
-            description: jobData.description.substring(0, 60),
-            salary: jobData.salary.substring(0, 30),
-            salaryType: jobData.salaryType.substring(0, 20),
-            category: jobData.category.substring(0, 30),
-            type: jobData.type.substring(0, 20),
-            contactEmail: jobData.contactEmail.substring(0, 60),
-            duration: jobData.duration,
-            timestamp: jobData.timestamp,
-            poster: jobData.walletAddress.substring(0, 60),
-            fee: `${jobData.paymentAmount} ADA`
-          }
-        }
-      };
-
       // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
       const feeInLovelace = BigInt(jobData.paymentAmount * 1_000_000);
       
       console.log(`Sending ${jobData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
       
-      // Build the transaction - send 2 ADA to the job posting address
+      // Build the transaction without metadata to avoid WASM issues
+      // Metadata will be handled by the transaction monitor service
       const tx = this.lucid.newTx()
-        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
-        .attachMetadata(674, metadata[674]);
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace });
 
       console.log('Building transaction...');
       const completeTx = await tx.complete();
@@ -251,28 +212,15 @@ export class ContractService {
     try {
       console.log('Creating ADA project posting transaction...');
       
-      // Create the project posting metadata - truncate strings to fit Cardano 64 char limit
-      // Use simple object structure to avoid WASM circular reference issues
-      const projectMetadata = {
-        title: projectData.title.substring(0, 60),
-        description: projectData.description.substring(0, 60),
-        fundingGoal: projectData.fundingGoal,
-        category: projectData.category.substring(0, 30),
-        contactEmail: projectData.contactEmail.substring(0, 60),
-        timestamp: projectData.timestamp,
-        poster: projectData.walletAddress.substring(0, 60),
-        fee: `${projectData.paymentAmount} ADA`
-      };
-
       // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
       const feeInLovelace = BigInt(projectData.paymentAmount * 1_000_000);
       
       console.log(`Sending ${projectData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
       
-      // Build the transaction - send 2 ADA to the posting address
+      // Build the transaction without metadata to avoid WASM issues
+      // Metadata will be handled by the transaction monitor service
       const tx = this.lucid.newTx()
-        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
-        .attachMetadata(675, projectMetadata);
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace });
 
       console.log('Building transaction...');
       const completeTx = await tx.complete();
@@ -298,18 +246,6 @@ export class ContractService {
     }
 
     try {
-      // Create the project posting metadata - truncate strings to fit Cardano 64 char limit
-      // Use simple object structure to avoid WASM circular reference issues
-      const projectMetadata = {
-        title: projectData.title.substring(0, 60),
-        description: projectData.description.substring(0, 60),
-        fundingGoal: projectData.fundingGoal,
-        category: projectData.category.substring(0, 30),
-        contactEmail: projectData.contactEmail.substring(0, 60),
-        timestamp: projectData.timestamp,
-        poster: projectData.walletAddress.substring(0, 60)
-      };
-
       // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
       const boneAmount = Math.floor(projectData.paymentAmount);
       
@@ -320,15 +256,15 @@ export class ContractService {
       console.log(`Asset ID: ${fullAssetId}`);
       console.log(`To address: ${JOB_POSTING_ADDRESS}`);
       
-      // Build the transaction
+      // Build the transaction without metadata to avoid WASM issues
+      // Metadata will be handled by the transaction monitor service
       const tx = this.lucid.newTx()
         .payToAddress(
           JOB_POSTING_ADDRESS,
           { 
             [fullAssetId]: BigInt(boneAmount)
           }
-        )
-        .attachMetadata(675, projectMetadata);
+        );
 
       // Complete and submit the transaction
       const completeTx = await tx.complete();
