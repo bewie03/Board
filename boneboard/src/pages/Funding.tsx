@@ -300,9 +300,9 @@ const Funding: React.FC = () => {
                         )}
                       </div>
                       {/* Project Logo */}
-                      {project.logo_url ? (
+                      {(project.logo_url || project.project_logo) ? (
                         <img 
-                          src={project.logo_url} 
+                          src={project.logo_url || project.project_logo} 
                           alt={`${project.title} logo`}
                           className="w-12 h-12 rounded-lg object-cover border"
                         />

@@ -10,6 +10,7 @@ interface FundingProject {
   project_id: string;
   project_title: string;
   project_logo?: string;
+  logo_url?: string;
   funding_goal: number;
   current_funding: number;
   funding_deadline: string;
@@ -199,9 +200,9 @@ const MyFunding: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      {funding.project_logo ? (
+                      {(funding.project_logo || funding.logo_url) ? (
                         <img
-                          src={funding.project_logo}
+                          src={funding.project_logo || funding.logo_url}
                           alt="Project logo"
                           className="w-12 h-12 rounded-lg object-cover border"
                         />

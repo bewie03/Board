@@ -10,9 +10,11 @@ interface FundingProject {
   is_verified?: boolean;
   wallet_address: string;
   title: string;
+  project_title?: string;
   description: string;
   category: string;
   logo_url?: string;
+  project_logo?: string;
   website?: string;
   twitter_link?: string;
   discord_link?: string;

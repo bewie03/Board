@@ -122,7 +122,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     const conditions: string[] = [];
 
     if (owner) {
-      conditions.push('u.wallet_address = $' + (queryParams.length + 1));
+      conditions.push('pf.wallet_address = $' + (queryParams.length + 1));
       queryParams.push(owner);
     }
     // Note: Removed pf.is_active = true filter for main page to show all funding projects
