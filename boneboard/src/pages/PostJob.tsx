@@ -281,13 +281,25 @@ const PostJob: React.FC = () => {
       setCurrentStep(2);
       return;
     }
-    
-    // Validate wallet connection
+
     if (!isConnected || !walletAddress) {
-      toast.error('Please connect your wallet to post a job');
+      toast.error('Please connect your wallet first');
       return;
     }
-    
+
+    if (paymentStatus === 'processing') {
+      toast.info('Payment is already being processed...');
+      return;
+    }
+
+    // Prevent double submission
+    if (paymentStatus !== 'idle') {
+      console.log('Form already submitted, ignoring duplicate submission');
+      return;
+    }
+
+    setPaymentStatus('processing');
+
     // Validate form data
     if (!formData.title.trim() || !formData.company.trim()) {
       toast.error('Please fill in all required fields');
@@ -393,26 +405,49 @@ const PostJob: React.FC = () => {
     
     // Check if admin wallet - if so, skip payment and post directly
     if (isAdminWallet(walletAddress)) {
+      console.log('=== ADMIN JOB POSTING START ===');
       console.log('Admin wallet detected - posting job for free');
+      console.log('Current paymentStatus:', paymentStatus);
+      
+      const adminTxHash = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('Generated admin txHash:', adminTxHash);
       
       const adminJobData = {
         ...jobData,
-        txHash: `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Generate fake txHash for admin
+        txHash: adminTxHash,
         status: 'confirmed' as const,
         timestamp: Date.now(),
         walletAddress: walletAddress!
       };
       
+      console.log('Admin job data prepared:', { title: adminJobData.title, txHash: adminTxHash });
+      
       try {
-        await JobService.addJob(adminJobData);
+        console.log('Calling JobService.addJob...');
+        const result = await JobService.addJob(adminJobData);
+        console.log('JobService.addJob result:', result);
+        
         setPaymentStatus('success');
         toast.success('Admin job posted successfully (no payment required)!');
+        console.log('=== ADMIN JOB POSTING SUCCESS ===');
         navigate('/my-jobs');
         return;
-      } catch (error) {
+      } catch (error: any) {
+        console.error('=== ADMIN JOB POSTING ERROR ===');
         console.error('Error posting admin job:', error);
+        console.error('Error details:', error.message, error.code);
+        
+        // Check if it's a duplicate error
+        if (error.message && error.message.includes('already exists')) {
+          console.log('Duplicate detected - this might be expected');
+          setPaymentStatus('success');
+          toast.success('Admin job already posted successfully!');
+          navigate('/my-jobs');
+          return;
+        }
+        
         setPaymentStatus('error');
-        toast.error('Failed to post admin job');
+        toast.error('Failed to post admin job: ' + (error.message || 'Unknown error'));
         return;
       }
     }

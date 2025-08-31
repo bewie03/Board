@@ -124,18 +124,20 @@ const JobListings: React.FC = () => {
         setLoading(true);
         const jobsData = await JobService.getActiveJobs();
         
-        // Check for duplicate jobs and remove them automatically
-        const jobIds = new Set();
-        const uniqueJobsData = jobsData.filter(job => {
-          if (jobIds.has(job.id)) {
-            console.warn('Duplicate job detected in main listings, removing from display:', job.id, job.title);
-            // Trigger automatic cleanup in background
-            JobService.removeDuplicateJobs().catch(console.error);
-            return false;
-          }
-          jobIds.add(job.id);
-          return true;
-        });
+        // TEMPORARILY DISABLED: Show all jobs including duplicates for debugging
+        // const jobIds = new Set();
+        // const uniqueJobsData = jobsData.filter(job => {
+        //   if (jobIds.has(job.id)) {
+        //     console.warn('Duplicate job detected in main listings, removing from display:', job.id, job.title);
+        //     // Trigger automatic cleanup in background
+        //     JobService.removeDuplicateJobs().catch(console.error);
+        //     return false;
+        //   }
+        //   jobIds.add(job.id);
+        //   return true;
+        // });
+        
+        const uniqueJobsData = jobsData; // Show all jobs including duplicates
         
         // Transform jobs to include display properties
         const transformedJobs: JobWithDisplayProps[] = uniqueJobsData.map(job => ({

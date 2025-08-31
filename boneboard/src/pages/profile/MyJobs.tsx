@@ -58,18 +58,20 @@ const MyJobs: React.FC = () => {
         try {
           const userJobs = await JobService.getUserJobs(walletAddress);
           
-          // Check for duplicate jobs and remove them automatically
-          const jobIds = new Set();
-          const uniqueJobs = userJobs.filter(job => {
-            if (jobIds.has(job.id)) {
-              console.warn('Duplicate job detected, removing from display:', job.id, job.title);
-              // Trigger automatic cleanup in background
-              JobService.removeDuplicateJobs().catch(console.error);
-              return false;
-            }
-            jobIds.add(job.id);
-            return true;
-          });
+          // TEMPORARILY DISABLED: Show all jobs including duplicates for debugging
+          // const jobIds = new Set();
+          // const uniqueJobs = userJobs.filter(job => {
+          //   if (jobIds.has(job.id)) {
+          //     console.warn('Duplicate job detected, removing from display:', job.id, job.title);
+          //     // Trigger automatic cleanup in background
+          //     JobService.removeDuplicateJobs().catch(console.error);
+          //     return false;
+          //   }
+          //   jobIds.add(job.id);
+          //   return true;
+          // });
+          
+          const uniqueJobs = userJobs; // Show all jobs including duplicates
           
           setJobs(uniqueJobs);
         } catch (error) {
