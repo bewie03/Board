@@ -38,10 +38,10 @@ const TwitterCallback: React.FC = () => {
           hasCode: !!code,
           hasState: !!state,
           hasCodeVerifier: !!codeVerifier,
-          apiUrl: `${apiBaseUrl}/api/auth/twitter/callback`
+          apiUrl: `${apiBaseUrl}/auth/twitter/callback`
         });
 
-        const response = await fetch(`${apiBaseUrl}/api/auth/twitter/callback`, {
+        const response = await fetch(`${apiBaseUrl}/auth/twitter/callback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
