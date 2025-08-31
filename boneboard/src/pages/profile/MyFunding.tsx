@@ -9,25 +9,29 @@ import { fundingService } from '../../services/fundingService';
 interface FundingProject {
   id: string;
   project_id: string;
-  project_title: string;
-  title?: string;
-  project_logo?: string;
-  logo_url?: string;
-  description?: string;
-  category?: string;
-  website?: string;
-  twitter_link?: string;
-  discord_link?: string;
-  is_verified?: boolean;
   funding_goal: number;
   current_funding: number;
   funding_deadline: string;
   funding_purpose: string;
   is_active: boolean;
-  is_funded?: boolean;
+  is_funded: boolean;
+  wallet_address: string;
   created_at: string;
-  contributor_count: number;
+  updated_at: string;
+  project_title: string;
+  title?: string;
+  project_logo?: string;
+  logo_url?: string;
+  fallback_logo?: string;
+  description?: string;
+  category?: string;
+  website?: string;
+  twitter_link?: string;
+  discord_link?: string;
+  discord_invite?: string;
+  is_verified?: boolean;
   progress_percentage: number;
+  contributor_count: number;
   contributions?: any[];
 }
 
@@ -106,7 +110,8 @@ const MyFunding: React.FC = () => {
 
   const handleToggleActive = async (fundingId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/funding/${fundingId}`, {
+      console.log('Toggling funding status:', { fundingId, currentStatus, walletAddress });
+      const response = await fetch(`/api/funding?id=${fundingId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +126,9 @@ const MyFunding: React.FC = () => {
         toast.success(`Funding project ${!currentStatus ? 'activated' : 'paused'} successfully`);
         fetchMyFunding(); // Refresh the list
       } else {
-        toast.error('Failed to update funding status');
+        const errorData = await response.json();
+        console.error('Toggle failed:', errorData);
+        toast.error(`Failed to update funding status: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating funding status:', error);
@@ -135,7 +142,8 @@ const MyFunding: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/funding/${fundingId}`, {
+      console.log('Deleting funding project:', { fundingId, walletAddress });
+      const response = await fetch(`/api/funding?id=${fundingId}`, {
         method: 'DELETE',
         headers: {
           'x-wallet-address': walletAddress || ''
@@ -146,7 +154,9 @@ const MyFunding: React.FC = () => {
         toast.success('Funding project deleted successfully');
         fetchMyFunding(); // Refresh the list
       } else {
-        toast.error('Failed to delete funding project');
+        const errorData = await response.json();
+        console.error('Delete failed:', errorData);
+        toast.error(`Failed to delete funding project: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error deleting funding project:', error);
@@ -211,9 +221,9 @@ const MyFunding: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      {(funding.project_logo || funding.logo_url) ? (
+                      {(funding.project_logo || funding.logo_url || funding.fallback_logo) ? (
                         <img
-                          src={funding.project_logo || funding.logo_url}
+                          src={funding.project_logo || funding.logo_url || funding.fallback_logo}
                           alt="Project logo"
                           className="w-12 h-12 rounded-lg object-cover border"
                         />
@@ -377,9 +387,9 @@ const MyFunding: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-4">
-                    {(selectedProject.logo_url || selectedProject.project_logo) ? (
+                    {(selectedProject.logo_url || selectedProject.project_logo || selectedProject.fallback_logo) ? (
                       <img 
-                        src={selectedProject.logo_url || selectedProject.project_logo} 
+                        src={selectedProject.logo_url || selectedProject.project_logo || selectedProject.fallback_logo} 
                         alt={`${selectedProject.title || selectedProject.project_title} logo`}
                         className="w-16 h-16 rounded-lg object-cover border"
                       />
