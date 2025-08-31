@@ -124,9 +124,10 @@ export class ApiService {
       category: projectData.category,
       fundingGoal: 0, // Default value
       logo: projectData.logo,
+      website: projectData.website,
       fundingAddress: projectData.walletAddress, // Use wallet address as funding address
-      discordLink: projectData.discord || null,
-      twitterLink: projectData.twitter || null,
+      discordLink: projectData.discordLink || projectData.discord || null,
+      twitterLink: projectData.twitterLink || projectData.twitter || null,
       walletAddress: projectData.walletAddress,
       paymentAmount: projectData.paymentAmount || 0,
       paymentCurrency: projectData.paymentCurrency || 'BONE',

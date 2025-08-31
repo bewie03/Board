@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaUpload, FaDiscord, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaUpload, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import { useWallet } from '../contexts/WalletContext';
-import { initiateTwitterOAuth, initiateDiscordOAuth } from '../utils/auth';
+import { initiateTwitterOAuth } from '../utils/auth';
 import { toast } from 'react-toastify';
 // ProjectService import removed - now handled by projectTransactionMonitor
 import { contractService, ProjectPostingData } from '../services/contractService';
@@ -88,11 +88,7 @@ const CreateProject: React.FC = () => {
       verified: false,
       id: ''
     },
-    discord: {
-      serverName: '',
-      verified: false,
-      inviteUrl: ''
-    },
+    discordInvite: '',
     paymentMethod: 'BONE' as 'BONE' | 'ADA',
     agreeToTerms: false,
   });
@@ -140,30 +136,6 @@ const CreateProject: React.FC = () => {
     }
   };
 
-  const handleDiscordAuth = async () => {
-    try {
-      setIsAuthenticating('discord');
-      setError(null);
-      
-      // In a real app, this would redirect to Discord OAuth
-      // For now, we'll simulate a successful auth
-      const discordData = await initiateDiscordOAuth();
-      
-      setFormData(prev => ({
-        ...prev,
-        discord: {
-          serverName: discordData.username,
-          verified: true,
-          inviteUrl: discordData.id
-        },
-      }));
-    } catch (err) {
-      console.error('Discord auth error:', err);
-      setError('Failed to authenticate with Discord. Please try again.');
-    } finally {
-      setIsAuthenticating(null);
-    }
-  };
 
   const removeTwitterAuth = () => {
     setFormData(prev => ({
@@ -176,16 +148,6 @@ const CreateProject: React.FC = () => {
     }));
   };
 
-  const removeDiscordAuth = () => {
-    setFormData(prev => ({
-      ...prev,
-      discord: {
-        serverName: '',
-        verified: false,
-        inviteUrl: ''
-      }
-    }));
-  };
 
   const handleLogoUpload = (file: File) => {
     if (file) {
@@ -299,7 +261,7 @@ const CreateProject: React.FC = () => {
         timestamp: Date.now(),
         website: formData.website,
         twitter: formData.twitter.username,
-        discord: formData.discord.serverName
+        discord: formData.discordInvite
       };
 
       // Validate wallet address matches current extension wallet for the specific connected wallet type
@@ -723,42 +685,23 @@ const CreateProject: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Discord Verification {formData.discord.verified && <span className="text-green-500 ml-1">✓</span>}
+                    <label htmlFor="discordInvite" className="block text-sm font-medium text-gray-700">
+                      Discord Invite Link
                     </label>
-                    {formData.discord.verified ? (
-                      <div className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-200 rounded-md">
-                        <div className="flex items-center">
-                          <FaDiscord className="h-5 w-5 text-indigo-500 mr-2" />
-                          <span className="text-sm font-medium text-gray-900">
-                            Connected as {formData.discord.serverName}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={removeDiscordAuth}
-                          className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
-                          disabled={isAuthenticating === 'discord'}
-                        >
-                          {isAuthenticating === 'discord' ? 'Removing...' : 'Remove'}
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleDiscordAuth}
-                          disabled={isAuthenticating === 'discord'}
-                          className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <FaDiscord className="w-5 h-5 mr-2 text-indigo-500" />
-                          {isAuthenticating === 'discord' ? 'Connecting...' : 'Connect with Discord'}
-                        </button>
-                        <p className="mt-1 text-xs text-gray-500">
-                          We'll verify your Discord account ownership
-                        </p>
-                      </>
-                    )}
+                    <div className="mt-1 relative">
+                      <input
+                        type="url"
+                        name="discordInvite"
+                        id="discordInvite"
+                        value={formData.discordInvite}
+                        onChange={handleChange}
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3 border transition-colors duration-200"
+                        placeholder="https://discord.gg/your-invite"
+                      />
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Optional Discord server invite link for your community
+                    </p>
                   </div>
                 </div>
 

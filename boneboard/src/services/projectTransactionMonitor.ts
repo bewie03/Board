@@ -148,16 +148,8 @@ class ProjectTransactionMonitor {
       website: formData.website || '',
       category: formData.category,
       logo: logoDataUrl,
-      twitter: formData.twitter.verified ? {
-        username: formData.twitter.username,
-        verified: formData.twitter.verified,
-        id: formData.twitter.id
-      } : undefined,
-      discord: formData.discord.verified ? {
-        serverName: formData.discord.serverName,
-        verified: formData.discord.verified,
-        inviteUrl: formData.discord.inviteUrl
-      } : undefined,
+      twitterLink: formData.twitter.verified ? `https://twitter.com/${formData.twitter.username}` : '',
+      discordLink: formData.discordInvite || '',
       paymentAmount: projectData.paymentAmount,
       paymentCurrency: projectData.paymentCurrency,
       walletAddress: projectData.walletAddress,

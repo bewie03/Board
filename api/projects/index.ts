@@ -164,6 +164,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     category,
     fundingGoal = 0,
     logo,
+    website,
     fundingAddress,
     discordLink,
     twitterLink,
@@ -185,11 +186,11 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
 
   const query = `
     INSERT INTO projects (
-      title, description, category, funding_goal, logo, funding_address,
+      title, description, category, funding_goal, logo, website, funding_address,
       discord_link, twitter_link, wallet_address, payment_amount,
       payment_currency, tx_hash, expires_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
     ) RETURNING *
   `;
 
@@ -199,6 +200,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     category, 
     fundingGoal || 0, 
     logo || null, 
+    website || null,
     fundingAddress || walletAddress,
     discordLink || null, 
     twitterLink || null, 
