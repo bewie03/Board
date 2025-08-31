@@ -194,6 +194,51 @@ class FundingService {
     }
   }
 
+  // Utility methods for formatting
+  formatADA(amount: number): string {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6
+    }).format(amount);
+  }
+
+  formatDeadline(deadline: string): string {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diffTime = deadlineDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return 'Expired';
+    } else if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return '1 day left';
+    } else if (diffDays < 7) {
+      return `${diffDays} days left`;
+    } else if (diffDays < 14) {
+      return '1 week left';
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} weeks left`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} months left`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      return `${years} year${years > 1 ? 's' : ''} left`;
+    }
+  }
+
+  isExpired(deadline: string): boolean {
+    return new Date() > new Date(deadline);
+  }
+
+  calculateProgress(current: number, goal: number): number {
+    if (goal <= 0) return 0;
+    return Math.min((current / goal) * 100, 100);
+  }
+
   async sendBONE(recipientAddress: string, amount: number): Promise<string> {
     try {
       // This would integrate with your BONE token smart contract
@@ -204,40 +249,6 @@ class FundingService {
       console.error('Error sending BONE:', error);
       throw error;
     }
-  }
-
-  // Utility methods
-  formatADA(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6
-    }).format(amount);
-  }
-
-  formatDeadline(deadline: string): string {
-    const date = new Date(deadline);
-    const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-      return 'Expired';
-    } else if (diffDays === 0) {
-      return 'Expires today';
-    } else if (diffDays === 1) {
-      return '1 day left';
-    } else {
-      return `${diffDays} days left`;
-    }
-  }
-
-  calculateProgress(current: number, goal: number): number {
-    if (goal <= 0) return 0;
-    return Math.min((current / goal) * 100, 100);
-  }
-
-  isExpired(deadline: string): boolean {
-    return new Date(deadline) < new Date();
   }
 }
 
