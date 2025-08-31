@@ -15,6 +15,7 @@ interface FundingProject {
   category: string;
   logo_url?: string;
   project_logo?: string;
+  logo?: string;
   fallback_logo?: string;
   website?: string;
   twitter_link?: string;

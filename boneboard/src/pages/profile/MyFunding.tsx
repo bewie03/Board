@@ -22,6 +22,7 @@ interface FundingProject {
   title?: string;
   project_logo?: string;
   logo_url?: string;
+  logo?: string;
   fallback_logo?: string;
   description?: string;
   category?: string;
@@ -221,9 +222,9 @@ const MyFunding: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      {(funding.project_logo || funding.logo_url || funding.fallback_logo) ? (
+                      {(funding.project_logo || funding.logo_url || funding.logo || funding.fallback_logo) ? (
                         <img
-                          src={funding.project_logo || funding.logo_url || funding.fallback_logo}
+                          src={funding.project_logo || funding.logo_url || funding.logo || funding.fallback_logo}
                           alt="Project logo"
                           className="w-12 h-12 rounded-lg object-cover border"
                         />
@@ -384,9 +385,9 @@ const MyFunding: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-4">
-                    {(selectedProject.logo_url || selectedProject.project_logo || selectedProject.fallback_logo) ? (
+                    {(selectedProject.logo_url || selectedProject.project_logo || selectedProject.logo || selectedProject.fallback_logo) ? (
                       <img 
-                        src={selectedProject.logo_url || selectedProject.project_logo || selectedProject.fallback_logo} 
+                        src={selectedProject.logo_url || selectedProject.project_logo || selectedProject.logo || selectedProject.fallback_logo} 
                         alt={`${selectedProject.title || selectedProject.project_title} logo`}
                         className="w-16 h-16 rounded-lg object-cover border"
                       />
