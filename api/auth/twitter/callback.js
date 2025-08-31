@@ -36,10 +36,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing code, state, or codeVerifier' });
     }
 
-    // Log environment variables (without exposing secrets)
+    // Use consistent redirect URI - must match exactly what was used in initial auth request
     const redirectUri = req.headers.host && req.headers.host.includes('localhost')
       ? 'http://localhost:5173/auth/twitter/callback'
-      : `https://${req.headers.host}/auth/twitter/callback`;
+      : 'https://bone-board.vercel.app/auth/twitter/callback';
       
     console.log('Environment check:', {
       hasTwitterClientId: !!process.env.VITE_TWITTER_CLIENT_ID,
