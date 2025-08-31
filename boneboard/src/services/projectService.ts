@@ -113,8 +113,7 @@ export class ProjectService {
 
   static async getProjectsByWallet(walletAddress: string): Promise<Project[]> {
     try {
-      const projects = await this.getAllProjects();
-      return projects.filter(project => project.walletAddress === walletAddress);
+      return await ApiService.getProjects({ wallet: walletAddress });
     } catch (error) {
       console.error('Error getting projects by wallet:', error);
       return [];

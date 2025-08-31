@@ -150,9 +150,9 @@ const FundingDetail: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center">
-                    {project.logo_url ? (
+                    {project.logo ? (
                       <img
-                        src={project.logo_url}
+                        src={project.logo}
                         alt={project.title}
                         className="h-16 w-16 rounded-full object-cover mr-4"
                       />
