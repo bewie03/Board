@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { contractService, JobPostingData } from '../services/contractService';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
-import { isAdminWallet } from '../utils/adminAuth';
 
 export interface UseContractReturn {
   isLoading: boolean;
@@ -60,11 +59,6 @@ export const useContract = (): UseContractReturn => {
       if (result.success && result.txHash) {
         console.log('Payment successful, storing pending transaction...');
         
-        // For admin wallet, add delay to prevent race condition with self-payment
-        if (isAdminWallet(walletAddress)) {
-          console.log('Admin wallet detected - adding delay to prevent race condition');
-          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
-        }
         
         // Store pending transaction in localStorage for monitoring (like projects do)
         const pendingKey = `pendingTx_${walletAddress}`;
