@@ -393,11 +393,9 @@ const PostJob: React.FC = () => {
       const success = await postJob(jobData);
       
       if (success) {
-        setPaymentStatus('success');
-        // Navigate to jobs page after a delay
-        setTimeout(() => {
-          navigate('/jobs');
-        }, 2000);
+        setPaymentStatus('processing');
+        // Don't navigate immediately - wait for blockchain confirmation via event listener
+        toast.info('Payment submitted! Waiting for blockchain confirmation...');
       } else {
         setPaymentStatus('error');
       }
