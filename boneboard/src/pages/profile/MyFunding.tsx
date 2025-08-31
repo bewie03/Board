@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheckCircle, FaClock, FaDollarSign, FaTwitter, FaDiscord, FaGlobe } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaTwitter, FaDiscord } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
@@ -10,16 +10,25 @@ interface FundingProject {
   id: string;
   project_id: string;
   project_title: string;
+  title?: string;
   project_logo?: string;
   logo_url?: string;
+  description?: string;
+  category?: string;
+  website?: string;
+  twitter_link?: string;
+  discord_link?: string;
+  is_verified?: boolean;
   funding_goal: number;
   current_funding: number;
   funding_deadline: string;
   funding_purpose: string;
   is_active: boolean;
+  is_funded?: boolean;
   created_at: string;
   contributor_count: number;
   progress_percentage: number;
+  contributions?: any[];
 }
 
 const MyFunding: React.FC = () => {
@@ -27,8 +36,9 @@ const MyFunding: React.FC = () => {
   const { walletAddress } = useWallet();
   const [fundingProjects, setFundingProjects] = useState<FundingProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProjectForPanel, setSelectedProjectForPanel] = useState<FundingProject | null>(null);
-  const [detailedProject, setDetailedProject] = useState<any>(null);
+  const [editingPurpose, setEditingPurpose] = useState<string | null>(null);
+  const [editPurposeText, setEditPurposeText] = useState('');
+  const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
 
   useEffect(() => {
     if (walletAddress) {
@@ -63,24 +73,36 @@ const MyFunding: React.FC = () => {
     }
   };
 
-  const handleViewDetails = async (funding: FundingProject) => {
+  const handleEditPurpose = (fundingId: string, currentPurpose: string) => {
+    setEditingPurpose(fundingId);
+    setEditPurposeText(currentPurpose);
+  };
+
+  const handleSavePurpose = async (fundingId: string) => {
     try {
-      console.log('Fetching detailed funding project:', funding.id);
-      const detailed = await fundingService.getFundingProject(funding.id);
-      console.log('Detailed funding project:', detailed);
-      setDetailedProject(detailed);
-      setSelectedProjectForPanel(funding);
+      const response = await fetch(`/api/funding/${fundingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress || ''
+        },
+        body: JSON.stringify({
+          funding_purpose: editPurposeText
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Funding purpose updated successfully');
+        setEditingPurpose(null);
+        fetchMyFunding(); // Refresh the list
+      } else {
+        toast.error('Failed to update funding purpose');
+      }
     } catch (error) {
-      console.error('Error fetching detailed funding project:', error);
-      toast.error('Failed to load project details');
+      console.error('Error updating funding purpose:', error);
+      toast.error('Failed to update funding purpose');
     }
   };
-
-  const handleCloseSidePanel = () => {
-    setSelectedProjectForPanel(null);
-    setDetailedProject(null);
-  };
-
 
   const handleToggleActive = async (fundingId: string, currentStatus: boolean) => {
     try {
@@ -202,7 +224,7 @@ const MyFunding: React.FC = () => {
                       )}
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900">
-                          {funding.project_title}
+                          {funding.project_title || funding.title}
                         </h3>
                         <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                           <span className="flex items-center">
@@ -226,7 +248,7 @@ const MyFunding: React.FC = () => {
                     
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleViewDetails(funding)}
+                        onClick={() => setSelectedProject(funding)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="View Details"
                       >
@@ -274,6 +296,56 @@ const MyFunding: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Funding Purpose */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-700">Funding Purpose</label>
+                      {editingPurpose !== funding.id && (
+                        <button
+                          onClick={() => handleEditPurpose(funding.id, funding.funding_purpose)}
+                          className="text-blue-600 hover:text-blue-700 text-sm flex items-center"
+                        >
+                          <FaEdit className="w-3 h-3 mr-1" />
+                          Edit
+                        </button>
+                      )}
+                    </div>
+                    
+                    {editingPurpose === funding.id ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={editPurposeText}
+                          onChange={(e) => setEditPurposeText(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          rows={3}
+                          maxLength={500}
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {editPurposeText.length}/500 characters
+                          </span>
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => setEditingPurpose(null)}
+                              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSavePurpose(funding.id)}
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-md">
+                        {funding.funding_purpose || 'No purpose specified'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -281,147 +353,134 @@ const MyFunding: React.FC = () => {
         )}
       </div>
 
-      {/* Side Panel */}
+      {/* Project Details Side Panel */}
       <AnimatePresence>
-        {selectedProjectForPanel && detailedProject && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={handleCloseSidePanel}
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            />
-            
-            {/* Side Panel */}
+        {selectedProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end p-4 z-50"
+            onClick={() => setSelectedProject(null)}
+          >
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto"
+              className="bg-white h-full w-full max-w-2xl rounded-l-lg overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Project Details</h2>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-4">
+                    {(selectedProject.logo_url || selectedProject.project_logo) ? (
+                      <img 
+                        src={selectedProject.logo_url || selectedProject.project_logo} 
+                        alt={`${selectedProject.title || selectedProject.project_title} logo`}
+                        className="w-16 h-16 rounded-lg object-cover border"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No Logo</span>
+                      </div>
+                    )}
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        {selectedProject.title || selectedProject.project_title}
+                        {selectedProject.is_verified && (
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                            <FaCheck className="text-white text-sm" />
+                          </div>
+                        )}
+                      </h2>
+                      <p className="text-gray-600">{selectedProject.description}</p>
+                    </div>
+                  </div>
                   <button
-                    onClick={handleCloseSidePanel}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => setSelectedProject(null)}
+                    className="text-gray-400 hover:text-gray-600 p-2"
                   >
-                    <FaTimes className="w-5 h-5 text-gray-500" />
+                    <FaTimes size={20} />
                   </button>
                 </div>
 
-                {/* Project Logo and Title */}
-                <div className="mb-6">
-                  {(detailedProject.logo_url || detailedProject.project_logo) ? (
-                    <img
-                      src={detailedProject.logo_url || detailedProject.project_logo}
-                      alt={detailedProject.project_title}
-                      className="w-16 h-16 rounded-lg object-cover mb-3"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-3">
-                      <span className="text-gray-400 text-xs">No Logo</span>
-                    </div>
-                  )}
-                  <h3 className="text-lg font-semibold text-gray-900">{detailedProject.project_title}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{detailedProject.description}</p>
-                </div>
-
                 {/* Funding Progress */}
-                <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-700">Funding Progress</span>
-                    <span className="text-sm text-gray-500">
-                      {Math.round(detailedProject.progress_percentage || 0)}%
-                    </span>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        {fundingService.formatADA(selectedProject.current_funding)} ADA
+                      </h3>
+                      <p className="text-gray-600">raised of {fundingService.formatADA(selectedProject.funding_goal)} ADA goal</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-blue-600">
+                        {(selectedProject.progress_percentage || 0).toFixed(1)}%
+                      </p>
+                      <p className="text-sm text-gray-500">funded</p>
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${Math.min(detailedProject.progress_percentage || 0, 100)}%` }}
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                    <div
+                      className="bg-blue-600 h-4 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(selectedProject.progress_percentage || 0, 100)}%` }}
                     ></div>
                   </div>
+                  
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>{detailedProject.current_funding || 0} ADA raised</span>
-                    <span>Goal: {detailedProject.funding_goal} ADA</span>
+                    <span className="flex items-center gap-1">
+                      <FaUsers />
+                      {selectedProject.contributor_count} contributors
+                    </span>
+                    <span>{fundingService.formatDeadline(selectedProject.funding_deadline)}</span>
                   </div>
                 </div>
 
-                {/* Key Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="flex items-center text-gray-600 mb-1">
-                      <FaUsers className="w-4 h-4 mr-2" />
-                      <span className="text-sm">Backers</span>
-                    </div>
-                    <span className="text-lg font-semibold text-gray-900">
-                      {detailedProject.contributor_count || 0}
-                    </span>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="flex items-center text-gray-600 mb-1">
-                      <FaClock className="w-4 h-4 mr-2" />
-                      <span className="text-sm">Deadline</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {fundingService.formatDeadline(detailedProject.funding_deadline)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Status */}
+                {/* Funding Purpose */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Status</span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      detailedProject.is_active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {detailedProject.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Funding Purpose</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {selectedProject.funding_purpose || 'No specific funding purpose provided.'}
+                  </p>
                 </div>
 
                 {/* Project Links */}
-                {(detailedProject.website || detailedProject.twitter_link || detailedProject.discord_link) && (
+                {(selectedProject.website || selectedProject.twitter_link || selectedProject.discord_link) && (
                   <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Project Links</h4>
-                    <div className="space-y-2">
-                      {detailedProject.website && (
-                        <a
-                          href={detailedProject.website}
-                          target="_blank"
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Links</h3>
+                    <div className="flex gap-4">
+                      {selectedProject.website && (
+                        <a 
+                          href={selectedProject.website} 
+                          target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
-                          <FaGlobe className="w-4 h-4 mr-2" />
+                          <FaGlobe />
                           Website
                         </a>
                       )}
-                      {detailedProject.twitter_link && (
-                        <a
-                          href={detailedProject.twitter_link}
-                          target="_blank"
+                      {selectedProject.twitter_link && (
+                        <a 
+                          href={selectedProject.twitter_link} 
+                          target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
-                          <FaTwitter className="w-4 h-4 mr-2" />
+                          <FaTwitter />
                           Twitter
                         </a>
                       )}
-                      {detailedProject.discord_link && (
-                        <a
-                          href={detailedProject.discord_link}
-                          target="_blank"
+                      {selectedProject.discord_link && (
+                        <a 
+                          href={selectedProject.discord_link} 
+                          target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
                         >
-                          <FaDiscord className="w-4 h-4 mr-2" />
+                          <FaDiscord />
                           Discord
                         </a>
                       )}
@@ -429,32 +488,39 @@ const MyFunding: React.FC = () => {
                   </div>
                 )}
 
-                {/* Verification Badge */}
-                {detailedProject.is_verified && (
-                  <div className="mb-6">
-                    <div className="flex items-center text-green-600 bg-green-50 p-3 rounded-lg">
-                      <FaCheckCircle className="w-5 h-5 mr-2" />
-                      <span className="text-sm font-medium">Verified Project</span>
-                    </div>
+                {/* Contributors Section */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Contributors</h3>
+                  <div className="space-y-3">
+                    {selectedProject.contributions && selectedProject.contributions.length > 0 ? (
+                      selectedProject.contributions.map((contribution: any, index: number) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {contribution.display_name || contribution.contributor_wallet}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(contribution.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <span className="text-lg font-semibold text-blue-600">
+                              {fundingService.formatADA(contribution.amount)} ADA
+                            </span>
+                          </div>
+                          {contribution.message && (
+                            <p className="text-gray-700 text-sm italic">"{contribution.message}"</p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No contributions yet.</p>
+                    )}
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      handleCloseSidePanel();
-                      navigate(`/funding/${detailedProject.id}`);
-                    }}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-                  >
-                    <FaDollarSign className="w-4 h-4 mr-2" />
-                    View Full Details
-                  </button>
                 </div>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

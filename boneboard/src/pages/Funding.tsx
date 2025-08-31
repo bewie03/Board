@@ -477,6 +477,12 @@ const Funding: React.FC = () => {
                 </div>
 
                 {/* Funding Purpose */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Funding Purpose</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {selectedProjectForPanel.funding_purpose || 'No specific funding purpose provided.'}
+                  </p>
+                </div>
 
                 {/* Project Links */}
                 {(selectedProjectForPanel.website || selectedProjectForPanel.twitter_link || selectedProjectForPanel.discord_link) && (
