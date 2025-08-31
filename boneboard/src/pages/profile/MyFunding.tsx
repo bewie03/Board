@@ -20,10 +20,7 @@ interface FundingProject {
   updated_at: string;
   project_title: string;
   title?: string;
-  project_logo?: string;
-  logo_url?: string;
   logo?: string;
-  fallback_logo?: string;
   description?: string;
   category?: string;
   website?: string;
@@ -44,6 +41,8 @@ const MyFunding: React.FC = () => {
   const [editingPurpose, setEditingPurpose] = useState<string | null>(null);
   const [editPurposeText, setEditPurposeText] = useState('');
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (walletAddress) {
@@ -137,14 +136,17 @@ const MyFunding: React.FC = () => {
     }
   };
 
-  const handleDeleteFunding = async (fundingId: string) => {
-    if (!confirm('Are you sure you want to delete this funding project? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteFunding = (fundingId: string) => {
+    setProjectToDelete(fundingId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteFunding = async () => {
+    if (!projectToDelete) return;
 
     try {
-      console.log('Deleting funding project:', { fundingId, walletAddress });
-      const response = await fetch(`/api/funding?id=${fundingId}`, {
+      console.log('Deleting funding project:', { fundingId: projectToDelete, walletAddress });
+      const response = await fetch(`/api/funding?id=${projectToDelete}`, {
         method: 'DELETE',
         headers: {
           'x-wallet-address': walletAddress || ''
@@ -153,6 +155,8 @@ const MyFunding: React.FC = () => {
 
       if (response.ok) {
         toast.success('Funding project deleted successfully');
+        setShowDeleteModal(false);
+        setProjectToDelete(null);
         fetchMyFunding(); // Refresh the list
       } else {
         const errorData = await response.json();
@@ -222,9 +226,9 @@ const MyFunding: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      {(funding.project_logo || funding.logo_url || funding.logo || funding.fallback_logo) ? (
+                      {funding.logo ? (
                         <img
-                          src={funding.project_logo || funding.logo_url || funding.logo || funding.fallback_logo}
+                          src={funding.logo}
                           alt="Project logo"
                           className="w-12 h-12 rounded-lg object-cover border"
                         />
@@ -385,9 +389,9 @@ const MyFunding: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-4">
-                    {(selectedProject.logo_url || selectedProject.project_logo || selectedProject.logo || selectedProject.fallback_logo) ? (
+                    {selectedProject.logo ? (
                       <img 
-                        src={selectedProject.logo_url || selectedProject.project_logo || selectedProject.logo || selectedProject.fallback_logo} 
+                        src={selectedProject.logo} 
                         alt={`${selectedProject.title || selectedProject.project_title} logo`}
                         className="w-16 h-16 rounded-lg object-cover border"
                       />
@@ -529,6 +533,59 @@ const MyFunding: React.FC = () => {
                     )}
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Funding Project</h3>
+                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this funding project? All contributions and data will be permanently removed.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setProjectToDelete(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteFunding}
+                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete Project
+                </button>
               </div>
             </motion.div>
           </motion.div>
