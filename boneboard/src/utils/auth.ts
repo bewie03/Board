@@ -74,7 +74,7 @@ const verifyOAuthState = (platform: 'twitter' | 'discord', state: string): boole
 };
 
 // Twitter OAuth functions
-export const initiateTwitterOAuth = (): Promise<{ username: string; id: string }> => {
+export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; profileImageUrl?: string }> => {
   return new Promise(async (resolve, reject) => {
     // Check if we have valid credentials, if not use demo mode
     if (!hasValidCredentials('twitter')) {
@@ -245,7 +245,7 @@ export const initiateDiscordOAuth = (): Promise<{ username: string; id: string }
 };
 
 // Handle OAuth callbacks (to be used in callback pages)
-export const handleTwitterCallback = async (code: string, state: string): Promise<{ username: string; id: string }> => {
+export const handleTwitterCallback = async (code: string, state: string): Promise<{ username: string; id: string; profileImageUrl?: string }> => {
   try {
     const codeVerifier = sessionStorage.getItem('twitter_code_verifier');
     if (!codeVerifier) {
@@ -270,7 +270,8 @@ export const handleTwitterCallback = async (code: string, state: string): Promis
     const data = await response.json();
     return {
       username: data.username,
-      id: data.id
+      id: data.id,
+      profileImageUrl: data.profileImageUrl
     };
   } catch (error) {
     console.error('Twitter callback error:', error);

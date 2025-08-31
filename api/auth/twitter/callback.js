@@ -88,8 +88,8 @@ export default async function handler(req, res) {
 
     const tokenData = await tokenResponse.json();
 
-    // Get user data
-    const userResponse = await fetch('https://api.twitter.com/2/users/me', {
+    // Get user data with profile image
+    const userResponse = await fetch('https://api.twitter.com/2/users/me?user.fields=profile_image_url', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`
       }
@@ -115,13 +115,15 @@ export default async function handler(req, res) {
     console.log('Twitter OAuth success:', {
       username: userData.data?.username,
       id: userData.data?.id,
-      name: userData.data?.name
+      name: userData.data?.name,
+      profileImageUrl: userData.data?.profile_image_url
     });
 
     res.json({
       username: userData.data.username,
       id: userData.data.id,
-      name: userData.data.name
+      name: userData.data.name,
+      profileImageUrl: userData.data.profile_image_url
     });
 
   } catch (error) {

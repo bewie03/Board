@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaUpload, FaWallet, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaUpload, FaWallet, FaCheck, FaTimes, FaGlobe, FaDiscord } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
@@ -86,7 +86,8 @@ const CreateProject: React.FC = () => {
     twitter: {
       username: '',
       verified: false,
-      id: ''
+      id: '',
+      profileImageUrl: ''
     },
     discordInvite: '',
     paymentMethod: 'BONE' as 'BONE' | 'ADA',
@@ -118,15 +119,16 @@ const CreateProject: React.FC = () => {
       
       // In a real app, this would redirect to Twitter OAuth
       // For now, we'll simulate a successful auth
-      const result = await initiateTwitterOAuth();
+      const twitterData = await initiateTwitterOAuth();
       
       setFormData(prev => ({
         ...prev,
         twitter: {
-          username: result.username,
+          username: twitterData.username,
           verified: true,
-          id: result.id
-        }
+          id: twitterData.id,
+          profileImageUrl: twitterData.profileImageUrl || ''
+        },
       }));
     } catch (err) {
       console.error('Twitter auth error:', err);
@@ -143,7 +145,8 @@ const CreateProject: React.FC = () => {
       twitter: {
         username: '',
         verified: false,
-        id: ''
+        id: '',
+        profileImageUrl: ''
       }
     }));
   };
@@ -650,9 +653,17 @@ const CreateProject: React.FC = () => {
                       Twitter Verification {formData.twitter.verified && <span className="text-green-500 ml-1">✓</span>}
                     </label>
                     {formData.twitter.verified ? (
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
+                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-md">
                         <div className="flex items-center">
-                          <FaXTwitter className="h-5 w-5 text-gray-900 mr-2" />
+                          {formData.twitter.profileImageUrl ? (
+                            <img 
+                              src={formData.twitter.profileImageUrl} 
+                              alt={`@${formData.twitter.username}`}
+                              className="h-8 w-8 rounded-full mr-3"
+                            />
+                          ) : (
+                            <FaXTwitter className="h-5 w-5 text-blue-500 mr-2" />
+                          )}
                           <span className="text-sm font-medium text-gray-900">
                             Connected as @{formData.twitter.username}
                           </span>
@@ -710,6 +721,76 @@ const CreateProject: React.FC = () => {
                 
                 {currentStep === 2 && (
                   <div className="space-y-6">
+                    {/* Project Preview Card */}
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Preview</h3>
+                      <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 max-w-md">
+                        <div className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
+                                {logoPreview ? (
+                                  <img 
+                                    className="h-full w-full object-cover" 
+                                    src={logoPreview} 
+                                    alt={`${formData.name} logo`}
+                                  />
+                                ) : (
+                                  <div className="text-blue-600 text-2xl">
+                                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clipRule="evenodd"></path>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="ml-4">
+                                <div className="flex items-center gap-2">
+                                  <h2 className="text-xl font-bold text-gray-900">
+                                    {formData.name || 'Project Name'}
+                                  </h2>
+                                  <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                    New
+                                  </div>
+                                </div>
+                                <div className="flex items-center mt-2 space-x-2">
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    {formData.category || 'Category'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-blue-600">0</div>
+                              <div className="text-sm text-gray-500">jobs</div>
+                            </div>
+                          </div>
+                          
+                          <p className="mt-4 text-gray-600 line-clamp-3 leading-relaxed">
+                            {formData.description || 'Project description will appear here...'}
+                          </p>
+                          
+                          {/* Social Links Preview */}
+                          <div className="mt-4 flex items-center space-x-3">
+                            {formData.website && (
+                              <div className="flex items-center text-gray-400 hover:text-blue-600">
+                                <FaGlobe className="h-4 w-4" />
+                              </div>
+                            )}
+                            {formData.twitter.verified && (
+                              <div className="flex items-center text-gray-400 hover:text-blue-600">
+                                <FaXTwitter className="h-4 w-4" />
+                              </div>
+                            )}
+                            {formData.discordInvite && (
+                              <div className="flex items-center text-gray-400 hover:text-indigo-600">
+                                <FaDiscord className="h-4 w-4" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Project Summary */}
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                       <h3 className="text-lg font-medium text-gray-900 mb-4">Project Summary</h3>
