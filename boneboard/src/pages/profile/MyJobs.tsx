@@ -57,7 +57,21 @@ const MyJobs: React.FC = () => {
       if (isConnected && walletAddress) {
         try {
           const userJobs = await JobService.getUserJobs(walletAddress);
-          setJobs(userJobs);
+          
+          // Check for duplicate jobs and remove them automatically
+          const jobIds = new Set();
+          const uniqueJobs = userJobs.filter(job => {
+            if (jobIds.has(job.id)) {
+              console.warn('Duplicate job detected, removing from display:', job.id, job.title);
+              // Trigger automatic cleanup in background
+              JobService.removeDuplicateJobs().catch(console.error);
+              return false;
+            }
+            jobIds.add(job.id);
+            return true;
+          });
+          
+          setJobs(uniqueJobs);
         } catch (error) {
           console.error('Error loading user jobs:', error);
           setJobs([]);

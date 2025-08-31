@@ -71,7 +71,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 async function handleGet(req: VercelRequest, res: VercelResponse) {
-  const { id, wallet, status, category, active } = req.query;
+  const { id, wallet, status, category, active, removeDuplicates } = req.query;
+
+  // If removeDuplicates flag is set, clean up duplicates first
+  if (removeDuplicates === 'true') {
+    await removeDuplicateJobs();
+  }
 
   let query = `
     SELECT 
@@ -156,6 +161,70 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   }));
 
   return res.status(200).json(jobs);
+}
+
+// Function to remove duplicate jobs based on txHash or similar content
+async function removeDuplicateJobs() {
+  try {
+    console.log('Starting duplicate job removal process...');
+    
+    // Find duplicates by txHash (most reliable identifier)
+    const txHashDuplicatesQuery = `
+      WITH duplicate_txhash AS (
+        SELECT tx_hash, MIN(id) as keep_id, COUNT(*) as count
+        FROM job_listings 
+        WHERE tx_hash IS NOT NULL 
+        GROUP BY tx_hash 
+        HAVING COUNT(*) > 1
+      )
+      DELETE FROM job_listings 
+      WHERE tx_hash IN (SELECT tx_hash FROM duplicate_txhash)
+      AND id NOT IN (SELECT keep_id FROM duplicate_txhash)
+      RETURNING id, tx_hash, title;
+    `;
+    
+    const txHashResult = await getPool().query(txHashDuplicatesQuery);
+    
+    // Find duplicates by content similarity (same title, company, wallet, created within 5 minutes)
+    const contentDuplicatesQuery = `
+      WITH duplicate_content AS (
+        SELECT 
+          title, company, user_id,
+          MIN(id) as keep_id,
+          COUNT(*) as count,
+          MIN(created_at) as first_created
+        FROM job_listings 
+        GROUP BY title, company, user_id
+        HAVING COUNT(*) > 1
+        AND MAX(created_at) - MIN(created_at) < INTERVAL '5 minutes'
+      )
+      DELETE FROM job_listings 
+      WHERE (title, company, user_id) IN (
+        SELECT title, company, user_id FROM duplicate_content
+      )
+      AND id NOT IN (SELECT keep_id FROM duplicate_content)
+      RETURNING id, title, company, user_id;
+    `;
+    
+    const contentResult = await getPool().query(contentDuplicatesQuery);
+    
+    const totalRemoved = txHashResult.rows.length + contentResult.rows.length;
+    
+    if (totalRemoved > 0) {
+      console.log(`Removed ${totalRemoved} duplicate jobs:`, {
+        byTxHash: txHashResult.rows.length,
+        byContent: contentResult.rows.length,
+        removedJobs: [...txHashResult.rows, ...contentResult.rows]
+      });
+    } else {
+      console.log('No duplicate jobs found to remove');
+    }
+    
+    return totalRemoved;
+  } catch (error) {
+    console.error('Error removing duplicate jobs:', error);
+    throw error;
+  }
 }
 
 async function handlePost(req: VercelRequest, res: VercelResponse) {

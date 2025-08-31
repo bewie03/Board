@@ -55,12 +55,13 @@ export class ApiService {
   }
 
   // Job operations
-  static async getJobs(params?: { wallet?: string; status?: string; category?: string; active?: boolean }): Promise<any[]> {
+  static async getJobs(params?: { wallet?: string; status?: string; category?: string; active?: boolean; removeDuplicates?: boolean }): Promise<any[]> {
     const searchParams = new URLSearchParams();
     if (params?.wallet) searchParams.append('wallet', params.wallet);
     if (params?.status) searchParams.append('status', params.status);
     if (params?.category) searchParams.append('category', params.category);
     if (params?.active) searchParams.append('active', 'true');
+    if (params?.removeDuplicates) searchParams.append('removeDuplicates', 'true');
 
     const url = searchParams.toString() ? `${API_BASE_URL}/jobs?${searchParams.toString()}` : `${API_BASE_URL}/jobs`;
     const response = await fetch(url);

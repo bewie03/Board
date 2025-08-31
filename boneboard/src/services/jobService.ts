@@ -139,6 +139,19 @@ export class JobService {
     }
   }
 
+  // Remove duplicate jobs from database
+  static async removeDuplicateJobs(): Promise<number> {
+    try {
+      // Call API with removeDuplicates flag - API returns job list but we only need count
+      await ApiService.getJobs({ removeDuplicates: true });
+      // For now, return 1 to indicate operation completed (API logs actual count)
+      return 1;
+    } catch (error) {
+      console.error('Error removing duplicate jobs:', error);
+      return 0;
+    }
+  }
+
   static async initializeSampleJobs(): Promise<void> {
     // Sample jobs initialization removed - no longer needed
     return;
