@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { contractService, JobPostingData } from '../services/contractService';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
-import { JobService } from '../services/jobService';
 
 export interface UseContractReturn {
   isLoading: boolean;
@@ -150,26 +149,9 @@ export const useContract = (): UseContractReturn => {
           }
         }
         
-        // Try immediate confirmation check
-        try {
-          const txStatus = await contractService.checkTransactionStatus(result.txHash, 120000);
-          
-          if (txStatus === 'confirmed') {
-            // Save job to database immediately if confirmed
-            await saveJobToDatabase(fullJobData, result.txHash);
-            localStorage.removeItem(pendingKey);
-            toast.success(`Job posted successfully! Payment confirmed. Transaction: ${result.txHash.substring(0, 8)}...`);
-            return true;
-          } else {
-            // Transaction is pending - inform user it will be processed in background
-            toast.success(`Payment submitted successfully! Your job will be posted once the transaction is confirmed on the blockchain. Please avoid refreshing the page. Transaction: ${result.txHash.substring(0, 8)}...`);
-            return true;
-          }
-        } catch (error) {
-          console.error('Error checking immediate transaction status:', error);
-          toast.success(`Payment submitted! Your job will be posted once confirmed. Please avoid refreshing the page. Transaction: ${result.txHash.substring(0, 8)}...`);
-          return true;
-        }
+        // Don't save immediately - let transaction monitor handle all saves to prevent duplicates
+        toast.success(`Payment submitted successfully! Your job will be posted once the transaction is confirmed on the blockchain. Please avoid refreshing the page. Transaction: ${result.txHash.substring(0, 8)}...`);
+        return true;
       } else {
         toast.error(result.error || 'Failed to post job');
         return false;
@@ -202,38 +184,6 @@ export const useContract = (): UseContractReturn => {
     }
   }, []);
 
-  const saveJobToDatabase = async (jobData: JobPostingData, txHash: string) => {
-    const jobToSave = {
-      title: jobData.title,
-      company: jobData.company,
-      description: jobData.description,
-      salary: jobData.salary,
-      salaryType: jobData.salaryType as 'ADA' | 'FIAT' | 'Other',
-      category: jobData.category,
-      type: jobData.type,
-      contactEmail: jobData.contactEmail,
-      howToApply: jobData.howToApply,
-      duration: jobData.duration,
-      paymentAmount: jobData.paymentAmount,
-      paymentCurrency: jobData.paymentCurrency,
-      walletAddress: jobData.walletAddress,
-      timestamp: jobData.timestamp,
-      txHash: txHash,
-      status: 'confirmed' as const,
-      workArrangement: jobData.workArrangement,
-      requiredSkills: jobData.requiredSkills,
-      additionalInfo: jobData.additionalInfo,
-      companyWebsite: jobData.companyWebsite,
-      companyLogo: jobData.companyLogo,
-      website: jobData.website,
-      twitter: jobData.twitter,
-      discord: jobData.discord,
-      featured: jobData.featured
-    };
-    
-    await JobService.addJob(jobToSave);
-    console.log('Job saved successfully after payment confirmation');
-  };
 
   const getWalletApi = async () => {
     try {

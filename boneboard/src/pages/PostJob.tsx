@@ -764,9 +764,14 @@ const PostJob: React.FC = () => {
                             type="text"
                             value={skill}
                             onChange={(e) => {
-                              if (e.target.value.length <= 25) {
+                              const value = e.target.value;
+                              // Prevent commas to avoid bypassing the 5-skill limit
+                              if (value.includes(',')) {
+                                return;
+                              }
+                              if (value.length <= 25) {
                                 const newSkills = [...formData.requiredSkills];
-                                newSkills[index] = e.target.value;
+                                newSkills[index] = value;
                                 setFormData(prev => ({
                                   ...prev,
                                   requiredSkills: newSkills
@@ -774,7 +779,7 @@ const PostJob: React.FC = () => {
                               }
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            placeholder={`Skill ${index + 1} (max 25 chars)`}
+                            placeholder={`Skill ${index + 1} (max 25 chars, no commas)`}
                             maxLength={25}
                             required
                           />
