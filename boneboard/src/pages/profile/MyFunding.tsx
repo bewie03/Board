@@ -285,9 +285,14 @@ const MyFunding: React.FC = () => {
                         </div>
                       )}
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-1">
                           {funding.project_title || funding.title}
                         </h3>
+                        {funding.category && (
+                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium mb-2 inline-block">
+                            {funding.category}
+                          </span>
+                        )}
                         <div className="flex items-center space-x-4 text-sm text-gray-500 mt-2">
                           <span className="flex items-center">
                             <FaCalendarAlt className="w-4 h-4 mr-1" />

@@ -356,12 +356,19 @@ const Funding: React.FC = () => {
                           <span className="text-gray-400 text-sm font-medium">No Logo</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
-                        {project.is_verified && (
-                          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
-                            <FaCheck className="text-white text-xs" />
-                          </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
+                          {project.is_verified && (
+                            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                              <FaCheck className="text-white text-xs" />
+                            </div>
+                          )}
+                        </div>
+                        {project.category && (
+                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">
+                            {project.category}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -677,8 +684,25 @@ const Funding: React.FC = () => {
                     onChange={(e) => {
                       const value = e.target.value;
                       const lines = value.split('\n');
-                      if (value.length <= 200 && lines.length <= 4) {
-                        setContributionMessage(value);
+                      
+                      // Prevent pasting or typing that would exceed limits
+                      if (value.length > 200) {
+                        return;
+                      }
+                      
+                      if (lines.length > 4) {
+                        return;
+                      }
+                      
+                      setContributionMessage(value);
+                    }}
+                    onKeyDown={(e) => {
+                      const value = e.currentTarget.value;
+                      const lines = value.split('\n');
+                      
+                      // Prevent Enter key if already at 4 lines
+                      if (e.key === 'Enter' && lines.length >= 4) {
+                        e.preventDefault();
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
