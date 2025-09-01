@@ -379,27 +379,27 @@ const Funding: React.FC = () => {
                 >
                   {/* Project Header */}
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-semibold text-gray-900 truncate">{project.title}</h3>
+                    <div className="flex items-center gap-4 mb-4">
+                      {/* Project Logo */}
+                      {project.logo ? (
+                        <img 
+                          src={project.logo} 
+                          alt={`${project.title} logo`}
+                          className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200 flex-shrink-0">
+                          <span className="text-gray-400 text-xs font-medium">No Logo</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 flex-1">
+                        <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
                         {project.is_verified && (
                           <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                             <FaCheck className="text-white text-xs" />
                           </div>
                         )}
                       </div>
-                      {/* Project Logo */}
-                      {project.logo ? (
-                        <img 
-                          src={project.logo} 
-                          alt={`${project.title} logo`}
-                          className="w-12 h-12 rounded-lg object-cover border"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">No Logo</span>
-                        </div>
-                      )}
                     </div>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.funding_purpose || project.description}</p>
@@ -495,7 +495,7 @@ const Funding: React.FC = () => {
             >
               <div className="p-6">
                 {/* Header */}
-                <div className="flex justify-between items-start mb-6">
+                <div className="flex justify-between items-start mb-4">
                   <div className="flex items-start gap-6">
                     {selectedProjectForPanel.logo ? (
                       <img 
@@ -509,27 +509,67 @@ const Funding: React.FC = () => {
                       </div>
                     )}
                     <div className="flex-1">
-                      <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-                        {selectedProjectForPanel.title}
-                        {selectedProjectForPanel.is_verified && (
-                          <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
-                            <FaCheck className="text-white text-sm" />
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                          {selectedProjectForPanel.title}
+                          {selectedProjectForPanel.is_verified && (
+                            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                              <FaCheck className="text-white text-sm" />
+                            </div>
+                          )}
+                        </h2>
+                        {/* Project Links */}
+                        {(selectedProjectForPanel.website || selectedProjectForPanel.twitter_link || selectedProjectForPanel.discord_link) && (
+                          <div className="flex gap-2">
+                            {selectedProjectForPanel.website && (
+                              <a 
+                                href={selectedProjectForPanel.website} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="w-9 h-9 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                                title="Visit Website"
+                              >
+                                <FaGlobe className="text-base" />
+                              </a>
+                            )}
+                            {selectedProjectForPanel.twitter_link && (
+                              <a 
+                                href={selectedProjectForPanel.twitter_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="w-9 h-9 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                                title="Follow on Twitter"
+                              >
+                                <FaXTwitter className="text-base" />
+                              </a>
+                            )}
+                            {selectedProjectForPanel.discord_link && (
+                              <a 
+                                href={selectedProjectForPanel.discord_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="w-9 h-9 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                                title="Join Discord"
+                              >
+                                <FaDiscord className="text-base" />
+                              </a>
+                            )}
                           </div>
                         )}
-                      </h2>
+                      </div>
                       <p className="text-gray-600 text-lg leading-relaxed">{selectedProjectForPanel.description}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setSelectedProjectForPanel(null)}
-                    className="text-gray-400 hover:text-gray-600 p-2"
+                    className="text-gray-400 hover:text-gray-600 p-2 ml-4"
                   >
                     <FaTimes size={20} />
                   </button>
                 </div>
 
                 {/* Funding Progress */}
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <div className="bg-gray-50 rounded-lg p-6 mb-4">
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <h3 className="text-2xl font-bold text-gray-900">
@@ -568,48 +608,6 @@ const Funding: React.FC = () => {
                     {selectedProjectForPanel.funding_purpose || 'No specific funding purpose provided.'}
                   </p>
                 </div>
-
-                {/* Project Links */}
-                {(selectedProjectForPanel.website || selectedProjectForPanel.twitter_link || selectedProjectForPanel.discord_link) && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Links</h3>
-                    <div className="flex gap-3">
-                      {selectedProjectForPanel.website && (
-                        <a 
-                          href={selectedProjectForPanel.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="w-10 h-10 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
-                          title="Visit Website"
-                        >
-                          <FaGlobe className="text-lg" />
-                        </a>
-                      )}
-                      {selectedProjectForPanel.twitter_link && (
-                        <a 
-                          href={selectedProjectForPanel.twitter_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="w-10 h-10 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
-                          title="Follow on Twitter"
-                        >
-                          <FaXTwitter className="text-lg" />
-                        </a>
-                      )}
-                      {selectedProjectForPanel.discord_link && (
-                        <a 
-                          href={selectedProjectForPanel.discord_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="w-10 h-10 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
-                          title="Join Discord"
-                        >
-                          <FaDiscord className="text-lg" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Contributors Section */}
                 <div className="mb-6">

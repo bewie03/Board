@@ -762,9 +762,30 @@ const CreateFunding: React.FC = () => {
                         <div className="bg-white shadow-sm rounded-xl overflow-hidden border-2 border-blue-200">
                           {/* Project Header */}
                           <div className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-2">
-                                <h3 className="text-xl font-semibold text-gray-900 truncate">
+                            <div className="flex items-center gap-4 mb-4">
+                              {/* Project Logo */}
+                              {(() => {
+                                const selectedProject = userProjects.find(p => p.id === formData.project_id);
+                                const logoSrc = selectedProject?.logo_url || selectedProject?.logo;
+                                
+                                return logoSrc ? (
+                                  <img 
+                                    src={logoSrc} 
+                                    alt="Project logo"
+                                    className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
+                                    onError={(e) => {
+                                      console.error('Preview logo failed to load:', logoSrc);
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200 flex-shrink-0">
+                                    <span className="text-gray-400 text-xs font-medium">No Logo</span>
+                                  </div>
+                                );
+                              })()}
+                              <div className="flex items-center gap-2 flex-1">
+                                <h3 className="text-xl font-semibold text-gray-900">
                                   {userProjects.find(p => p.id === formData.project_id)?.title}
                                 </h3>
                                 {userProjects.find(p => p.id === formData.project_id)?.is_verified && (
@@ -775,27 +796,6 @@ const CreateFunding: React.FC = () => {
                                   </div>
                                 )}
                               </div>
-                              {/* Project Logo */}
-                              {(() => {
-                                const selectedProject = userProjects.find(p => p.id === formData.project_id);
-                                const logoSrc = selectedProject?.logo_url || selectedProject?.logo;
-                                
-                                return logoSrc ? (
-                                  <img 
-                                    src={logoSrc} 
-                                    alt="Project logo"
-                                    className="w-12 h-12 rounded-lg object-cover border"
-                                    onError={(e) => {
-                                      console.error('Preview logo failed to load:', logoSrc);
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <span className="text-gray-400 text-xs">No Logo</span>
-                                  </div>
-                                );
-                              })()}
                             </div>
 
                             <p className="text-gray-600 text-sm mb-4 line-clamp-3">
