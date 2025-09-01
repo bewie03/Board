@@ -35,11 +35,33 @@ const AccountSettings: React.FC = () => {
     toast.success('Copied to clipboard!');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      if (!walletAddress) {
+        toast.error('Please connect your wallet first');
+        return;
+      }
+
+      // Save username to database via API
+      const response = await fetch('/api/user-profiles', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          wallet_address: walletAddress,
+          username: localUsername,
+          profile_photo: profileImage
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
       // Save the username to the context (which will also save to localStorage)
       setUsername(localUsername);
       
