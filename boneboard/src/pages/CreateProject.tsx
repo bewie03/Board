@@ -633,12 +633,12 @@ const CreateProject: React.FC = () => {
                       id="website"
                       value={formData.website}
                       onChange={handleChange}
-                      maxLength={200}
+                      maxLength={50}
                       className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3 pr-16 border transition-colors duration-200"
                       placeholder="https://example.com"
                     />
                     <div className={`absolute bottom-2 right-3 text-xs ${formData.website.length >= 180 ? 'text-red-500' : 'text-gray-400'}`}>
-                      {formData.website.length}/200
+                      {formData.website.length}/50
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-gray-500">
