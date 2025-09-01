@@ -132,7 +132,7 @@ const CreateFunding: React.FC = () => {
 
   // Listen for successful funding creation from transaction monitor
   useEffect(() => {
-    const handleFundingCreated = (event: any) => {
+    const handleFundingCreated = () => {
       // Funding created successfully
       setPaymentStatus('success');
       toast.success('Funding project created successfully!');
