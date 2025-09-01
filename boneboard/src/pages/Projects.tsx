@@ -142,6 +142,7 @@ const Projects: React.FC = () => {
         },
         body: JSON.stringify({
           ...reportData,
+          scam_type: 'project', // Force project type for project reports
           reporter_id: walletAddress,
           scam_identifier: reportingProject.id.toString()
         })

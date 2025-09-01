@@ -35,6 +35,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     scam_identifier: projectId
   });
 
+  // Update scam_identifier when projectId changes
+  React.useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      scam_identifier: projectId
+    }));
+  }, [projectId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!walletAddress) {

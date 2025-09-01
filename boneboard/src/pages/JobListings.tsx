@@ -277,6 +277,7 @@ const JobListings: React.FC = () => {
         },
         body: JSON.stringify({
           ...reportData,
+          scam_type: 'job', // Force job type for job reports
           reporter_id: walletAddress,
           scam_identifier: reportingJob.id.toString()
         })
