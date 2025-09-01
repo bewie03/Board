@@ -45,14 +45,9 @@ const TwitterCallback: React.FC = () => {
         });
 
         if (!response.ok) {
-          const errorData = await response.text();
-          console.error('Twitter callback API error:', {
-            status: response.status,
-            statusText: response.statusText,
-            errorData,
-            url: response.url
-          });
-          throw new Error(`Twitter auth failed: ${response.status} - ${errorData}`);
+          // Log error without exposing sensitive details
+          console.error('Twitter authentication failed');
+          throw new Error('Twitter authentication failed. Please try again.');
         }
 
         const userData = await response.json();

@@ -93,7 +93,10 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   if (parent) {
-                    parent.innerHTML = '<div class="h-16 w-16 rounded-full border border-gray-200 bg-gray-100"></div>';
+                    // Create safe DOM element instead of innerHTML
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'h-16 w-16 rounded-full border border-gray-200 bg-gray-100';
+                    parent.replaceChild(placeholder, target);
                   }
                 }}
               />
@@ -218,16 +221,14 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
                           await navigator.clipboard.writeText(contactEmail.trim());
                           // Change button text to show copied state
                           const button = e.currentTarget;
-                          const originalContent = button.innerHTML;
-                          button.innerHTML = `
-                            <span class="inline-flex items-center">
-                              <FaEnvelope className="h-4 w-4 mr-1.5" />
-                              <span class="text-green-600">Copied!</span>
-                            </span>
-                          `;
+                          const originalText = button.textContent;
+                          button.textContent = 'Copied!';
+                          button.className = button.className.replace('text-blue-600', 'text-green-600');
+                          
                           // Revert back after 2 seconds
                           setTimeout(() => {
-                            button.innerHTML = originalContent;
+                            button.textContent = originalText;
+                            button.className = button.className.replace('text-green-600', 'text-blue-600');
                           }, 2000);
                         } catch (err) {
                           console.error('Failed to copy email: ', err);

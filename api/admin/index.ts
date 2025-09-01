@@ -1,6 +1,7 @@
 // Admin API endpoints for platform management
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
+import { rateLimit } from '../middleware/rateLimiter';
 
 // Database connection pool
 let pool: Pool | null = null;
@@ -29,15 +30,30 @@ const ADMIN_WALLET_ADDRESS = process.env.ADMIN_WALLET_ADDRESS || 'addr1q9l3t0hzc
 // Middleware to check admin authentication
 const requireAdmin = (req: VercelRequest) => {
   const adminWallet = req.headers['x-wallet-address'] as string;
-  console.log('Auth check - Received wallet:', adminWallet);
-  console.log('Auth check - Expected wallet:', ADMIN_WALLET_ADDRESS);
-  console.log('Auth check - Match:', adminWallet === ADMIN_WALLET_ADDRESS);
+  const signature = req.headers['x-wallet-signature'] as string;
+  const timestamp = req.headers['x-timestamp'] as string;
   
-  if (!adminWallet || adminWallet !== ADMIN_WALLET_ADDRESS) {
-    console.log('AUTH FAILED: Unauthorized access attempt');
-    throw new Error('Unauthorized: Admin access required');
+  if (!adminWallet || !signature || !timestamp) {
+    throw new Error('Missing required authentication headers');
   }
-  console.log('AUTH SUCCESS: Admin authenticated');
+  
+  // Check timestamp to prevent replay attacks (5 minute window)
+  const now = Date.now();
+  const requestTime = parseInt(timestamp);
+  if (Math.abs(now - requestTime) > 5 * 60 * 1000) {
+    throw new Error('Request timestamp expired');
+  }
+  
+  if (adminWallet.toLowerCase() !== ADMIN_WALLET_ADDRESS.toLowerCase()) {
+    throw new Error('Unauthorized: Invalid admin wallet');
+  }
+  
+  // TODO: Implement proper signature verification
+  // For now, require both wallet address and signature presence
+  if (!signature.startsWith('84') || signature.length < 100) {
+    throw new Error('Invalid signature format');
+  }
+  
   return adminWallet;
 };
 
@@ -62,31 +78,29 @@ const logAdminActivity = async (
   }
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-wallet-address');
+// Rate limiting for admin endpoints
+const adminRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 50 requests per windowMs for admin
+  message: 'Too many admin requests from this IP, please try again later.'
+});
 
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Apply rate limiting
+  adminRateLimit(req, res, () => {});
+  
+  // Set security headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-wallet-address, x-wallet-signature, x-timestamp');
+  
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Add comprehensive logging
-  console.log('=== ADMIN API REQUEST ===');
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Query:', req.query);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  console.log('========================');
-
   try {
     const { method } = req;
-    
-    // Log environment check 
     const pool = getPool();
-    console.log('Pool created successfully');
 
     // Check if this is a settings request based on query parameter
     const isSettingsRequest = req.query?.type === 'settings' || req.url?.includes('settings');
@@ -258,8 +272,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Verify project
         if (req.query?.action === 'verify') {
           try {
-            console.log('Processing VERIFY request...');
-            console.log('Environment ADMIN_WALLET_ADDRESS:', process.env.ADMIN_WALLET_ADDRESS);
+            // Processing project verification request
             
             const adminWallet = requireAdmin(req);
             const projectId = req.query.projectId as string;
