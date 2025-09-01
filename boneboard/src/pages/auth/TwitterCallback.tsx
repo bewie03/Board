@@ -34,12 +34,7 @@ const TwitterCallback: React.FC = () => {
           : '/api';
           
         const codeVerifier = sessionStorage.getItem('twitter_code_verifier');
-        console.log('Twitter callback attempt:', {
-          hasCode: !!code,
-          hasState: !!state,
-          hasCodeVerifier: !!codeVerifier,
-          apiUrl: `${apiBaseUrl}/auth/twitter/callback`
-        });
+        // Processing Twitter callback...
 
         const response = await fetch(`${apiBaseUrl}/auth/twitter/callback`, {
           method: 'POST',
@@ -61,7 +56,7 @@ const TwitterCallback: React.FC = () => {
         }
 
         const userData = await response.json();
-        console.log('Twitter callback success:', userData);
+        // Twitter authentication successful
 
         // Send success message to parent window
         window.opener?.postMessage({

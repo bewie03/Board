@@ -39,16 +39,7 @@ const OAUTH_CONFIG = {
   }
 };
 
-// Debug: Log OAuth config
-console.log('OAuth Config:', {
-  twitter: OAUTH_CONFIG.twitter.clientId,
-  discord: OAUTH_CONFIG.discord.clientId,
-  env: {
-    twitter: import.meta.env.VITE_TWITTER_CLIENT_ID,
-    discord: import.meta.env.VITE_DISCORD_CLIENT_ID
-  },
-  allEnv: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_'))
-});
+// OAuth config validation (removed sensitive logging)
 
 // Check if we have valid OAuth credentials
 const hasValidCredentials = (platform: 'twitter' | 'discord'): boolean => {
@@ -78,7 +69,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
   return new Promise(async (resolve, reject) => {
     // Check if we have valid credentials, if not use demo mode
     if (!hasValidCredentials('twitter')) {
-      console.log('Using Twitter demo mode - no valid credentials configured');
+      // Twitter OAuth not configured, using fallback
       // Simulate user input for Twitter username as fallback
       const username = prompt('Enter your Twitter username (without @) - OAuth not configured:');
       if (!username) {
@@ -171,7 +162,7 @@ export const initiateDiscordOAuth = (): Promise<{ username: string; id: string }
   return new Promise((resolve, reject) => {
     // Check if we have valid credentials, if not use demo mode
     if (!hasValidCredentials('discord')) {
-      console.log('Using Discord demo mode - no valid credentials configured');
+      // Discord OAuth not configured, using fallback
       setTimeout(() => {
         resolve({
           username: 'demo_discord_user#1234',
