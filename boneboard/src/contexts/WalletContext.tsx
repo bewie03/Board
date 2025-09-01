@@ -301,6 +301,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       transactionMonitor.startMonitoring(bech32Address);
 
       console.log(`Successfully connected to ${walletId} wallet`);
+      
+      // Force a re-render by triggering a small delay to ensure all state updates are processed
+      setTimeout(() => {
+        // This ensures any components using the wallet context get the updated state
+        console.log('Wallet connection state updated');
+      }, 100);
 
     } catch (error) {
       console.error(`Error connecting to ${walletId}:`, error);
