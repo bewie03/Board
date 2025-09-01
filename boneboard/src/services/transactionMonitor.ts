@@ -260,7 +260,8 @@ class TransactionMonitor {
             funding_purpose: pendingTx.fundingData.funding_purpose,
             bone_posting_fee: pendingTx.fundingData.paymentAmount || 0,
             bone_tx_hash: pendingTx.txHash,
-            wallet_address: pendingTx.walletAddress
+            wallet_address: pendingTx.walletAddress,
+            funding_wallet: pendingTx.fundingData.funding_wallet || pendingTx.walletAddress
           };
           
           await fundingService.createFundingProject(createFundingData, pendingTx.walletAddress);
