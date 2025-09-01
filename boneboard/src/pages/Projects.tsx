@@ -220,34 +220,27 @@ const Projects: React.FC = () => {
                 </p>
               </div>
 
-              <div className="mt-6 space-y-6">
-                {/* Search Bar */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Search Projects</label>
-                  <div className="relative">
+              <div className="mt-6">
+                <div className="flex flex-col lg:flex-row gap-4 mb-3">
+                  <div className="flex-1 relative">
                     <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search by project name or description..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-10 pr-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                </div>
-
-                {/* Filters Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Category Filter */}
-                  <div className="space-y-2" style={{ position: 'relative', zIndex: 10 }}>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <div className="relative">
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="min-w-[200px]" style={{ position: 'relative', zIndex: 10 }}>
                       <button
                         ref={categoryButtonRef}
                         onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                         className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer text-left"
                         style={{
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
+                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'  
                         }}
                       >
                         <span className="text-gray-700">
@@ -279,39 +272,33 @@ const Projects: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </div>
 
-                  {/* Active Jobs Filter */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Job Status</label>
-                    <label className="flex items-center h-[42px] px-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center min-w-[200px] bg-white border border-gray-300 rounded-lg px-3 h-[42px]">
                       <input
                         type="checkbox"
+                        id="active-jobs"
                         checked={showActiveJobsOnly}
                         onChange={(e) => setShowActiveJobsOnly(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
                       />
-                      <span className="text-sm text-gray-700">Projects with active jobs</span>
-                    </label>
-                  </div>
+                      <label htmlFor="active-jobs" className="text-sm text-gray-700 cursor-pointer select-none">
+                        Active jobs only
+                      </label>
+                    </div>
 
-                  {/* Verified Projects Filter */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Verification</label>
-                    <label className="flex items-center h-[42px] px-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center min-w-[180px] bg-white border border-gray-300 rounded-lg px-3 h-[42px]">
                       <input
                         type="checkbox"
+                        id="verified-only"
                         checked={showVerifiedOnly}
                         onChange={(e) => setShowVerifiedOnly(e.target.checked)}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-3"
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-2"
                       />
-                      <span className="text-sm text-gray-700">Verified projects only</span>
-                    </label>
-                  </div>
+                      <label htmlFor="verified-only" className="text-sm text-gray-700 cursor-pointer select-none">
+                        Verified only
+                      </label>
+                    </div>
 
-                  {/* Clear Filters */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">&nbsp;</label>
                     {(searchTerm || selectedCategories.length > 0 || showActiveJobsOnly || showVerifiedOnly) && (
                       <button
                         onClick={() => {
@@ -321,9 +308,9 @@ const Projects: React.FC = () => {
                           setShowVerifiedOnly(false);
                           setShowCategoryDropdown(false);
                         }}
-                        className="w-full h-[42px] px-4 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors font-medium"
+                        className="min-w-[140px] h-[42px] px-4 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors font-medium"
                       >
-                        Clear all filters
+                        Clear filters
                       </button>
                     )}
                   </div>
