@@ -20,6 +20,12 @@ const MyProjects: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{
+    id: string;
+    name: string;
+    associatedJobsCount: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchUserProjects = async () => {
@@ -86,24 +92,48 @@ const MyProjects: React.FC = () => {
     setLogoPreview(null);
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteProject = (projectId: string) => {
+    // Count jobs associated with this project
+    const associatedJobs = allJobs.filter(job => job.project_id === projectId || job.selected_project_id === projectId);
+    const project = projects.find(p => p.id === projectId);
+    
+    setProjectToDelete({
+      id: projectId,
+      name: project?.title || project?.name || 'this project',
+      associatedJobsCount: associatedJobs.length
+    });
+    setShowDeleteModal(true);
+  };
 
+  const confirmDeleteProject = async () => {
+    if (!projectToDelete) return;
+    
+    const { id: projectId, associatedJobsCount } = projectToDelete;
     try {
       const success = await ProjectService.deleteProject(projectId);
       if (success) {
         // Refresh projects list
         const updatedProjects = await ProjectService.getProjectsByWallet(walletAddress!);
         setProjects(updatedProjects);
-        toast.success('Project deleted successfully!');
+        
+        // Refresh jobs list to reflect deletions
+        const fetchedJobs = await JobService.getActiveJobs();
+        setAllJobs(fetchedJobs);
+        
+        if (associatedJobsCount > 0) {
+          toast.success(`Project and ${associatedJobsCount} associated job${associatedJobsCount > 1 ? 's' : ''} deleted successfully!`);
+        } else {
+          toast.success('Project deleted successfully!');
+        }
       } else {
         toast.error('Failed to delete project');
       }
     } catch (error) {
       console.error('Error deleting project:', error);
       toast.error('Failed to delete project');
+    } finally {
+      setShowDeleteModal(false);
+      setProjectToDelete(null);
     }
   };
 
@@ -193,7 +223,7 @@ const MyProjects: React.FC = () => {
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 01-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
                   New Project
                 </Link>
@@ -210,7 +240,7 @@ const MyProjects: React.FC = () => {
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 01-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
                   New Project
                 </Link>
@@ -373,7 +403,7 @@ const MyProjects: React.FC = () => {
                           <img 
                             className="h-full w-full rounded-xl object-cover" 
                             src={logoPreview || editingProject.logo || ''} 
-                            alt={`${editingProject.name || editingProject.title} logo`}
+                            alt={`${editingProject.name} logo`}
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
                               const parent = (e.target as HTMLImageElement).parentElement;
@@ -387,13 +417,19 @@ const MyProjects: React.FC = () => {
                         )}
                       </div>
                       <div className="ml-4">
-                        <input
-                          type="text"
-                          value={editFormData.name || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                          className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-200 focus:border-blue-500 outline-none w-full"
-                          placeholder="Project Name"
-                        />
+                        <div className="flex items-center">
+                          <h2 className="text-2xl font-bold text-gray-900">{editingProject.title || editingProject.name}</h2>
+                          {editingProject.isVerified && (
+                            <div 
+                              className="ml-2 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                              title="Verified project"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                         <div className="mt-2">
                           <CustomSelect
                             options={[
@@ -764,7 +800,77 @@ const MyProjects: React.FC = () => {
           </>
         )}
       </AnimatePresence>
-      </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && projectToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                  <FaTrash className="text-red-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Project</h3>
+                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">
+                  Are you sure you want to delete <strong>{projectToDelete.name}</strong>?
+                </p>
+                
+                {projectToDelete.associatedJobsCount > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p className="text-red-800 font-medium mb-2">
+                      This will also delete {projectToDelete.associatedJobsCount} job listing{projectToDelete.associatedJobsCount > 1 ? 's' : ''} associated with this project!
+                    </p>
+                  </div>
+                )}
+                
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>• This action CANNOT be undone</li>
+                    <li>• You will NOT receive any refunds</li>
+                    <li>• All data will be permanently lost</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setProjectToDelete(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteProject}
+                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete Project
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 };
