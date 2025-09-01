@@ -475,7 +475,14 @@ const CreateFunding: React.FC = () => {
                       label: project.title
                     }))}
                     value={formData.project_id}
-                    onChange={(value) => setFormData(prev => ({ ...prev, project_id: value }))}
+                    onChange={(value) => {
+                      const selectedProject = userProjects.find(p => p.id === value);
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        project_id: value,
+                        wallet_address: selectedProject?.wallet_address || prev.wallet_address
+                      }));
+                    }}
                     placeholder="Choose a project to create funding for"
                     className=""
                   />
