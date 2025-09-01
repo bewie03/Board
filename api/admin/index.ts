@@ -78,24 +78,32 @@ const logAdminActivity = async (
   }
 };
 
-// Rate limiting for admin endpoints
+// Rate limiting for admin endpoints - more lenient for admin operations
 const adminRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 50 requests per windowMs for admin
+  windowMs: 5 * 60 * 1000, // 5 minutes (shorter window)
+  max: 100, // Higher limit for admin operations
   message: 'Too many admin requests from this IP, please try again later.'
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Apply rate limiting
-  adminRateLimit(req, res, () => {});
-  
-  // Set security headers
+  // Set security headers first
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-wallet-address, x-wallet-signature, x-timestamp');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  // Apply rate limiting only after OPTIONS handling
+  let rateLimitExceeded = false;
+  adminRateLimit(req, res, () => {
+    rateLimitExceeded = false;
+  });
+  
+  // If rate limit was exceeded, the response was already sent
+  if (res.headersSent) {
+    return;
   }
 
   try {
