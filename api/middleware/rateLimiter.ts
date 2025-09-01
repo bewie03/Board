@@ -9,7 +9,7 @@ interface RateLimitStore {
 
 const store: RateLimitStore = {};
 
-// Clean up expired entries every 5 minutes
+// Clean up expired entries every 30 seconds (more frequent cleanup)
 setInterval(() => {
   const now = Date.now();
   Object.keys(store).forEach(key => {
@@ -17,7 +17,7 @@ setInterval(() => {
       delete store[key];
     }
   });
-}, 5 * 60 * 1000);
+}, 30 * 1000);
 
 export const rateLimit = (options: {
   windowMs: number;
@@ -54,12 +54,15 @@ export const rateLimit = (options: {
 };
 
 function getClientKey(req: VercelRequest): string {
-  // Use IP address as primary identifier
+  // For reports API, use wallet address if available (more accurate per-user limiting)
+  const walletAddress = req.headers['x-wallet-address'] as string;
+  if (walletAddress) {
+    return `wallet:${walletAddress}`;
+  }
+  
+  // Fallback to IP for other endpoints
   const forwarded = req.headers['x-forwarded-for'] as string;
   const ip = forwarded ? forwarded.split(',')[0] : req.connection?.remoteAddress || 'unknown';
   
-  // Add user agent for additional uniqueness
-  const userAgent = req.headers['user-agent'] || '';
-  
-  return `${ip}:${userAgent.slice(0, 50)}`;
+  return `ip:${ip}`;
 }

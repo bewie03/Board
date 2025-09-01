@@ -33,12 +33,12 @@ function getPool() {
   return pool;
 }
 
-// Special rate limiting for reports - 3 minute cooldown per user
-const reportsRateLimit = rateLimit({
-  windowMs: 3 * 60 * 1000, // 3 minutes
-  max: 2, // allow 2 reports per 3 minutes per IP
-  message: 'You can only submit 2 reports every 3 minutes. Please wait before submitting another report.'
-});
+// No rate limiting for reports - removed cooldown
+// const reportsRateLimit = rateLimit({
+//   windowMs: 3 * 60 * 1000, // 3 minutes
+//   max: 2, // allow 2 reports per 3 minutes per IP
+//   message: 'You can only submit 2 reports every 3 minutes. Please wait before submitting another report.'
+// });
 
 // General rate limiting for viewing reports
 const reportsViewRateLimit = rateLimit({
@@ -58,17 +58,8 @@ export default async function handler(req: any, res: any) {
   }
 
   if (req.method === 'POST') {
-    // Apply rate limiting for report submissions
-    return new Promise((resolve) => {
-      reportsRateLimit(req, res, (result?: any) => {
-        if (result) {
-          // Rate limit exceeded, response already sent
-          return resolve(result);
-        }
-        // Rate limit passed, proceed with handling
-        resolve(handleSubmitReport(req, res));
-      });
-    });
+    // No rate limiting for report submissions - removed cooldown
+    return handleSubmitReport(req, res);
   } else if (req.method === 'GET') {
     // Apply rate limiting for viewing reports
     return new Promise((resolve) => {
