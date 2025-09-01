@@ -93,8 +93,8 @@ CREATE TABLE projects (
 CREATE TABLE job_listings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id VARCHAR(255) NOT NULL, -- Changed to match wallet address format
-    project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
-    selected_project_id UUID REFERENCES projects(id) ON DELETE SET NULL, -- Track explicitly selected project
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    selected_project_id UUID REFERENCES projects(id) ON DELETE CASCADE, -- Track explicitly selected project
     title VARCHAR(200) NOT NULL,
     company VARCHAR(200) NOT NULL,
     description TEXT NOT NULL,
