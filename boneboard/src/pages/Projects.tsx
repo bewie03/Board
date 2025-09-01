@@ -271,20 +271,6 @@ const Projects: React.FC = () => {
                       </label>
                     </div>
 
-                    {(searchTerm || (selectedCategories.length > 0 && !selectedCategories.includes('all')) || showActiveJobsOnly || showVerifiedOnly) && (
-                      <button
-                        onClick={() => {
-                          setSearchTerm('');
-                          setSelectedCategories(['all']);
-                          setShowActiveJobsOnly(false);
-                          setShowVerifiedOnly(false);
-                          setShowCategoryDropdown(false);
-                        }}
-                        className="min-w-[140px] h-[42px] px-4 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors font-medium"
-                      >
-                        Clear filters
-                      </button>
-                    )}
                   </div>
                 </div>
 
