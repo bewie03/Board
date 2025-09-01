@@ -259,7 +259,7 @@ const Funding: React.FC = () => {
                     placeholder="Search funding projects..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 
@@ -293,7 +293,7 @@ const Funding: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center min-w-[180px] bg-white border border-gray-300 rounded-lg px-3 h-[36px]">
+                  <div className="flex items-center min-w-[180px] bg-white border border-gray-300 rounded-lg px-3 h-[42px]">
                     <input
                       type="checkbox"
                       id="verified-only"
@@ -307,18 +307,18 @@ const Funding: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Results Summary */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="text-sm text-gray-600">
-              Showing {filteredAndSortedProjects.length} of {projects.length} funding projects
-              {showVerifiedOnly && ' (verified only)'}
-            </div>
-            <div className="text-sm text-gray-500 flex items-center">
-              <FaSort className="mr-1" />
-              Sorted by: {sortOptions.find(option => option.value === sortBy)?.label || 'Newest First'}
+              
+              {/* Results Summary */}
+              <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  Showing {filteredAndSortedProjects.length} of {projects.length} funding projects
+                  {showVerifiedOnly && ' (verified only)'}
+                </div>
+                <div className="text-sm text-gray-500 flex items-center">
+                  <FaSort className="mr-1" />
+                  Sorted by: {sortOptions.find(option => option.value === sortBy)?.label || 'Newest First'}
+                </div>
+              </div>
             </div>
           </div>
 
