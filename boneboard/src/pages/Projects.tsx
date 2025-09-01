@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PROJECT_CATEGORIES } from '../constants/categories';
+import CustomSelect from '../components/CustomSelect';
 
 type Job = {
   id: number;
@@ -234,43 +235,22 @@ const Projects: React.FC = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="min-w-[200px]" style={{ position: 'relative', zIndex: 10 }}>
-                      <button
-                        ref={categoryButtonRef}
-                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                        className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer text-left"
-                        style={{
-                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'  
-                        }}
-                      >
-                        <span className="text-gray-700">
-                          {selectedCategories.length === 0 
-                            ? 'All Categories' 
-                            : selectedCategories.length === 1 
-                              ? selectedCategories[0]
-                              : `${selectedCategories.length} categories selected`
+                    <div className="min-w-[200px]">
+                      <CustomSelect
+                        options={[
+                          { value: '', label: 'All Categories' },
+                          ...PROJECT_CATEGORIES.map(cat => ({ value: cat, label: cat }))
+                        ]}
+                        value={selectedCategories.length === 1 ? selectedCategories[0] : ''}
+                        onChange={(value) => {
+                          if (value === '') {
+                            setSelectedCategories([]);
+                          } else {
+                            setSelectedCategories([value]);
                           }
-                        </span>
-                      </button>
-                      
-                      {showCategoryDropdown && (
-                        <div className="absolute z-40 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto mt-1 w-full" 
-                             style={{ position: 'absolute', top: '100%', left: 0 }}>
-                          <div className="py-2">
-                            {PROJECT_CATEGORIES.map((category) => (
-                              <label key={category} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedCategories.includes(category)}
-                                  onChange={() => toggleCategory(category)}
-                                  className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <span className="text-sm text-gray-700">{category}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                        }}
+                        placeholder="All Categories"
+                      />
                     </div>
 
                     <div className="flex items-center min-w-[200px] bg-white border border-gray-300 rounded-lg px-3 h-[42px]">

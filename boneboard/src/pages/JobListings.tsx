@@ -361,70 +361,22 @@ const JobListings: React.FC = () => {
                     </div>
                     
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="min-w-[200px]" style={{ position: 'relative', zIndex: 10 }}>
-                        <button
-                          ref={categoryButtonRef}
-                          onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full h-[42px] pl-4 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em_1.5em] appearance-none cursor-pointer text-left"
-                          style={{
-                            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")'
-                          }}
-                        >
-                          <span className="text-gray-700">
-                            {selectedCategories.includes('all') 
-                              ? 'All Categories' 
-                              : selectedCategories.length === 1 
-                                ? JOB_CATEGORIES.find(cat => cat.id === selectedCategories[0])?.name 
-                                : `${selectedCategories.length} categories selected`
+                      <div className="min-w-[200px]">
+                        <CustomSelect
+                          options={[
+                            { value: 'all', label: 'All Categories' },
+                            ...JOB_CATEGORIES.filter(cat => cat.id !== 'all').map(cat => ({ value: cat.id, label: cat.name }))
+                          ]}
+                          value={selectedCategories.includes('all') ? 'all' : selectedCategories.length === 1 ? selectedCategories[0] : ''}
+                          onChange={(value) => {
+                            if (value === 'all') {
+                              setSelectedCategories(['all']);
+                            } else {
+                              setSelectedCategories([value as JobCategory]);
                             }
-                          </span>
-                        </button>
-                        
-                        {showCategoryDropdown && (
-                          <div className="absolute z-20 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto mt-1 w-full" 
-                               style={{ position: 'absolute', top: '100%', left: 0 }}>
-                            <div className="py-2">
-                              <label className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedCategories.includes('all')}
-                                  onChange={() => {
-                                    if (selectedCategories.includes('all')) {
-                                      setSelectedCategories([]);
-                                    } else {
-                                      setSelectedCategories(['all']);
-                                    }
-                                  }}
-                                  className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <span className="text-sm text-gray-700 font-medium">All Categories</span>
-                              </label>
-                              {JOB_CATEGORIES.filter(cat => cat.id !== 'all').map((category) => (
-                                <label key={category.id} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedCategories.includes(category.id as JobCategory) && !selectedCategories.includes('all')}
-                                    onChange={() => {
-                                      const categoryId = category.id as JobCategory;
-                                      setSelectedCategories(prev => {
-                                        const newCategories = prev.filter(cat => cat !== 'all') as ActualJobCategory[];
-                                        if (categoryId !== 'all' && newCategories.includes(categoryId)) {
-                                          const filtered = newCategories.filter(cat => cat !== categoryId);
-                                          return filtered.length === 0 ? ['all'] : filtered;
-                                        } else if (categoryId !== 'all') {
-                                          return [...newCategories, categoryId];
-                                        }
-                                        return prev;
-                                      });
-                                    }}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                  />
-                                  <span className="text-sm text-gray-700">{category.name}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                          }}
+                          placeholder="All Categories"
+                        />
                       </div>
                       
                       <div className="flex items-center min-w-[180px] bg-white border border-gray-300 rounded-lg px-3 h-[42px]">
