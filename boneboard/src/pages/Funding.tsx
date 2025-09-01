@@ -694,8 +694,8 @@ const Funding: React.FC = () => {
                         return;
                       }
                       
-                      // Check for lines that are too long (approximate 50 chars per line for readability)
-                      const hasLongLine = lines.some(line => line.length > 25);
+                      // Check for lines that are too long (approximate 45 chars per line for readability)
+                      const hasLongLine = lines.some(line => line.length > 45);
                       if (hasLongLine) {
                         return;
                       }
@@ -719,7 +719,7 @@ const Funding: React.FC = () => {
                   <div className="text-xs text-gray-500 mt-1">
                     {contributionMessage.length}/105 characters, {contributionMessage.split('\n').length}/4 lines
                     {contributionMessage.split('\n').some(line => line.length > 50) && (
-                      <span className="text-red-500 ml-2">• Line too long (max 25 chars per line)</span>
+                      <span className="text-red-500 ml-2">• Line too long (max 45 chars per line)</span>
                     )}
                   </div>
                 </div>
