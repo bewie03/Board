@@ -280,10 +280,22 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
       const bech32Address = currentAddress;
 
-      setIsConnected(true);
-      setWalletAddress(bech32Address);
-      setConnectedWallet(walletId);
-      walletRef.current = wallet;
+      // Update localStorage first
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('walletAddress', bech32Address);
+        localStorage.setItem('isConnected', 'true');
+        localStorage.setItem('connectedWallet', walletId);
+      }
+
+      // Use React's flushSync to force immediate state updates
+      const { flushSync } = await import('react-dom');
+      
+      flushSync(() => {
+        setIsConnected(true);
+        setWalletAddress(bech32Address);
+        setConnectedWallet(walletId);
+        walletRef.current = wallet;
+      });
       
       // Track wallet session for fraud detection with wallet API access
       await fraudDetection.initializeWalletTracking(bech32Address, wallet);
@@ -291,22 +303,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Load profile data for this wallet
       loadWalletProfile(bech32Address);
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('walletAddress', bech32Address);
-        localStorage.setItem('isConnected', 'true');
-        localStorage.setItem('connectedWallet', walletId);
-      }
-
       // Start monitoring for pending transactions
       transactionMonitor.startMonitoring(bech32Address);
 
       console.log(`Successfully connected to ${walletId} wallet`);
-      
-      // Force a re-render by triggering a small delay to ensure all state updates are processed
-      setTimeout(() => {
-        // This ensures any components using the wallet context get the updated state
-        console.log('Wallet connection state updated');
-      }, 100);
 
     } catch (error) {
       console.error(`Error connecting to ${walletId}:`, error);
