@@ -196,14 +196,14 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     );
   }
 
-  // Build dynamic update query for user_profiles
+  // For user_profiles table, we only need to handle profile_photo -> avatar_url
+  // The username is stored in the users table, not user_profiles
   const updateFields: string[] = [];
   const params: any[] = [];
   let paramIndex = 1;
 
   const fieldMapping: { [key: string]: string } = {
     nickname: 'nickname',
-    username: 'nickname', // Map username to nickname field
     avatarUrl: 'avatar_url',
     profile_photo: 'avatar_url', // Map profile_photo to avatar_url field
     bio: 'bio',
@@ -215,32 +215,32 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
   Object.entries(updates).forEach(([key, value]) => {
     const dbField = fieldMapping[key];
-    if (dbField) {
+    if (dbField && key !== 'username' && key !== 'wallet_address') { // Skip username as it's handled above
       updateFields.push(`${dbField} = $${paramIndex}`);
       params.push(value);
       paramIndex++;
     }
   });
 
-  if (updateFields.length === 0) {
-    return res.status(400).json({ error: 'No valid fields to update' });
+  // Only update user_profiles if there are valid fields to update
+  let result = null;
+  if (updateFields.length > 0) {
+    params.push(userId);
+    const query = `
+      UPDATE user_profiles 
+      SET ${updateFields.join(', ')}, updated_at = NOW()
+      WHERE user_id = $${paramIndex}
+      RETURNING *
+    `;
+
+    result = await getPool().query(query, params);
   }
 
-  params.push(userId);
-  const query = `
-    UPDATE user_profiles 
-    SET ${updateFields.join(', ')}, updated_at = NOW()
-    WHERE user_id = $${paramIndex}
-    RETURNING *
-  `;
-
-  const result = await getPool().query(query, params);
-  
-  if (result.rows.length === 0) {
-    return res.status(404).json({ error: 'Profile not found' });
-  }
-
-  return res.status(200).json({ success: true, profile: result.rows[0] });
+  return res.status(200).json({ 
+    success: true, 
+    message: 'Profile updated successfully',
+    profile: result ? result.rows[0] : null 
+  });
 }
 
 async function handleDelete(req: VercelRequest, res: VercelResponse) {
