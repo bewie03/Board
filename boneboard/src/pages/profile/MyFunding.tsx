@@ -448,53 +448,102 @@ const MyFunding: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end p-4 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-50"
             onClick={() => setSelectedProject(null)}
           >
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="bg-white h-full w-full max-w-2xl rounded-l-lg overflow-y-auto"
+              className="bg-white h-full w-full max-w-2xl overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
-                    {selectedProject.logo ? (
-                      <img 
-                        src={selectedProject.logo} 
-                        alt={`${selectedProject.title || selectedProject.project_title} logo`}
-                        className="w-16 h-16 rounded-lg object-cover border"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-gray-400 text-xs">No Logo</span>
-                      </div>
-                    )}
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <div className="flex gap-6 flex-1">
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                      {selectedProject.logo ? (
+                        <img 
+                          src={selectedProject.logo} 
+                          alt={`${selectedProject.title || selectedProject.project_title} logo`}
+                          className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                          <span className="text-gray-400 text-base font-medium">No Logo</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Title and Links */}
+                    <div className="flex-1">
+                      <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-3">
                         {selectedProject.title || selectedProject.project_title}
                         {selectedProject.is_verified && (
-                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                          <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                             <FaCheck className="text-white text-sm" />
                           </div>
                         )}
                       </h2>
-                      <p className="text-gray-600">{selectedProject.description}</p>
+                      
+                      {/* Project Links */}
+                      {(selectedProject.website || selectedProject.twitter_link || selectedProject.discord_link) && (
+                        <div className="flex gap-2 mb-4">
+                          {selectedProject.website && (
+                            <a 
+                              href={selectedProject.website} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="w-9 h-9 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                              title="Visit Website"
+                            >
+                              <FaGlobe className="text-base" />
+                            </a>
+                          )}
+                          {selectedProject.twitter_link && (
+                            <a 
+                              href={selectedProject.twitter_link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="w-9 h-9 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                              title="Follow on Twitter"
+                            >
+                              <FaXTwitter className="text-base" />
+                            </a>
+                          )}
+                          {selectedProject.discord_link && (
+                            <a 
+                              href={selectedProject.discord_link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="w-9 h-9 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                              title="Join Discord"
+                            >
+                              <FaDiscord className="text-base" />
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
+                  
                   <button
                     onClick={() => setSelectedProject(null)}
-                    className="text-gray-400 hover:text-gray-600 p-2"
+                    className="text-gray-400 hover:text-gray-600 p-2 ml-4 flex-shrink-0"
                   >
                     <FaTimes size={20} />
                   </button>
                 </div>
+                
+                {/* Description */}
+                <div className="mb-6">
+                  <p className="text-gray-600 text-lg leading-relaxed">{selectedProject.description}</p>
+                </div>
 
                 {/* Funding Progress */}
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <div className="bg-gray-50 rounded-lg p-6 mb-4">
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <h3 className="text-2xl font-bold text-gray-900">
