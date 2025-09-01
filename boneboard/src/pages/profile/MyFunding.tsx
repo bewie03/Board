@@ -313,28 +313,6 @@ const MyFunding: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Payment Address */}
-                  <div className="mb-4">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Payment Address</label>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-gray-600 mb-1">Funds are being sent to:</p>
-                      <div className="flex items-center justify-between">
-                        <code className="text-sm font-mono text-blue-800 bg-white px-2 py-1 rounded border">
-                          {funding.funding_wallet || funding.wallet_address}
-                        </code>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(funding.funding_wallet || funding.wallet_address);
-                            toast.success('Payment address copied to clipboard');
-                          }}
-                          className="text-blue-600 hover:text-blue-700 text-sm ml-2 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Funding Purpose */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
@@ -384,6 +362,42 @@ const MyFunding: React.FC = () => {
                         {funding.funding_purpose || 'No purpose specified'}
                       </p>
                     )}
+                  </div>
+                </div>
+
+                {/* Payment Address - Separate Box */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <FaCoins className="text-blue-600 text-sm" />
+                      </div>
+                      Payment Address
+                    </h4>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    All contributions are automatically sent to this wallet address:
+                  </p>
+                  <div className="bg-white rounded-lg border-2 border-dashed border-blue-300 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 mr-4">
+                        <code className="text-sm font-mono text-gray-800 bg-gray-50 px-3 py-2 rounded-md border break-all">
+                          {funding.funding_wallet || funding.wallet_address}
+                        </code>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(funding.funding_wallet || funding.wallet_address);
+                          toast.success('Payment address copied to clipboard!');
+                        }}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-md"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

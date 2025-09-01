@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaCalendarAlt, FaDiscord, FaGlobe } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
@@ -448,9 +448,9 @@ const Funding: React.FC = () => {
                       </button>
                       
                       {/* Time Left Indicator */}
-                      <div className="flex items-center text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-md border">
-                        <FaCalendarAlt className="mr-1" />
-                        {fundingService.formatDeadline(project.funding_deadline)}
+                      <div className="flex items-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-md border border-gray-200 min-w-[120px] justify-center">
+                        <FaClock className="mr-2 text-gray-500" />
+                        <span className="font-medium">{fundingService.formatDeadline(project.funding_deadline)}</span>
                       </div>
                     </div>
                   </div>
