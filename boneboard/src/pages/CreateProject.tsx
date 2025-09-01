@@ -549,13 +549,13 @@ const CreateProject: React.FC = () => {
                       id="name"
                       value={formData.name}
                       onChange={handleChange}
-                      maxLength={50}
+                      maxLength={20}
                       className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3 pr-16 border transition-colors duration-200"
                       placeholder="e.g. BoneSwap"
                       required
                     />
                     <div className={`absolute bottom-2 right-3 text-xs ${formData.name.length >= 45 ? 'text-red-500' : 'text-gray-400'}`}>
-                      {formData.name.length}/50
+                      {formData.name.length}/20
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-gray-500">
