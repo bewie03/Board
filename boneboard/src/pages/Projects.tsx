@@ -554,7 +554,7 @@ const Projects: React.FC = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
-                className="fixed inset-y-0 right-0 w-full max-w-3xl bg-white shadow-xl z-50 overflow-y-auto" 
+                className="fixed inset-y-0 right-0 w-full max-w-3xl bg-white shadow-xl z-50 overflow-y-auto scrollbar-hide" 
                 style={{ top: '0px' }}
               >
               <div className="flex flex-col h-full">

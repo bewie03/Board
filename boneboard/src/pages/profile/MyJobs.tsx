@@ -456,7 +456,7 @@ const MyJobs: React.FC = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto scrollbar-hide">
                   <div className="p-6">
                     {/* Job Header */}
                     <div className="flex items-start">

@@ -366,7 +366,7 @@ const ProjectFunding: React.FC = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'tween', duration: 0.3 }}
-                className="fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 overflow-y-auto"
+                className="fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 overflow-y-auto scrollbar-hide"
               >
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-6">

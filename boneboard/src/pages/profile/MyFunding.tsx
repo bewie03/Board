@@ -455,7 +455,7 @@ const MyFunding: React.FC = () => {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="bg-white h-full w-full max-w-2xl overflow-y-auto"
+              className="bg-white h-full w-full max-w-2xl overflow-y-auto scrollbar-hide"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">

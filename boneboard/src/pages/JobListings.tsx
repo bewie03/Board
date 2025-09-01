@@ -717,7 +717,7 @@ const JobListings: React.FC = () => {
                 </p>
               </div>
               
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-96 overflow-y-auto scrollbar-hide">
                 {!isConnected ? (
                   <div className="px-6 py-8 text-center">
                     <FaRegBookmark className="mx-auto h-12 w-12 text-gray-400" />
@@ -869,7 +869,7 @@ const JobListings: React.FC = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto scrollbar-hide">
                   {/* Job Header */}
                   <div className="px-6 py-6 border-b border-gray-200">
                     <div className="flex justify-between items-start">

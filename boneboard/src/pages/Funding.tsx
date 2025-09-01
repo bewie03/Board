@@ -457,7 +457,7 @@ const Funding: React.FC = () => {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="bg-white h-full w-full max-w-2xl overflow-y-auto"
+              className="bg-white h-full w-full max-w-2xl overflow-y-auto scrollbar-hide"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
@@ -686,7 +686,7 @@ const Funding: React.FC = () => {
                       const lines = value.split('\n');
                       
                       // Prevent pasting or typing that would exceed limits
-                      if (value.length > 200) {
+                      if (value.length > 105) {
                         return;
                       }
                       
@@ -713,13 +713,13 @@ const Funding: React.FC = () => {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     rows={3}
-                    maxLength={200}
+                    maxLength={105}
                     placeholder="Leave a message for the project team... (max 200 chars, 4 lines, 50 chars per line)"
                   />
                   <div className="text-xs text-gray-500 mt-1">
-                    {contributionMessage.length}/200 characters, {contributionMessage.split('\n').length}/4 lines
+                    {contributionMessage.length}/105 characters, {contributionMessage.split('\n').length}/4 lines
                     {contributionMessage.split('\n').some(line => line.length > 50) && (
-                      <span className="text-red-500 ml-2">• Line too long (max 50 chars per line)</span>
+                      <span className="text-red-500 ml-2">• Line too long (max 25 chars per line)</span>
                     )}
                   </div>
                 </div>

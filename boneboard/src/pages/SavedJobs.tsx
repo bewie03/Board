@@ -474,7 +474,7 @@ const SavedJobs: React.FC = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto scrollbar-hide">
                   {/* Job Header */}
                   <div className="px-6 py-6 border-b border-gray-200">
                     <div className="flex justify-between items-start">
