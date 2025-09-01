@@ -312,6 +312,28 @@ const MyFunding: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Payment Address */}
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Payment Address</label>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-gray-600 mb-1">Funds are being sent to:</p>
+                      <div className="flex items-center justify-between">
+                        <code className="text-sm font-mono text-blue-800 bg-white px-2 py-1 rounded border">
+                          {funding.wallet_address}
+                        </code>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(funding.wallet_address);
+                            toast.success('Payment address copied to clipboard');
+                          }}
+                          className="text-blue-600 hover:text-blue-700 text-sm ml-2 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Funding Purpose */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
