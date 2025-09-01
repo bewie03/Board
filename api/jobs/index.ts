@@ -320,7 +320,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       contact_email, how_to_apply, listing_duration, payment_amount, payment_currency,
       user_id, status, work_arrangement, required_skills_text,
       additional_info_text, company_website, company_logo_url, website, twitter,
-      discord, is_featured, tx_hash, expires_at, selected_project_id
+      discord, is_featured, tx_hash, expires_at, project_id
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
       $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
