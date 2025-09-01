@@ -33,38 +33,54 @@ function getPool() {
   return pool;
 }
 
-// Special rate limiting for reports - 5 minute cooldown per user
+// Special rate limiting for reports - 3 minute cooldown per user
 const reportsRateLimit = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 1, // only 1 report per 5 minutes per IP
-  message: 'You can only submit one report every 5 minutes. Please wait before submitting another report.'
+  windowMs: 3 * 60 * 1000, // 3 minutes
+  max: 2, // allow 2 reports per 3 minutes per IP
+  message: 'You can only submit 2 reports every 3 minutes. Please wait before submitting another report.'
 });
 
 // General rate limiting for viewing reports
 const reportsViewRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 50 requests per windowMs for viewing
+  max: 100, // limit each IP to 100 requests per windowMs for viewing
   message: 'Too many requests from this IP, please try again later.'
 });
 
 export default async function handler(req: any, res: any) {
-  // Set CORS headers
+  // Set CORS headers first
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-wallet-address, x-wallet-signature, x-timestamp');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
   if (req.method === 'POST') {
-    // Apply strict rate limiting for report submissions
-    reportsRateLimit(req, res, () => {});
-    return handleSubmitReport(req, res);
+    // Apply rate limiting for report submissions
+    return new Promise((resolve) => {
+      reportsRateLimit(req, res, (result?: any) => {
+        if (result) {
+          // Rate limit exceeded, response already sent
+          return resolve(result);
+        }
+        // Rate limit passed, proceed with handling
+        resolve(handleSubmitReport(req, res));
+      });
+    });
   } else if (req.method === 'GET') {
-    // Apply general rate limiting for viewing reports
-    reportsViewRateLimit(req, res, () => {});
-    return handleGetReports(req, res);
+    // Apply rate limiting for viewing reports
+    return new Promise((resolve) => {
+      reportsViewRateLimit(req, res, (result?: any) => {
+        if (result) {
+          // Rate limit exceeded, response already sent
+          return resolve(result);
+        }
+        // Rate limit passed, proceed with handling
+        resolve(handleGetReports(req, res));
+      });
+    });
   } else if (req.method === 'PUT') {
     return handleUpdateReport(req, res);
   } else {

@@ -25,7 +25,7 @@ export class AdminService {
 
   // Helper method to generate authentication headers
   private async getAuthHeaders(walletAddress: string): Promise<Record<string, string>> {
-    console.log('🔐 Generating auth headers for wallet:', walletAddress);
+    console.log('Generating auth headers for admin request');
     
     const timestamp = Date.now().toString();
     
@@ -33,8 +33,8 @@ export class AdminService {
     const cardano = (window as any).cardano;
     const connectedWallet = localStorage.getItem('connectedWallet');
     
-    console.log('🔐 Connected wallet:', connectedWallet);
-    console.log('🔐 Cardano available:', !!cardano);
+    console.log('Connected wallet type:', connectedWallet);
+    console.log('Cardano API available:', !!cardano);
     
     let signature;
     if (cardano && connectedWallet && cardano[connectedWallet]) {
@@ -43,14 +43,14 @@ export class AdminService {
         const message = `Admin action: ${timestamp}`;
         const messageHex = Buffer.from(message, 'utf8').toString('hex');
         signature = await walletApi.signData(walletAddress, messageHex);
-        console.log('🔐 Generated wallet signature:', signature?.substring(0, 20) + '...');
+        console.log('Generated wallet signature successfully');
       } catch (error) {
-        console.log('🔐 Wallet signing failed, using fallback:', error);
+        console.log('Wallet signing failed, using fallback:', error);
         // Fallback: generate a valid-format signature for admin wallet
         signature = '84' + '0'.repeat(140);
       }
     } else {
-      console.log('🔐 No wallet available, using fallback signature');
+      console.log('No wallet available, using fallback signature');
       // Fallback: generate a valid-format signature for admin wallet
       signature = '84' + '0'.repeat(140);
     }
@@ -61,11 +61,7 @@ export class AdminService {
       'x-timestamp': timestamp
     };
     
-    console.log('🔐 Generated auth headers:', {
-      'x-wallet-address': headers['x-wallet-address'],
-      'x-wallet-signature': headers['x-wallet-signature']?.substring(0, 20) + '...',
-      'x-timestamp': headers['x-timestamp']
-    });
+    console.log('Auth headers generated successfully');
     
     return headers;
   }
@@ -101,7 +97,7 @@ export class AdminService {
     requireAdminAuth(walletAddress);
 
     try {
-      console.log('🚀 Starting updatePlatformSettings for wallet:', walletAddress);
+      console.log('Starting platform settings update');
       const authHeaders = await this.getAuthHeaders(walletAddress);
       
       const requestHeaders = {
@@ -109,9 +105,8 @@ export class AdminService {
         ...authHeaders
       };
       
-      console.log('🚀 Making request to:', `${this.baseUrl}?type=settings`);
-      console.log('🚀 Request headers:', Object.keys(requestHeaders));
-      console.log('🚀 Request body:', settings);
+      console.log('Making request to settings endpoint');
+      console.log('Request headers:', Object.keys(requestHeaders));
       
       const response = await fetch(`${this.baseUrl}?type=settings`, {
         method: 'PUT',
@@ -124,8 +119,7 @@ export class AdminService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       return await response.json();
