@@ -56,7 +56,26 @@ const CreateFunding: React.FC = () => {
       return;
     }
     fetchUserProjects();
+    checkExistingFunding();
   }, [isConnected, walletAddress]);
+
+  const checkExistingFunding = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      const { fundingService } = await import('../services/fundingService');
+      const existingFundings = await fundingService.getFundingByWallet(walletAddress);
+      
+      const activeFunding = existingFundings.find(funding => funding.is_active);
+      if (activeFunding) {
+        toast.error('You already have an active funding campaign. Only one funding campaign per wallet is allowed.');
+        navigate('/funding');
+        return;
+      }
+    } catch (error: any) {
+      console.warn('Could not check existing funding on page load:', error);
+    }
+  };
 
   useEffect(() => {
     if (walletAddress) {
