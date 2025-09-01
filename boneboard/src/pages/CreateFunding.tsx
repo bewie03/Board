@@ -65,6 +65,70 @@ const CreateFunding: React.FC = () => {
     }
   }, [walletAddress]);
 
+  // Check for pending funding transactions on load and resume to payment step
+  useEffect(() => {
+    if (isConnected && walletAddress) {
+      // Check for any pending funding transactions for this wallet
+      const allPendingKeys = Object.keys(localStorage).filter(key => key.startsWith('pendingFundingTx_'));
+      
+      for (const pendingKey of allPendingKeys) {
+        const pendingTxData = localStorage.getItem(pendingKey);
+        if (pendingTxData) {
+          try {
+            const pendingTx = JSON.parse(pendingTxData);
+            // Check if this pending transaction belongs to current wallet
+            if (pendingTx.walletAddress === walletAddress) {
+              console.log('Found pending funding transaction, resuming to payment step');
+              
+              // Restore form data from pending transaction
+              setFormData(prev => ({
+                ...prev,
+                project_id: pendingTx.fundingData.project_id,
+                funding_goal: pendingTx.fundingData.funding_goal,
+                funding_deadline: pendingTx.fundingData.funding_deadline,
+                funding_purpose: pendingTx.fundingData.funding_purpose,
+                paymentMethod: pendingTx.fundingData.paymentCurrency,
+                txHash: pendingTx.txHash
+              }));
+              setCurrentStep(2);
+              setPaymentStatus('processing');
+              
+              toast.info('Resuming funding payment process. Your transaction is being monitored.');
+              
+              // Ensure transaction monitoring is running
+              import('../services/transactionMonitor').then(({ transactionMonitor }) => {
+                transactionMonitor.startMonitoring(walletAddress);
+              });
+              
+              break; // Only restore one pending transaction
+            }
+          } catch (error) {
+            console.error('Error parsing pending funding transaction:', error);
+            localStorage.removeItem(pendingKey);
+          }
+        }
+      }
+    }
+  }, [isConnected, walletAddress]);
+
+  // Listen for successful funding creation from transaction monitor
+  useEffect(() => {
+    const handleFundingCreated = (event: any) => {
+      console.log('Funding created successfully event received:', event.detail);
+      setPaymentStatus('success');
+      toast.success('Funding project created successfully!');
+      setTimeout(() => {
+        navigate('/funding');
+      }, 2000);
+    };
+
+    window.addEventListener('fundingCreatedSuccessfully', handleFundingCreated);
+    
+    return () => {
+      window.removeEventListener('fundingCreatedSuccessfully', handleFundingCreated);
+    };
+  }, [navigate]);
+
   // Load platform pricing on component mount
   useEffect(() => {
     const loadPricing = async () => {
