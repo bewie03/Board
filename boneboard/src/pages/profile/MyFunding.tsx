@@ -583,47 +583,6 @@ const MyFunding: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Project Links */}
-                {(selectedProject.website || selectedProject.twitter_link || selectedProject.discord_link) && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Links</h3>
-                    <div className="flex gap-4">
-                      {selectedProject.website && (
-                        <a 
-                          href={selectedProject.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
-                        >
-                          <FaGlobe />
-                          Website
-                        </a>
-                      )}
-                      {selectedProject.twitter_link && (
-                        <a 
-                          href={selectedProject.twitter_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
-                        >
-                          <FaXTwitter />
-                          Twitter
-                        </a>
-                      )}
-                      {selectedProject.discord_link && (
-                        <a 
-                          href={selectedProject.discord_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
-                        >
-                          <FaDiscord />
-                          Discord
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Contributors Section */}
                 <div className="mb-6">

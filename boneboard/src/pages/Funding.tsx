@@ -655,10 +655,16 @@ const Funding: React.FC = () => {
                     type="number"
                     step="0.000001"
                     min="0"
+                    max="999"
                     value={contributionAmount}
-                    onChange={(e) => setContributionAmount(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '' || (parseFloat(value) <= 999 && value.length <= 3)) {
+                        setContributionAmount(value);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter amount in ADA"
+                    placeholder="Enter amount in ADA (max 999)"
                   />
                 </div>
 
@@ -668,11 +674,21 @@ const Funding: React.FC = () => {
                   </label>
                   <textarea
                     value={contributionMessage}
-                    onChange={(e) => setContributionMessage(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const lines = value.split('\n');
+                      if (value.length <= 200 && lines.length <= 4) {
+                        setContributionMessage(value);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     rows={3}
-                    placeholder="Leave a message for the project team..."
+                    maxLength={200}
+                    placeholder="Leave a message for the project team... (max 200 chars, 4 lines)"
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {contributionMessage.length}/200 characters, {contributionMessage.split('\n').length}/4 lines
+                  </div>
                 </div>
 
                 <div className="flex items-center">
