@@ -97,7 +97,7 @@ const CreateFunding: React.FC = () => {
             const pendingTx = JSON.parse(pendingTxData);
             // Check if this pending transaction belongs to current wallet
             if (pendingTx.walletAddress === walletAddress) {
-              console.log('Found pending funding transaction, resuming to payment step');
+              // Found pending funding transaction, resuming to payment step
               
               // Restore form data from pending transaction
               setFormData(prev => ({
@@ -133,7 +133,7 @@ const CreateFunding: React.FC = () => {
   // Listen for successful funding creation from transaction monitor
   useEffect(() => {
     const handleFundingCreated = (event: any) => {
-      console.log('Funding created successfully event received:', event.detail);
+      // Funding created successfully
       setPaymentStatus('success');
       toast.success('Funding project created successfully!');
       setTimeout(() => {
@@ -179,23 +179,7 @@ const CreateFunding: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('API Response:', data);
-        console.log('Response status:', response.status);
-        console.log('Current wallet:', walletAddress);
-        
-        if (Array.isArray(data) && data.length > 0) {
-          console.log('First project structure:', JSON.stringify(data[0], null, 2));
-          data.forEach((project: any, index: number) => {
-            console.log(`Project ${index + 1}:`, {
-              id: project.id,
-              title: project.title,
-              logo: project.logo,
-              logo_url: project.logo_url,
-              is_verified: project.is_verified,
-              walletAddress: project.walletAddress
-            });
-          });
-        }
+        // Projects loaded successfully
         setUserProjects(data || []);
       } else {
         console.error('API Error:', response.status, response.statusText);
@@ -305,13 +289,7 @@ const CreateFunding: React.FC = () => {
         }
       }
       
-      // Add debug logging
-      console.log('Funding wallet validation debug:', {
-        connectedWallet,
-        currentAddress: currentAddress?.slice(0, 20) + '...',
-        storedAddress: walletAddress?.slice(0, 20) + '...',
-        addressesMatch: currentAddress === walletAddress
-      });
+      // Wallet validation completed
       
       // Compare with stored wallet address from the same wallet type
       if (currentAddress !== walletAddress) {
@@ -369,7 +347,7 @@ const CreateFunding: React.FC = () => {
         setFormData(prev => ({ ...prev, txHash: result.txHash }));
         
         // Ensure transaction monitoring is running for funding transactions
-        console.log('Starting funding transaction monitoring for:', result.txHash);
+        // Starting funding transaction monitoring
         const { transactionMonitor } = await import('../services/transactionMonitor');
         transactionMonitor.startMonitoring(walletAddress);
         
