@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe, FaChevronDown } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
@@ -258,8 +258,8 @@ const Funding: React.FC = () => {
 
           {/* Search and Filters */}
           <div className="bg-white shadow-sm rounded-lg mb-6">
-            <div className="px-6 py-6">
-              <div className="flex flex-col lg:flex-row gap-4 mb-6">
+            <div className="px-6 py-4">
+              <div className="flex flex-col lg:flex-row gap-4 mb-3">
                 <div className="flex-1 relative">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
@@ -272,13 +272,13 @@ const Funding: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative min-w-[220px]">
+                  <div className="relative min-w-[200px]">
                     <div className="relative">
                       <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+                        className="w-full h-[36px] pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer flex items-center justify-between text-sm"
                       >
-                        <span className="text-gray-700">
+                        <span className="text-gray-700 truncate">
                           {selectedCategories.length === 0 
                             ? 'All Categories' 
                             : selectedCategories.length === 1 
@@ -286,18 +286,19 @@ const Funding: React.FC = () => {
                               : `${selectedCategories.length} categories selected`
                           }
                         </span>
+                        <FaChevronDown className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${showFilters ? 'transform rotate-180' : ''}`} />
                       </button>
                       {showFilters && (
-                        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           {PROJECT_CATEGORIES.map(category => (
-                            <label key={category} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                            <label key={category} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={selectedCategories.includes(category)}
                                 onChange={() => toggleCategory(category)}
-                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="mr-2 h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                               />
-                              <span className="text-gray-900">{category}</span>
+                              <span className="text-gray-900 text-sm">{category}</span>
                             </label>
                           ))}
                         </div>
@@ -305,7 +306,7 @@ const Funding: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="min-w-[220px]">
+                  <div className="min-w-[180px]">
                     <CustomSelect
                       options={sortOptions}
                       value={sortBy}
@@ -315,24 +316,20 @@ const Funding: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center min-w-[220px]">
-                    <button
-                      onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}
-                      className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors mr-3 ${
-                        showVerifiedOnly 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
-                      }`}
-                    >
-                      <FaCheckCircle className="w-3 h-3" />
-                    </button>
-                    <label className="text-sm text-gray-700 cursor-pointer" onClick={() => setShowVerifiedOnly(!showVerifiedOnly)}>
-                      Show only verified projects
+                  <div className="flex items-center min-w-[180px] bg-gray-50 border border-gray-300 rounded-lg px-3 py-2">
+                    <input
+                      type="checkbox"
+                      id="verified-only"
+                      checked={showVerifiedOnly}
+                      onChange={(e) => setShowVerifiedOnly(e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2"
+                    />
+                    <label htmlFor="verified-only" className="text-sm text-gray-700 cursor-pointer select-none">
+                      Verified only
                     </label>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -671,7 +668,7 @@ const Funding: React.FC = () => {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Amount (ADA)

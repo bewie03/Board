@@ -366,11 +366,11 @@ const MyFunding: React.FC = () => {
                 </div>
 
                 {/* Payment Address - Separate Box */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mt-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-6 mt-8 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <FaCoins className="text-blue-600 text-sm" />
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                        <FaCoins className="text-gray-600 text-sm" />
                       </div>
                       Payment Address
                     </h4>
@@ -378,10 +378,10 @@ const MyFunding: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     All contributions are automatically sent to this wallet address:
                   </p>
-                  <div className="bg-white rounded-lg border-2 border-dashed border-blue-300 p-4">
+                  <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 mr-4">
-                        <code className="text-sm font-mono text-gray-800 bg-gray-50 px-3 py-2 rounded-md border break-all">
+                        <code className="text-sm font-mono text-gray-800 bg-white px-3 py-2 rounded-md border break-all">
                           {funding.funding_wallet || funding.wallet_address}
                         </code>
                       </div>
