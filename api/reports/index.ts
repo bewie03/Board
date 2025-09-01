@@ -426,12 +426,12 @@ async function handleUpdateReport(req: any, res: any) {
         console.log(`[API] reportData.item_type:`, reportData.item_type);
         console.log(`[API] Will process item update: ${itemType === 'project' || itemType === 'job'}`);
         
-        // Skip processing if this is not a project or job (e.g., website, user, etc.)
+        // For wallet_address and other non-project/job types, only update the report status
         if (itemType !== 'project' && itemType !== 'job') {
-          console.log(`[API] Skipping ${action} action - item_type '${itemType}' is not a project or job`);
+          console.log(`[API] Processing ${action} for ${itemType} report - updating report status only`);
           await client.query('COMMIT');
           return res.status(200).json({
-            message: `Report processed successfully. Note: ${action} action not applicable to ${itemType} reports.`,
+            message: `Report ${action}d successfully.`,
             report: reportResult.rows[0]
           });
         }
