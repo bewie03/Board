@@ -45,9 +45,9 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           p.user_id as project_owner_id,
           u.wallet_address as owner_wallet
         FROM project_funding pf
-        JOIN projects p ON pf.project_id = p.id
-        JOIN users u ON p.user_id = u.id
-        WHERE pf.id = $1 AND pf.is_active = true
+        LEFT JOIN projects p ON pf.project_id = p.id
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE pf.id = $1
       `;
       
       const contributionsQuery = `
@@ -68,6 +68,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       ]);
 
       if (fundingResult.rows.length === 0) {
+        console.log('DEBUG: No funding project found for ID:', id);
+        console.log('DEBUG: Query executed:', fundingQuery);
         return res.status(404).json({ error: 'Funding project not found' });
       }
 
