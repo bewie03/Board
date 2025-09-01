@@ -85,11 +85,14 @@ const Projects: React.FC = () => {
   });
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
+    setSelectedCategories(prev => {
+      const newCategories = prev.includes(category) 
         ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
+        : [...prev, category];
+      
+      // If no categories selected, default to 'all'
+      return newCategories.length === 0 ? ['all'] : newCategories;
+    });
   };
 
   const handleVerificationChange = (projectId: string, verified: boolean) => {
@@ -261,7 +264,7 @@ const Projects: React.FC = () => {
                       <button
                         onClick={() => {
                           setSearchTerm('');
-                          setSelectedCategories([]);
+                          setSelectedCategories(['all']);
                           setShowActiveJobsOnly(false);
                           setShowVerifiedOnly(false);
                           setShowCategoryDropdown(false);

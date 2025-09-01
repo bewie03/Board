@@ -15,7 +15,6 @@ export interface ReportData {
   description: string;
   scam_type: string;
   severity: 'low' | 'medium' | 'high';
-  evidence_urls?: string;
   scam_identifier: string;
 }
 
@@ -33,7 +32,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     description: '',
     scam_type: 'project',
     severity: 'medium',
-    evidence_urls: '',
     scam_identifier: projectId
   });
 
@@ -54,7 +52,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         description: '',
         scam_type: 'project',
         severity: 'medium',
-        evidence_urls: '',
         scam_identifier: projectId
       });
     } catch (error) {
@@ -113,11 +110,15 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               <input
                 type="text"
                 required
+                maxLength={100}
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Brief summary of the issue"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
+              <div className="text-xs text-gray-500 mt-1">
+                {formData.title.length}/100 characters
+              </div>
             </div>
 
             {/* Report Type */}
@@ -162,26 +163,17 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               <textarea
                 required
                 rows={5}
+                maxLength={1000}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Provide detailed information about the issue, including any evidence or context..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
               />
+              <div className="text-xs text-gray-500 mt-1">
+                {formData.description.length}/1000 characters
+              </div>
             </div>
 
-            {/* Evidence URLs */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Evidence URLs (Optional)
-              </label>
-              <textarea
-                rows={3}
-                value={formData.evidence_urls}
-                onChange={(e) => setFormData({ ...formData, evidence_urls: e.target.value })}
-                placeholder="Provide links to screenshots, social media posts, or other evidence (one per line)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
-              />
-            </div>
 
             {/* Submit Buttons */}
             <div className="flex gap-3 pt-4">
