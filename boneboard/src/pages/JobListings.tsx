@@ -8,6 +8,7 @@ import { ReportModal, ReportData } from '../components/ReportModal';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomSelect from '../components/CustomSelect';
+import MultiSelectDropdown from '../components/MultiSelectDropdown';
 
 interface Job {
   id: string;
@@ -74,7 +75,7 @@ const JobListings: React.FC = () => {
   const [jobs, setJobs] = useState<JobWithDisplayProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<JobCategory[]>(['all']);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobWithDisplayProps | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -199,8 +200,11 @@ const JobListings: React.FC = () => {
       }
     }
     
-    const matchesCategory = selectedCategories.includes('all') || 
-      selectedCategories.some(cat => cat !== 'all' && job.category === cat);
+    const categoryFiltered = selectedCategories.includes('all') 
+      ? jobs 
+      : jobs.filter(job => selectedCategories.includes(job.category));
+    
+    const matchesCategory = categoryFiltered.includes(job);
     
     // Payment type filter
     const matchesPayment = selectedPaymentType === 'all' || 
@@ -362,19 +366,13 @@ const JobListings: React.FC = () => {
                     
                     <div className="flex flex-col sm:flex-row gap-3">
                       <div className="min-w-[200px]">
-                        <CustomSelect
+                        <MultiSelectDropdown
                           options={[
                             { value: 'all', label: 'All Categories' },
-                            ...JOB_CATEGORIES.filter(cat => cat.id !== 'all').map(cat => ({ value: cat.id, label: cat.name }))
+                            ...JOB_CATEGORIES.map(cat => ({ value: cat.id, label: cat.name }))
                           ]}
-                          value={selectedCategories.includes('all') ? 'all' : selectedCategories.length === 1 ? selectedCategories[0] : ''}
-                          onChange={(value) => {
-                            if (value === 'all') {
-                              setSelectedCategories(['all']);
-                            } else {
-                              setSelectedCategories([value as JobCategory]);
-                            }
-                          }}
+                          selectedValues={selectedCategories}
+                          onChange={(values) => setSelectedCategories(values)}
                           placeholder="All Categories"
                         />
                       </div>

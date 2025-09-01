@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import PageTransition from '../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PROJECT_CATEGORIES } from '../constants/categories';
-import CustomSelect from '../components/CustomSelect';
+import MultiSelectDropdown from '../components/MultiSelectDropdown';
 
 type Job = {
   id: number;
@@ -39,7 +39,7 @@ const Projects: React.FC = () => {
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [showActiveJobsOnly, setShowActiveJobsOnly] = useState(false);
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -77,27 +77,23 @@ const Projects: React.FC = () => {
   }, []);
 
   // Filter projects based on search and filters
-  const filteredProjects = createdProjects.filter(project => {
+  const searchFiltered = createdProjects.filter(project => {
     const matchesSearch = !searchTerm || 
       (project.title || project.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(project.category);
-    
-    const projectName = project.title || project.name;
-    const projectJobs = allJobs.filter(job => 
-      job.company && projectName && (
-        job.company.toLowerCase().includes(projectName.toLowerCase()) ||
-        projectName.toLowerCase().includes(job.company.toLowerCase())
-      )
-    );
-    const matchesJobFilter = !showActiveJobsOnly || projectJobs.length > 0;
-    
-    const isVerified = project.isVerified || false;
-    const matchesVerifiedFilter = !showVerifiedOnly || isVerified;
-    
-    return matchesSearch && matchesCategory && matchesJobFilter && matchesVerifiedFilter;
+    return matchesSearch;
+  });
+
+  const categoryFiltered = selectedCategories.includes('all') 
+    ? searchFiltered 
+    : searchFiltered.filter(project => selectedCategories.includes(project.category));
+
+  const filteredProjects = categoryFiltered.filter(project => {
+    if (showVerifiedOnly) {
+      return project.isVerified || false;
+    }
+    return true;
   });
 
   const toggleCategory = (category: string) => {
@@ -236,19 +232,13 @@ const Projects: React.FC = () => {
                   
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="min-w-[200px]">
-                      <CustomSelect
+                      <MultiSelectDropdown
                         options={[
-                          { value: '', label: 'All Categories' },
+                          { value: 'all', label: 'All Categories' },
                           ...PROJECT_CATEGORIES.map(cat => ({ value: cat, label: cat }))
                         ]}
-                        value={selectedCategories.length === 1 ? selectedCategories[0] : ''}
-                        onChange={(value) => {
-                          if (value === '') {
-                            setSelectedCategories([]);
-                          } else {
-                            setSelectedCategories([value]);
-                          }
-                        }}
+                        selectedValues={selectedCategories}
+                        onChange={(values) => setSelectedCategories(values)}
                         placeholder="All Categories"
                       />
                     </div>
