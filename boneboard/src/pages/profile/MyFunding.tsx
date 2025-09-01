@@ -17,6 +17,7 @@ interface FundingProject {
   is_active: boolean;
   is_funded: boolean;
   wallet_address: string;
+  funding_wallet?: string;
   created_at: string;
   updated_at: string;
   project_title: string;
@@ -319,11 +320,11 @@ const MyFunding: React.FC = () => {
                       <p className="text-sm text-gray-600 mb-1">Funds are being sent to:</p>
                       <div className="flex items-center justify-between">
                         <code className="text-sm font-mono text-blue-800 bg-white px-2 py-1 rounded border">
-                          {funding.wallet_address}
+                          {funding.funding_wallet || funding.wallet_address}
                         </code>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(funding.wallet_address);
+                            navigator.clipboard.writeText(funding.funding_wallet || funding.wallet_address);
                             toast.success('Payment address copied to clipboard');
                           }}
                           className="text-blue-600 hover:text-blue-700 text-sm ml-2 px-2 py-1 rounded hover:bg-blue-100 transition-colors"

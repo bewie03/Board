@@ -180,10 +180,11 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
         bone_posting_fee = 0, 
         bone_tx_hash = 'placeholder',
         wallet_address,
+        funding_wallet,
         funding_purpose
       } = req.body;
 
-      if (!project_id || !funding_goal || !funding_deadline || !wallet_address) {
+      if (!project_id || !funding_goal || !funding_deadline || !funding_wallet) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
@@ -241,8 +242,8 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       const insertQuery = `
         INSERT INTO project_funding (
           project_id, funding_goal, funding_deadline, bone_posting_fee, 
-          bone_tx_hash, wallet_address, funding_purpose, is_active, is_funded
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, true, false)
+          bone_tx_hash, wallet_address, funding_wallet, funding_purpose, is_active, is_funded
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, false)
         RETURNING *
       `;
 
@@ -253,6 +254,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
         bone_posting_fee,
         bone_tx_hash,
         wallet_address,
+        funding_wallet,
         funding_purpose
       ]);
 

@@ -45,6 +45,7 @@ const CreateFunding: React.FC = () => {
     funding_goal: 0,
     funding_deadline: '',
     wallet_address: walletAddress || '',
+    funding_wallet: walletAddress || '',
     funding_purpose: '',
     paymentMethod: 'BONE'
   });
@@ -79,7 +80,11 @@ const CreateFunding: React.FC = () => {
 
   useEffect(() => {
     if (walletAddress) {
-      setFormData(prev => ({ ...prev, wallet_address: walletAddress }));
+      setFormData(prev => ({ 
+        ...prev, 
+        wallet_address: walletAddress,
+        funding_wallet: walletAddress 
+      }));
       fetchUserProjects();
     }
   }, [walletAddress]);
@@ -480,7 +485,7 @@ const CreateFunding: React.FC = () => {
                       setFormData(prev => ({ 
                         ...prev, 
                         project_id: value,
-                        wallet_address: selectedProject?.wallet_address || prev.wallet_address
+                        funding_wallet: selectedProject?.wallet_address || prev.funding_wallet
                       }));
                     }}
                     placeholder="Choose a project to create funding for"
@@ -550,15 +555,15 @@ const CreateFunding: React.FC = () => {
                 </p>
               </div>
 
-              {/* Project Wallet Address */}
+              {/* Funding Wallet Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Project Wallet Address * <span className="text-xs text-gray-400">(Max: 120 chars)</span>
+                  Funding Wallet Address * <span className="text-xs text-gray-400">(Max: 120 chars)</span>
                 </label>
                 <input
                   type="text"
-                  name="wallet_address"
-                  value={formData.wallet_address}
+                  name="funding_wallet"
+                  value={formData.funding_wallet}
                   onChange={handleInputChange}
                   required
                   maxLength={120}
@@ -567,10 +572,10 @@ const CreateFunding: React.FC = () => {
                 />
                 <div className="flex justify-between mt-1">
                   <p className="text-sm text-gray-500">
-                    The Cardano wallet address where funds will be sent
+                    The Cardano wallet address where funding contributions will be sent
                   </p>
                   <span className="text-xs text-gray-400">
-                    {formData.wallet_address.length}/120
+                    {formData.funding_wallet.length}/120
                   </span>
                 </div>
               </div>

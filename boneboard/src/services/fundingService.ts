@@ -4,11 +4,12 @@ interface FundingProject {
   funding_goal: number;
   current_funding: number;
   funding_deadline: string;
-  funding_purpose?: string;
+  funding_purpose: string;
   is_active: boolean;
   is_funded: boolean;
   is_verified?: boolean;
   wallet_address: string;
+  funding_wallet?: string;
   title: string;
   project_title?: string;
   description: string;
@@ -43,6 +44,7 @@ interface CreateFundingData {
   bone_posting_fee?: number;
   bone_tx_hash?: string;
   wallet_address: string;
+  funding_wallet: string;
   funding_purpose: string;
 }
 

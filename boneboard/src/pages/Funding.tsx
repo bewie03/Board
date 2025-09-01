@@ -184,9 +184,9 @@ const Funding: React.FC = () => {
     try {
       setContributing(true);
 
-      // Send ADA transaction
+      // Send ADA transaction to funding wallet
       const txHash = await fundingService.sendADA(
-        selectedProject.wallet_address,
+        selectedProject.funding_wallet || selectedProject.wallet_address,
         amount
       );
 
