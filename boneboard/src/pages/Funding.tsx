@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe, FaChevronDown } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
@@ -88,24 +88,16 @@ const Funding: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
   const [selectedProjectForPanel, setSelectedProjectForPanel] = useState<FundingProject | null>(null);
   const [showContributeModal, setShowContributeModal] = useState(false);
-  const [contributeAmount, setContributeAmount] = useState('');
-  const [contributeMessage, setContributeMessage] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [contributionAmount, setContributionAmount] = useState('');
+  const [contributionMessage, setContributionMessage] = useState('');
+  const [isContributionAnonymous, setIsContributionAnonymous] = useState(false);
   const [contributing, setContributing] = useState(false);
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
 
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
@@ -175,7 +167,7 @@ const Funding: React.FC = () => {
       return;
     }
 
-    const amount = parseFloat(contributeAmount);
+    const amount = parseFloat(contributionAmount);
     if (isNaN(amount) || amount <= 0) {
       toast.error('Please enter a valid amount');
       return;
@@ -195,15 +187,15 @@ const Funding: React.FC = () => {
         project_funding_id: selectedProject.id,
         ada_amount: amount,
         ada_tx_hash: txHash,
-        message: contributeMessage,
-        is_anonymous: isAnonymous
+        message: contributionMessage,
+        is_anonymous: isContributionAnonymous
       }, walletAddress);
 
       toast.success('Contribution successful! Thank you for supporting this project.');
       setShowContributeModal(false);
-      setContributeAmount('');
-      setContributeMessage('');
-      setIsAnonymous(false);
+      setContributionAmount('');
+      setContributionMessage('');
+      setIsContributionAnonymous(false);
       fetchProjects(); // Refresh to show updated funding
       
       // Refresh contributors in the side panel if it's open
@@ -272,38 +264,23 @@ const Funding: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative min-w-[200px]">
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="w-full h-[36px] pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer flex items-center justify-between text-sm"
-                      >
-                        <span className="text-gray-700 truncate">
-                          {selectedCategories.length === 0 
-                            ? 'All Categories' 
-                            : selectedCategories.length === 1 
-                              ? selectedCategories[0]
-                              : `${selectedCategories.length} categories selected`
-                          }
-                        </span>
-                        <FaChevronDown className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${showFilters ? 'transform rotate-180' : ''}`} />
-                      </button>
-                      {showFilters && (
-                        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          {PROJECT_CATEGORIES.map(category => (
-                            <label key={category} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={selectedCategories.includes(category)}
-                                onChange={() => toggleCategory(category)}
-                                className="mr-2 h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
-                              <span className="text-gray-900 text-sm">{category}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                  <div className="min-w-[200px]">
+                    <CustomSelect
+                      options={[
+                        { value: '', label: 'All Categories' },
+                        ...PROJECT_CATEGORIES.map(cat => ({ value: cat, label: cat }))
+                      ]}
+                      value={selectedCategories.length === 1 ? selectedCategories[0] : ''}
+                      onChange={(value) => {
+                        if (value === '') {
+                          setSelectedCategories([]);
+                        } else {
+                          setSelectedCategories([value]);
+                        }
+                      }}
+                      placeholder="All Categories"
+                      className=""
+                    />
                   </div>
                   
                   <div className="min-w-[180px]">
@@ -316,7 +293,7 @@ const Funding: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center min-w-[180px] bg-gray-50 border border-gray-300 rounded-lg px-3 py-2">
+                  <div className="flex items-center min-w-[180px] bg-white border border-gray-300 rounded-lg px-3 h-[36px]">
                     <input
                       type="checkbox"
                       id="verified-only"
@@ -334,17 +311,17 @@ const Funding: React.FC = () => {
           </div>
 
           {/* Results Summary */}
-          <div className="mb-4 flex items-center justify-between text-sm text-gray-600">
-            <span>
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-sm text-gray-600">
               Showing {filteredAndSortedProjects.length} of {projects.length} funding projects
               {showVerifiedOnly && ' (verified only)'}
-            </span>
-            <span className="flex items-center gap-2">
-              <FaSort className="text-gray-400" />
-              Sorted by: {sortOptions.find(opt => opt.value === sortBy)?.label}
-            </span>
+            </div>
+            <div className="text-sm text-gray-500 flex items-center">
+              <FaSort className="mr-1" />
+              Sorted by: {sortOptions.find(option => option.value === sortBy)?.label || 'Newest First'}
+            </div>
           </div>
-          
+
           {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedProjects.length === 0 ? (
@@ -677,8 +654,8 @@ const Funding: React.FC = () => {
                     type="number"
                     step="0.000001"
                     min="0"
-                    value={contributeAmount}
-                    onChange={(e) => setContributeAmount(e.target.value)}
+                    value={contributionAmount}
+                    onChange={(e) => setContributionAmount(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter amount in ADA"
                   />
@@ -689,8 +666,8 @@ const Funding: React.FC = () => {
                     Message (Optional)
                   </label>
                   <textarea
-                    value={contributeMessage}
-                    onChange={(e) => setContributeMessage(e.target.value)}
+                    value={contributionMessage}
+                    onChange={(e) => setContributionMessage(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     rows={3}
                     placeholder="Leave a message for the project team..."
@@ -701,8 +678,8 @@ const Funding: React.FC = () => {
                   <input
                     type="checkbox"
                     id="anonymous"
-                    checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    checked={isContributionAnonymous}
+                    onChange={(e) => setIsContributionAnonymous(e.target.checked)}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-700">
@@ -719,7 +696,7 @@ const Funding: React.FC = () => {
                   </button>
                   <button
                     onClick={handleContribute}
-                    disabled={contributing || !contributeAmount}
+                    disabled={contributing || !contributionAmount}
                     className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
                     {contributing ? 'Processing...' : 'Contribute'}
