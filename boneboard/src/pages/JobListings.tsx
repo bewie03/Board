@@ -7,6 +7,7 @@ import { JobService } from '../services/jobService';
 import { ReportModal, ReportData } from '../components/ReportModal';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
+import CustomSelect from '../components/CustomSelect';
 
 interface Job {
   id: string;
@@ -464,16 +465,17 @@ const JobListings: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-700">
                             Date Posted
                           </label>
-                          <select
+                          <CustomSelect
+                            options={[
+                              { value: 'all', label: 'All Time' },
+                              { value: 'today', label: 'Today' },
+                              { value: 'week', label: 'Past Week' },
+                              { value: 'month', label: 'Past Month' }
+                            ]}
                             value={selectedDateRange}
-                            onChange={(e) => setSelectedDateRange(e.target.value as DateRange)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="week">Past Week</option>
-                            <option value="month">Past Month</option>
-                          </select>
+                            onChange={(value) => setSelectedDateRange(value as DateRange)}
+                            placeholder="All Time"
+                          />
                         </div>
 
                         {/* Payment Type Filter */}
@@ -481,15 +483,16 @@ const JobListings: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-700">
                             Payment Type
                           </label>
-                          <select
+                          <CustomSelect
+                            options={[
+                              { value: 'all', label: 'All Types' },
+                              { value: 'ada', label: 'ADA' },
+                              { value: 'fiat', label: 'Fiat Currency' }
+                            ]}
                             value={selectedPaymentType}
-                            onChange={(e) => setSelectedPaymentType(e.target.value as PaymentType)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Types</option>
-                            <option value="ada">ADA</option>
-                            <option value="fiat">Fiat Currency</option>
-                          </select>
+                            onChange={(value) => setSelectedPaymentType(value as PaymentType)}
+                            placeholder="All Types"
+                          />
                         </div>
 
                         {/* Job Type Filter */}
@@ -497,17 +500,18 @@ const JobListings: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-700">
                             Job Type
                           </label>
-                          <select
+                          <CustomSelect
+                            options={[
+                              { value: 'all', label: 'All Types' },
+                              { value: 'full-time', label: 'Full-time' },
+                              { value: 'part-time', label: 'Part-time' },
+                              { value: 'contract', label: 'Contract' },
+                              { value: 'internship', label: 'Internship' }
+                            ]}
                             value={selectedJobType}
-                            onChange={(e) => setSelectedJobType(e.target.value as JobType)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Types</option>
-                            <option value="full-time">Full-time</option>
-                            <option value="part-time">Part-time</option>
-                            <option value="contract">Contract</option>
-                            <option value="internship">Internship</option>
-                          </select>
+                            onChange={(value) => setSelectedJobType(value as JobType)}
+                            placeholder="All Types"
+                          />
                         </div>
 
                         {/* Work Arrangement Filter */}
@@ -515,16 +519,17 @@ const JobListings: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-700">
                             Work Arrangement
                           </label>
-                          <select
+                          <CustomSelect
+                            options={[
+                              { value: 'all', label: 'All Arrangements' },
+                              { value: 'remote', label: 'Remote' },
+                              { value: 'hybrid', label: 'Hybrid' },
+                              { value: 'onsite', label: 'On-site' }
+                            ]}
                             value={selectedWorkArrangement}
-                            onChange={(e) => setSelectedWorkArrangement(e.target.value as WorkArrangement)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="all">All Arrangements</option>
-                            <option value="remote">Remote</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="onsite">On-site</option>
-                          </select>
+                            onChange={(value) => setSelectedWorkArrangement(value as WorkArrangement)}
+                            placeholder="All Arrangements"
+                          />
                         </div>
 
                       </div>
