@@ -42,14 +42,16 @@ const CreateFunding: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
   
-  const [formData, setFormData] = useState<CreateFundingData>({
+  const [formData, setFormData] = useState<CreateFundingData & { paymentMethod: 'BONE' | 'ADA' }>({
     project_id: '',
     funding_goal: 0,
     funding_deadline: '',
     wallet_address: walletAddress || '',
     funding_wallet: '',
-    funding_purpose: ''
+    funding_purpose: '',
+    paymentMethod: 'ADA'
   });
 
   useEffect(() => {
@@ -60,6 +62,7 @@ const CreateFunding: React.FC = () => {
     }
     fetchUserProjects();
     checkExistingFunding();
+    loadPlatformPricing();
   }, [isConnected, walletAddress]);
 
   const checkExistingFunding = async () => {
@@ -183,16 +186,39 @@ const CreateFunding: React.FC = () => {
     }
   };
 
+  const loadPlatformPricing = async () => {
+    try {
+      const response = await fetch('/api/admin?type=settings');
+      if (response.ok) {
+        const data = await response.json();
+        setPlatformPricing({
+          fundingListingFee: data.fundingListingFee || 500,
+          fundingListingFeeAda: data.fundingListingFeeAda || 6
+        });
+      }
+    } catch (error) {
+      console.error('Error loading pricing:', error);
+      // Set default pricing if API fails
+      setPlatformPricing({
+        fundingListingFee: 500,
+        fundingListingFeeAda: 6
+      });
+    }
+  };
+
   const calculateTotal = () => {
     // Calculate dynamic pricing based on duration
-    if (formData.funding_deadline) {
+    if (formData.funding_deadline && platformPricing) {
       try {
         const months = calculateMonthsFromNow(formData.funding_deadline);
-        const dynamicCost = calculateFundingCost(months);
+        const baseCost = formData.paymentMethod === 'ADA' 
+          ? platformPricing.fundingListingFeeAda 
+          : platformPricing.fundingListingFee;
+        const dynamicCost = calculateFundingCost(months, baseCost);
         
         return {
           amount: dynamicCost,
-          currency: 'ADA', // Always ADA for funding
+          currency: formData.paymentMethod,
           months
         };
       } catch (error) {
@@ -200,10 +226,14 @@ const CreateFunding: React.FC = () => {
       }
     }
     
-    // Fallback to base cost if no deadline selected
+    // Fallback to base cost if no deadline selected or pricing not loaded
+    const fallbackCost = platformPricing 
+      ? (formData.paymentMethod === 'ADA' ? platformPricing.fundingListingFeeAda : platformPricing.fundingListingFee)
+      : (formData.paymentMethod === 'ADA' ? 6 : 500);
+    
     return {
-      amount: 6, // Base cost
-      currency: 'ADA',
+      amount: fallbackCost,
+      currency: formData.paymentMethod,
       months: 1
     };
   };
@@ -320,13 +350,15 @@ const CreateFunding: React.FC = () => {
         funding_wallet: formData.funding_wallet,
         paymentAmount: totalCost.amount,
         duration_months: totalCost.months,
-        paymentCurrency: 'ADA',
+        paymentCurrency: formData.paymentMethod,
         walletAddress: walletAddress,
         timestamp: Date.now()
       };
       
-      // Process payment through smart contract (always ADA for funding)
-      const result = await contractService.postFundingWithADA(fundingData);
+      // Process payment through smart contract
+      const result = formData.paymentMethod === 'ADA'
+        ? await contractService.postFundingWithADA(fundingData)
+        : await contractService.postFundingWithBONE(fundingData);
       
       if (result.success && result.txHash) {
         // Store pending transaction in localStorage for persistent monitoring
@@ -621,7 +653,7 @@ const CreateFunding: React.FC = () => {
                   maxMonths={12}
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  How long your funding campaign will run (1-12 months) • Cost doubles each month starting at 6 ADA
+                  How long your funding campaign will run (1-12 months) • Cost is {platformPricing ? (formData.paymentMethod === 'ADA' ? platformPricing.fundingListingFeeAda : platformPricing.fundingListingFee) : (formData.paymentMethod === 'ADA' ? '6' : '500')} {formData.paymentMethod} per month
                 </p>
                 {formData.funding_deadline && (
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -630,7 +662,7 @@ const CreateFunding: React.FC = () => {
                         Duration: {calculateMonthsFromNow(formData.funding_deadline)} month{calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}
                       </span>
                       <span className="text-sm font-bold text-green-900">
-                        Cost: {formatAdaAmount(calculateFundingCost(calculateMonthsFromNow(formData.funding_deadline)))}
+                        Cost: {totalCost.amount.toLocaleString()} {totalCost.currency}
                       </span>
                     </div>
                   </div>
@@ -833,15 +865,57 @@ const CreateFunding: React.FC = () => {
                       </h3>
                   
                       <div className="space-y-4">
-                        {/* ADA Payment Notice */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex items-center">
-                            <span className="text-lg mr-3">₳</span>
-                            <div>
-                              <div className="text-sm font-medium text-blue-900">Payment in ADA</div>
-                              <div className="text-xs text-blue-700">All funding campaigns are paid for using Cardano (ADA)</div>
+                        {/* Payment Method Selection */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <label className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            formData.paymentMethod === 'BONE' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="BONE"
+                              checked={formData.paymentMethod === 'BONE'}
+                              onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value as 'BONE' | 'ADA' }))}
+                              className="sr-only"
+                            />
+                            <div className="flex items-center">
+                              <span className="text-2xl mr-3">🦴</span>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">BONE Token</div>
+                                <div className="text-xs text-gray-500">{platformPricing ? platformPricing.fundingListingFee : 500} BONE/month</div>
+                              </div>
                             </div>
-                          </div>
+                            {formData.paymentMethod === 'BONE' && (
+                              <FaCheck className="absolute top-2 right-2 h-4 w-4 text-blue-500" />
+                            )}
+                          </label>
+                          
+                          <label className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            formData.paymentMethod === 'ADA' 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="ADA"
+                              checked={formData.paymentMethod === 'ADA'}
+                              onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value as 'BONE' | 'ADA' }))}
+                              className="sr-only"
+                            />
+                            <div className="flex items-center">
+                              <span className="text-lg mr-3">₳</span>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">ADA</div>
+                                <div className="text-xs text-gray-500">{platformPricing ? platformPricing.fundingListingFeeAda : 6} ADA/month</div>
+                              </div>
+                            </div>
+                            {formData.paymentMethod === 'ADA' && (
+                              <FaCheck className="absolute top-2 right-2 h-4 w-4 text-blue-500" />
+                            )}
+                          </label>
                         </div>
                         
                         {/* Cost Breakdown */}
@@ -854,11 +928,11 @@ const CreateFunding: React.FC = () => {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Campaign Fee</span>
-                              <span>{formatAdaAmount(totalCost.amount)}</span>
+                              <span>{totalCost.amount.toLocaleString()} {totalCost.currency}</span>
                             </div>
                             <div className="border-t border-gray-200 pt-2 flex justify-between font-medium text-lg">
                               <span>Total</span>
-                              <span className="text-blue-600">{formatAdaAmount(totalCost.amount)}</span>
+                              <span className="text-blue-600">{totalCost.amount.toLocaleString()} {totalCost.currency}</span>
                             </div>
                           </div>
                         </div>

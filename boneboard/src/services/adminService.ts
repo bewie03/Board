@@ -54,11 +54,14 @@ export class AdminService {
     requireAdminAuth(walletAddress);
 
     try {
+      const timestamp = Date.now().toString();
       const response = await fetch(`${this.baseUrl}?type=settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
+          'x-wallet-address': walletAddress,
+          'x-wallet-signature': 'admin-signature', // Placeholder for now
+          'x-timestamp': timestamp
         },
         body: JSON.stringify({
           ...settings,
