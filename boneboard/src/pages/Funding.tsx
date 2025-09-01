@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import CustomSelect from '../components/CustomSelect';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import { PROJECT_CATEGORIES } from '../constants/categories';
+import { fraudDetection, FraudCheckResult } from '../utils/fraudDetection';
 
 // Contributors Section Component
 const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
@@ -177,6 +178,24 @@ const Funding: React.FC = () => {
 
     try {
       setContributing(true);
+
+      // Anti-fraud check: Prevent self-donations
+      const fraudCheck: FraudCheckResult = await fraudDetection.checkContributionAllowed(
+        selectedProject.id,
+        walletAddress,
+        selectedProject.wallet_address
+      );
+
+      if (!fraudCheck.isAllowed) {
+        toast.error(fraudCheck.reason || 'Contribution not allowed');
+        setContributing(false);
+        return;
+      }
+
+      // Show warning for medium risk
+      if (fraudCheck.riskLevel === 'medium') {
+        toast.warning('Unusual activity detected. Contribution will be monitored.');
+      }
 
       // Send ADA transaction to funding wallet
       const txHash = await fundingService.sendADA(
@@ -686,7 +705,7 @@ const Funding: React.FC = () => {
                       const lines = value.split('\n');
                       
                       // Prevent pasting or typing that would exceed limits
-                      if (value.length > 105) {
+                      if (value.length > 150) {
                         return;
                       }
                       
@@ -713,11 +732,11 @@ const Funding: React.FC = () => {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     rows={3}
-                    maxLength={105}
+                    maxLength={150}
                     placeholder="Leave a message for the project team... (max 200 chars, 4 lines, 50 chars per line)"
                   />
                   <div className="text-xs text-gray-500 mt-1">
-                    {contributionMessage.length}/105 characters, {contributionMessage.split('\n').length}/4 lines
+                    {contributionMessage.length}/150 characters, {contributionMessage.split('\n').length}/4 lines
                     {contributionMessage.split('\n').some(line => line.length > 50) && (
                       <span className="text-red-500 ml-2">• Line too long (max 45 chars per line)</span>
                     )}

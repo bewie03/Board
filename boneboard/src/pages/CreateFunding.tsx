@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaInfoCircle, FaWallet, FaCheck, FaTimes, FaUsers, FaDollarSign, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
+import { fundingService } from '../services/fundingService';
 import { toast } from 'react-toastify';
+import { fraudDetection } from '../utils/fraudDetection';
 import CustomSelect from '../components/CustomSelect';
 import { CreateFundingData } from '../services/fundingService';
 import { contractService } from '../services/contractService';
@@ -64,7 +66,6 @@ const CreateFunding: React.FC = () => {
     if (!walletAddress) return;
     
     try {
-      const { fundingService } = await import('../services/fundingService');
       const existingFundings = await fundingService.getFundingByWallet(walletAddress);
       
       const activeFunding = existingFundings.find(funding => funding.is_active);
@@ -138,13 +139,18 @@ const CreateFunding: React.FC = () => {
 
   // Listen for successful funding creation from transaction monitor
   useEffect(() => {
-    const handleFundingCreated = () => {
+    const handleFundingCreated = (event: any) => {
       // Funding created successfully
       setPaymentStatus('success');
+      
+      // Record project ownership for fraud detection if we have the data
+      if (event.detail?.projectId && walletAddress) {
+        fraudDetection.recordProjectOwnership(event.detail.projectId, walletAddress);
+        fraudDetection.recordOwnerFingerprint(event.detail.projectId);
+      }
+      
       toast.success('Funding project created successfully!');
-      setTimeout(() => {
-        navigate('/funding');
-      }, 2000);
+      navigate('/funding');
     };
 
     window.addEventListener('fundingCreatedSuccessfully', handleFundingCreated);
@@ -152,7 +158,7 @@ const CreateFunding: React.FC = () => {
     return () => {
       window.removeEventListener('fundingCreatedSuccessfully', handleFundingCreated);
     };
-  }, [navigate]);
+  }, [navigate, walletAddress]);
 
   // Load platform pricing on component mount
   useEffect(() => {
