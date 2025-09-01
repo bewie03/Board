@@ -349,11 +349,11 @@ const Funding: React.FC = () => {
                         <img 
                           src={project.logo} 
                           alt={`${project.title} logo`}
-                          className="w-12 h-12 rounded-lg object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
+                          className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200 flex-shrink-0">
-                          <span className="text-gray-400 text-xs font-medium">No Logo</span>
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200 flex-shrink-0">
+                          <span className="text-gray-400 text-sm font-medium">No Logo</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 flex-1">
@@ -463,11 +463,11 @@ const Funding: React.FC = () => {
                         <img 
                           src={selectedProjectForPanel.logo} 
                           alt={`${selectedProjectForPanel.title} logo`}
-                          className="w-16 h-16 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
+                          className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
                         />
                       ) : (
-                        <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
-                          <span className="text-gray-400 text-sm font-medium">No Logo</span>
+                        <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                          <span className="text-gray-400 text-base font-medium">No Logo</span>
                         </div>
                       )}
                     </div>
