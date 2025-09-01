@@ -96,7 +96,7 @@ const CreateProject: React.FC = () => {
   
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (value.length <= 300) {
+    if (value.length <= 500) {
       setFormData(prev => ({
         ...prev,
         [name]: value
@@ -576,20 +576,20 @@ const CreateProject: React.FC = () => {
                         rows={4}
                         value={formData.description}
                         onChange={handleDescriptionChange}
-                        maxLength={300}
+                        maxLength={500}
                         className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md p-3 pr-16 transition-colors duration-200"
                         placeholder="Tell us about your project..."
                         required
                       />
                       <div className={`absolute bottom-2 right-3 text-xs ${formData.description.length >= 280 ? 'text-red-500' : 'text-gray-400'}`}>
-                        {formData.description.length}/300
+                        {formData.description.length}/500
                       </div>
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-gray-500">
                     Brief description of your project and its goals. {formData.description.length >= 280 && (
                       <span className="text-red-500">
-                        {300 - formData.description.length} characters remaining
+                        {500 - formData.description.length} characters remaining
                       </span>
                     )}
                   </p>
