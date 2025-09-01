@@ -45,7 +45,7 @@ const CreateFunding: React.FC = () => {
     funding_goal: 0,
     funding_deadline: '',
     wallet_address: walletAddress || '',
-    funding_wallet: walletAddress || '',
+    funding_wallet: '',
     funding_purpose: '',
     paymentMethod: 'BONE'
   });
@@ -82,8 +82,8 @@ const CreateFunding: React.FC = () => {
     if (walletAddress) {
       setFormData(prev => ({ 
         ...prev, 
-        wallet_address: walletAddress,
-        funding_wallet: walletAddress 
+        wallet_address: walletAddress
+        // Don't override funding_wallet - let user set it manually
       }));
       fetchUserProjects();
     }
@@ -483,11 +483,10 @@ const CreateFunding: React.FC = () => {
                     }))}
                     value={formData.project_id}
                     onChange={(value) => {
-                      const selectedProject = userProjects.find(p => p.id === value);
                       setFormData(prev => ({ 
                         ...prev, 
-                        project_id: value,
-                        funding_wallet: selectedProject?.wallet_address || prev.funding_wallet
+                        project_id: value
+                        // Don't override funding_wallet - keep user's manual input
                       }));
                     }}
                     placeholder="Choose a project to create funding for"

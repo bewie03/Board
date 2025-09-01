@@ -190,6 +190,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
 
       // Verify project ownership - check both user_id match and direct wallet_address match
       console.log('DEBUG: Checking project ownership for project_id:', project_id, 'wallet:', walletAddress);
+      console.log('DEBUG: Received funding_wallet:', funding_wallet);
       
       const projectCheck = await pool.query(
         'SELECT user_id, wallet_address FROM projects WHERE id = $1',
