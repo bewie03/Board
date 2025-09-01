@@ -154,6 +154,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="project">Malicious/Scam Project</option>
+                <option value="job">Malicious/Scam Job</option>
                 <option value="user">Fake/Impersonation User</option>
                 <option value="website">Malicious Website</option>
                 <option value="wallet_address">Suspicious Wallet Address</option>
