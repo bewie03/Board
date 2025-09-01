@@ -41,27 +41,25 @@ const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => 
           <div key={index} className="bg-gray-50 rounded-lg p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <p className="font-medium text-gray-900">
-                  {contribution.display_name === 'Anonymous' ? (
-                    'Anonymous'
-                  ) : (
-                    <div className="flex flex-col">
-                      <span className="text-gray-900 font-medium">
-                        {contribution.username || 'Unknown User'}
-                      </span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(contribution.contributor_wallet);
-                          toast.success('Wallet address copied!');
-                        }}
-                        className="text-xs text-blue-600 hover:text-blue-800 underline text-left mt-1"
-                        title="Click to copy full wallet address"
-                      >
-                        {contribution.contributor_wallet.slice(0, 8)}...{contribution.contributor_wallet.slice(-6)}
-                      </button>
-                    </div>
-                  )}
-                </p>
+                {contribution.display_name === 'Anonymous' ? (
+                  <p className="font-medium text-gray-900">Anonymous</p>
+                ) : (
+                  <div className="flex flex-col">
+                    <span className="text-gray-900 font-medium">
+                      {contribution.username || 'Unknown User'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(contribution.contributor_wallet);
+                        toast.success('Wallet address copied!');
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline text-left mt-1"
+                      title="Click to copy full wallet address"
+                    >
+                      {contribution.contributor_wallet.slice(0, 8)}...{contribution.contributor_wallet.slice(-6)}
+                    </button>
+                  </div>
+                )}
                 <p className="text-sm text-gray-500">
                   {new Date(contribution.created_at).toLocaleDateString()}
                 </p>

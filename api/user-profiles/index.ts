@@ -182,10 +182,11 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
   const userId = userResult.rows[0].id;
 
   // Update username in users table if provided
-  if (updates.nickname) {
+  if (updates.nickname || updates.username) {
+    const usernameValue = updates.username || updates.nickname;
     await getPool().query(
       'UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2',
-      [updates.nickname, userId]
+      [usernameValue, userId]
     );
   }
 
