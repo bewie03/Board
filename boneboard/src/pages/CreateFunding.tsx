@@ -7,6 +7,7 @@ import { fundingService } from '../services/fundingService';
 import { toast } from 'react-toastify';
 import { fraudDetection } from '../utils/fraudDetection';
 import CustomSelect from '../components/CustomSelect';
+import CustomDatePicker from '../components/CustomDatePicker';
 import { CreateFundingData } from '../services/fundingService';
 import { contractService } from '../services/contractService';
 
@@ -413,10 +414,21 @@ const CreateFunding: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
+    
+    if (name === 'funding_goal') {
+      // Only allow numbers and limit to 6 characters
+      const numericValue = value.replace(/[^0-9]/g, '');
+      const limitedValue = numericValue.slice(0, 6);
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseFloat(limitedValue) || 0
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'funding_goal' ? parseFloat(value) || 0 : 
-              type === 'radio' ? value : value
+      [name]: type === 'radio' ? value : value
     }));
   };
 
@@ -620,17 +632,12 @@ const CreateFunding: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Funding Deadline *
                 </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    name="funding_deadline"
-                    value={formData.funding_deadline}
-                    onChange={handleInputChange}
-                    required
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
-                  />
-                </div>
+                <CustomDatePicker
+                  value={formData.funding_deadline}
+                  onChange={(date) => setFormData(prev => ({ ...prev, funding_deadline: date }))}
+                  minDate={new Date().toISOString().split('T')[0]}
+                  placeholder="Select funding deadline"
+                />
                 <p className="mt-1 text-sm text-gray-500">
                   When the funding period should end
                 </p>
