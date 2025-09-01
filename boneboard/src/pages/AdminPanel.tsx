@@ -98,7 +98,7 @@ const AdminPanel: React.FC = () => {
       }
       
       const settingsData = await response.json();
-      console.log('Loaded settings:', settingsData);
+      // Settings loaded successfully
       
       setSettings({
         ...settingsData,
@@ -122,7 +122,7 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Loading reported items...');
+      // Loading reported items
       
       // Fetch all reports first (both pending and verified to show paused items)
       const reportsResponse = await fetch('/api/reports', {
@@ -135,7 +135,7 @@ const AdminPanel: React.FC = () => {
       
       const reportsData = await reportsResponse.json();
       const allReports = reportsData.reports || [];
-      console.log('All reports loaded:', allReports);
+      // Reports loaded successfully
       
       // Group reports by scam_identifier (project/job ID)
       const reportsByItem = new Map();
@@ -161,7 +161,7 @@ const AdminPanel: React.FC = () => {
             const projects = Array.isArray(projectData) ? projectData : (projectData.projects || []);
             if (projects.length > 0) {
               itemData = { ...projects[0], type: 'project' };
-              console.log(`[FRONTEND] Fetched project ${itemId} with status: ${projects[0].status}`);
+              // Project data fetched
             }
           }
           
@@ -173,19 +173,17 @@ const AdminPanel: React.FC = () => {
               const jobs = Array.isArray(jobData) ? jobData : (jobData.jobs || []);
               if (jobs.length > 0) {
                 itemData = { ...jobs[0], type: 'job' };
-                console.log(`[FRONTEND] Fetched job ${itemId} with status: ${jobs[0].status}`);
+                // Job data fetched
               }
             }
           }
           
           // If we found the item, add it with its reports
           if (itemData) {
-            console.log(`[FRONTEND] Item ${itemId} found with status: ${itemData.status}`);
             // Determine if item is paused based on status
             // Projects: paused when status === 'paused'
             // Jobs: paused when status === 'paused', active when status === 'confirmed'
             const isPaused = itemData.status === 'paused';
-            console.log(`[FRONTEND] Item ${itemId} has status '${itemData.status}', isPaused: ${isPaused}, type: ${itemData.type}`);
             
             reportedItems.push({
               ...itemData,
@@ -198,7 +196,7 @@ const AdminPanel: React.FC = () => {
             });
           } else {
             // If item not found, skip it - likely deleted from database
-            console.log(`[FRONTEND] Skipping item ${itemId} - not found in database (likely deleted)`);
+            // Item not found - likely deleted
             // Don't add placeholder items for deleted projects/jobs
           }
         } catch (error) {
@@ -206,7 +204,7 @@ const AdminPanel: React.FC = () => {
         }
       }
       
-      console.log('Reported items processed:', reportedItems);
+      // Reported items processed successfully
       setReportedItems(reportedItems);
     } catch (err: any) {
       setError(err.message || 'Failed to load reported items');
@@ -226,7 +224,7 @@ const AdminPanel: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('[FRONTEND] Removing from reports:', { reportId, itemId });
+      // Removing from reports
       
       const response = await fetch('/api/reports', {
         method: 'PUT',
@@ -247,8 +245,8 @@ const AdminPanel: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log('[FRONTEND] Remove API Response:', result);
+      await response.json();
+      // Report removed successfully
       
       // Reload data
       await loadReportedItems();
@@ -272,8 +270,7 @@ const AdminPanel: React.FC = () => {
         finalAction = currentStatus === 'paused' ? 'restore' : 'pause';
       }
       
-      console.log(`[FRONTEND] Input action: ${action}, currentStatus: ${currentStatus}, finalAction: ${finalAction}`);
-      console.log(`[FRONTEND] Processing ${finalAction} for item ${projectId} with current status: ${currentStatus}`);
+      // Processing action for item
       
       const response = await fetch('/api/reports', {
         method: 'PUT',
@@ -293,8 +290,8 @@ const AdminPanel: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
       
-      const result = await response.json();
-      console.log(`[FRONTEND] API response:`, result);
+      await response.json();
+      // Action completed successfully
       
       // Update local state immediately for better UX
       setReportedItems(prev => prev.map(item => {
@@ -324,7 +321,7 @@ const AdminPanel: React.FC = () => {
       
       // Reload after a delay to see actual database state
       setTimeout(async () => {
-        console.log('[FRONTEND] Reloading data after 3 seconds to check actual database state');
+        // Reloading data to verify changes
         await loadReportedItems();
       }, 3000);
     } catch (err: any) {
@@ -355,7 +352,7 @@ const AdminPanel: React.FC = () => {
       }
       
       const updatedSettings = await response.json();
-      console.log('Updated settings:', updatedSettings);
+      // Settings updated successfully
       
       setSettings({ 
         ...updatedSettings,

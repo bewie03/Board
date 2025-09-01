@@ -45,15 +45,6 @@ const Projects: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingProject, setReportingProject] = useState<Project | null>(null);
   
-  // Check if current user is admin
-  const ADMIN_WALLET = 'addr1q9l3t0hzcfdf3h9ewvz9x6pm9pm0swds3ghmazv97wcktljtq67mkhaxfj2zv5umsedttjeh0j3xnnew0gru6qywqy9s9j7x4d';
-  const isAdmin = walletAddress === ADMIN_WALLET;
-  
-  // Debug logging
-  console.log('Current wallet:', walletAddress);
-  console.log('Admin wallet:', ADMIN_WALLET);
-  console.log('Is admin:', isAdmin);
-  console.log('Wallet match check:', walletAddress === ADMIN_WALLET);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -61,13 +52,10 @@ const Projects: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log('Fetching projects and jobs...');
         const fetchedJobs = await JobService.getActiveJobs();
-        console.log('Fetched jobs:', fetchedJobs);
         setAllJobs(fetchedJobs);
         
         const fetchedProjects = await ProjectService.getActiveProjects();
-        console.log('Fetched projects:', fetchedProjects);
         setCreatedProjects(fetchedProjects);
       } catch (error) {
         console.error('Error fetching data:', error);

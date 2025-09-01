@@ -100,17 +100,15 @@ const MyFunding: React.FC = () => {
   const fetchMyFunding = async () => {
     try {
       setLoading(true);
-      console.log('Fetching funding for wallet:', walletAddress);
+      // Fetching funding data
       const response = await fetch(`/api/funding?owner=${encodeURIComponent(walletAddress || '')}`, {
         headers: {
           'x-wallet-address': walletAddress || ''
         }
       });
       
-      console.log('Funding API response status:', response.status);
       if (response.ok) {
         const data = await response.json();
-        console.log('Funding projects received:', data.length, data);
         setFundingProjects(data);
       } else {
         const errorText = await response.text();
@@ -157,7 +155,7 @@ const MyFunding: React.FC = () => {
 
   const handleToggleActive = async (fundingId: string, currentStatus: boolean) => {
     try {
-      console.log('Toggling funding status:', { fundingId, currentStatus, walletAddress });
+      // Toggling funding status
       const response = await fetch(`/api/funding?id=${fundingId}`, {
         method: 'PUT',
         headers: {
@@ -192,7 +190,7 @@ const MyFunding: React.FC = () => {
     if (!projectToDelete) return;
 
     try {
-      console.log('Deleting funding project:', { fundingId: projectToDelete, walletAddress });
+      // Deleting funding project
       const response = await fetch(`/api/funding?id=${projectToDelete}`, {
         method: 'DELETE',
         headers: {
