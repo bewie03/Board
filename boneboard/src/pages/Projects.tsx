@@ -403,7 +403,7 @@ const Projects: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
+                      <div className="flex-shrink-0 h-20 w-20 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
                         {project.logo ? (
                           <img 
                             className="h-full w-full object-cover" 
@@ -502,7 +502,7 @@ const Projects: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-16 w-16 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
+                      <div className="flex-shrink-0 h-20 w-20 rounded-xl bg-white border-2 border-gray-200 overflow-hidden shadow-sm flex items-center justify-center">
                         {project.logo ? (
                           <img 
                             className="h-full w-full object-cover" 

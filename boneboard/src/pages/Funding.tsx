@@ -483,41 +483,41 @@ const Funding: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end p-4 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-end z-50"
             onClick={() => setSelectedProjectForPanel(null)}
           >
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="bg-white h-full w-full max-w-2xl rounded-l-lg overflow-y-auto"
+              className="bg-white h-full w-full max-w-2xl overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-start gap-6">
                     {selectedProjectForPanel.logo ? (
                       <img 
                         src={selectedProjectForPanel.logo} 
                         alt={`${selectedProjectForPanel.title} logo`}
-                        className="w-16 h-16 rounded-lg object-cover border"
+                        className="w-24 h-24 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-gray-400 text-xs">No Logo</span>
+                      <div className="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                        <span className="text-gray-400 text-sm font-medium">No Logo</span>
                       </div>
                     )}
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <div className="flex-1">
+                      <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
                         {selectedProjectForPanel.title}
                         {selectedProjectForPanel.is_verified && (
-                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                          <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                             <FaCheck className="text-white text-sm" />
                           </div>
                         )}
                       </h2>
-                      <p className="text-gray-600">{selectedProjectForPanel.description}</p>
+                      <p className="text-gray-600 text-lg leading-relaxed">{selectedProjectForPanel.description}</p>
                     </div>
                   </div>
                   <button
@@ -573,16 +573,16 @@ const Funding: React.FC = () => {
                 {(selectedProjectForPanel.website || selectedProjectForPanel.twitter_link || selectedProjectForPanel.discord_link) && (
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Links</h3>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3">
                       {selectedProjectForPanel.website && (
                         <a 
                           href={selectedProjectForPanel.website} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
+                          className="w-10 h-10 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                          title="Visit Website"
                         >
-                          <FaGlobe />
-                          Website
+                          <FaGlobe className="text-lg" />
                         </a>
                       )}
                       {selectedProjectForPanel.twitter_link && (
@@ -590,10 +590,10 @@ const Funding: React.FC = () => {
                           href={selectedProjectForPanel.twitter_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
+                          className="w-10 h-10 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                          title="Follow on Twitter"
                         >
-                          <FaXTwitter />
-                          Twitter
+                          <FaXTwitter className="text-lg" />
                         </a>
                       )}
                       {selectedProjectForPanel.discord_link && (
@@ -601,10 +601,10 @@ const Funding: React.FC = () => {
                           href={selectedProjectForPanel.discord_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 underline"
+                          className="w-10 h-10 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors"
+                          title="Join Discord"
                         >
-                          <FaDiscord />
-                          Discord
+                          <FaDiscord className="text-lg" />
                         </a>
                       )}
                     </div>
