@@ -86,12 +86,23 @@ const Projects: React.FC = () => {
 
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev => {
-      const newCategories = prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category];
-      
-      // If no categories selected, default to 'all'
-      return newCategories.length === 0 ? ['all'] : newCategories;
+      if (category === 'all') {
+        // Handle "All" selection
+        if (prev.includes('all')) {
+          return ['all']; // Keep 'all' selected, don't allow deselection
+        } else {
+          return ['all'];
+        }
+      } else {
+        // Handle individual category selection
+        const newValues = prev.filter(v => v !== 'all');
+        if (newValues.includes(category)) {
+          const filtered = newValues.filter(v => v !== category);
+          return filtered.length === 0 ? ['all'] : filtered;
+        } else {
+          return [...newValues, category];
+        }
+      }
     });
   };
 
@@ -260,7 +271,7 @@ const Projects: React.FC = () => {
                       </label>
                     </div>
 
-                    {(searchTerm || selectedCategories.length > 0 || showActiveJobsOnly || showVerifiedOnly) && (
+                    {(searchTerm || (selectedCategories.length > 0 && !selectedCategories.includes('all')) || showActiveJobsOnly || showVerifiedOnly) && (
                       <button
                         onClick={() => {
                           setSearchTerm('');
@@ -282,7 +293,7 @@ const Projects: React.FC = () => {
                   <span className="text-sm text-gray-600">
                     Showing {filteredProjects.length} of {createdProjects.length} projects
                   </span>
-                  {selectedCategories.length > 0 && (
+                  {selectedCategories.length > 0 && !selectedCategories.includes('all') && (
                     <div className="flex flex-wrap gap-2">
                       {selectedCategories.map(category => (
                         <span key={category} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
