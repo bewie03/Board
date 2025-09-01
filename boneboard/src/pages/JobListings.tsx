@@ -365,10 +365,7 @@ const JobListings: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-3">
                       <div className="min-w-[200px]">
                         <MultiSelectDropdown
-                          options={[
-                            { value: 'all', label: 'All Categories' },
-                            ...JOB_CATEGORIES.map(cat => ({ value: cat.id, label: cat.name }))
-                          ]}
+                          options={JOB_CATEGORIES.map(cat => ({ value: cat.id, label: cat.name }))}
                           selectedValues={selectedCategories}
                           onChange={(values) => setSelectedCategories(values)}
                           placeholder="All Categories"

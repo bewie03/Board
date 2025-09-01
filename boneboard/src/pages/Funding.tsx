@@ -7,6 +7,7 @@ import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
 import { toast } from 'react-toastify';
 import CustomSelect from '../components/CustomSelect';
+import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import { PROJECT_CATEGORIES } from '../constants/categories';
 
 // Contributors Section Component
@@ -134,6 +135,7 @@ const Funding: React.FC = () => {
       const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            project.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategories.length === 0 || 
+        selectedCategories.includes('all') ||
         selectedCategories.includes(project.category);
       const matchesVerified = !showVerifiedOnly || project.is_verified;
       return matchesSearch && matchesCategory && matchesVerified;
@@ -265,21 +267,20 @@ const Funding: React.FC = () => {
                 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="min-w-[200px]">
-                    <CustomSelect
+                    <MultiSelectDropdown
                       options={[
-                        { value: '', label: 'All Categories' },
+                        { value: 'all', label: 'All Categories' },
                         ...PROJECT_CATEGORIES.map(cat => ({ value: cat, label: cat }))
                       ]}
-                      value={selectedCategories.length === 1 ? selectedCategories[0] : ''}
-                      onChange={(value) => {
-                        if (value === '') {
+                      selectedValues={selectedCategories.length === 0 ? ['all'] : selectedCategories}
+                      onChange={(values) => {
+                        if (values.includes('all')) {
                           setSelectedCategories([]);
                         } else {
-                          setSelectedCategories([value]);
+                          setSelectedCategories(values);
                         }
                       }}
                       placeholder="All Categories"
-                      className=""
                     />
                   </div>
                   
