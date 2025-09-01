@@ -167,14 +167,53 @@ class FundingService {
 
   // Wallet integration methods
   async sendADA(recipientAddress: string, amount: number): Promise<string> {
-    // Mock implementation - in a real app, this would integrate with Cardano wallet
-    console.log(`Sending ${amount} ADA to ${recipientAddress}`);
+    const { contractService } = await import('./contractService');
     
-    // Simulate transaction processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Get wallet API from window.cardano
+      const walletApi = await this.getConnectedWalletApi();
+      if (!walletApi) {
+        throw new Error('No wallet connected');
+      }
+
+      // Initialize Lucid with wallet
+      const initialized = await contractService.initializeLucid(walletApi);
+      if (!initialized) {
+        throw new Error('Failed to initialize smart contract service');
+      }
+
+      // Create ADA contribution transaction
+      const result = await contractService.contributeADA(recipientAddress, amount);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Transaction failed');
+      }
+
+      return result.txHash!;
+    } catch (error) {
+      console.error('Error sending ADA:', error);
+      throw error;
+    }
+  }
+
+  private async getConnectedWalletApi(): Promise<any> {
+    // Check for connected wallet in window.cardano
+    const cardano = (window as any).cardano;
+    if (!cardano) {
+      throw new Error('No Cardano wallet detected');
+    }
+
+    // Try common wallet names
+    const walletNames = ['vespr', 'lace', 'eternl', 'nami', 'flint'];
     
-    // Return mock transaction hash
-    return `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    for (const walletName of walletNames) {
+      const wallet = cardano[walletName];
+      if (wallet && await wallet.isEnabled()) {
+        return await wallet.enable();
+      }
+    }
+
+    throw new Error('No wallet is connected');
   }
 
   async contributeToProject(data: ContributeData, walletAddress: string): Promise<void> {
@@ -194,11 +233,29 @@ class FundingService {
   }
 
   async sendBONE(recipientAddress: string, amount: number): Promise<string> {
+    const { contractService } = await import('./contractService');
+    
     try {
-      // This would integrate with your BONE token smart contract
-      // For now, returning a placeholder - you'll need to implement the actual BONE token transfer
-      console.log('BONE transfer not yet implemented:', { recipientAddress, amount });
-      throw new Error('BONE token transfers not yet implemented');
+      // Get wallet API from window.cardano
+      const walletApi = await this.getConnectedWalletApi();
+      if (!walletApi) {
+        throw new Error('No wallet connected');
+      }
+
+      // Initialize Lucid with wallet
+      const initialized = await contractService.initializeLucid(walletApi);
+      if (!initialized) {
+        throw new Error('Failed to initialize smart contract service');
+      }
+
+      // Create BONE contribution transaction
+      const result = await contractService.contributeBONE(recipientAddress, amount);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Transaction failed');
+      }
+
+      return result.txHash!;
     } catch (error) {
       console.error('Error sending BONE:', error);
       throw error;

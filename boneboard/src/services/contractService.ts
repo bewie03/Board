@@ -594,6 +594,105 @@ export class ContractService {
     }
   }
 
+  async contributeADA(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      console.log(`Creating ADA contribution transaction...`);
+      console.log(`Sending ${amount} ADA to ${recipientAddress}`);
+      
+      // Convert ADA to lovelace (1 ADA = 1,000,000 lovelace)
+      const amountInLovelace = BigInt(Math.floor(amount * 1_000_000));
+      
+      // Create contribution metadata
+      const metadata = {
+        675: { // Standard metadata label for contributions
+          contribution: {
+            amount: amount,
+            currency: 'ADA',
+            recipient: recipientAddress.substring(0, 60),
+            timestamp: Date.now(),
+            type: 'funding_contribution'
+          }
+        }
+      };
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(recipientAddress, { lovelace: amountInLovelace })
+        .attachMetadata(675, metadata[675]);
+
+      console.log('Building transaction...');
+      const completeTx = await tx.complete();
+      
+      console.log('Signing transaction...');
+      const signedTx = await completeTx.sign().complete();
+      
+      console.log('Submitting transaction...');
+      const txHash = await signedTx.submit();
+      
+      console.log('ADA contribution transaction submitted successfully:', txHash);
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error contributing ADA:', error);
+      const errorMessage = this.parsePaymentError(error, 'ADA', amount);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async contributeBONE(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      console.log(`Creating BONE contribution transaction...`);
+      console.log(`Sending ${amount} BONE to ${recipientAddress}`);
+      
+      // Calculate BONE amount (assuming whole tokens)
+      const boneAmount = Math.floor(amount);
+      
+      // Construct the full asset ID: policyId + tokenName (hex)
+      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
+      
+      // Create contribution metadata
+      const metadata = {
+        675: { // Standard metadata label for contributions
+          contribution: {
+            amount: boneAmount,
+            currency: 'BONE',
+            recipient: recipientAddress.substring(0, 60),
+            timestamp: Date.now(),
+            type: 'funding_contribution'
+          }
+        }
+      };
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(recipientAddress, { [fullAssetId]: BigInt(boneAmount) })
+        .attachMetadata(675, metadata[675]);
+
+      console.log('Building transaction...');
+      const completeTx = await tx.complete();
+      
+      console.log('Signing transaction...');
+      const signedTx = await completeTx.sign().complete();
+      
+      console.log('Submitting transaction...');
+      const txHash = await signedTx.submit();
+      
+      console.log('BONE contribution transaction submitted successfully:', txHash);
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error contributing BONE:', error);
+      const errorMessage = this.parsePaymentError(error, 'BONE', amount);
+      return { success: false, error: errorMessage };
+    }
+  }
+
   // Funding transaction monitoring is now handled by the centralized transactionMonitor service
 }
 
