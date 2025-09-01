@@ -209,6 +209,8 @@ const MyProjects: React.FC = () => {
             <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
           </div>
         
+        </div>
+        
         <div className="p-6">
           {projects.length === 0 ? (
             <div className="text-center py-12">
