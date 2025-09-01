@@ -53,8 +53,7 @@ const AccountSettings: React.FC = () => {
         },
         body: JSON.stringify({
           wallet_address: walletAddress,
-          username: localUsername,
-          profile_photo: profileImage
+          username: localUsername
         }),
       });
 

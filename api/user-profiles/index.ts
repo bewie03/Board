@@ -205,7 +205,6 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
   const fieldMapping: { [key: string]: string } = {
     nickname: 'nickname',
     avatarUrl: 'avatar_url',
-    profile_photo: 'avatar_url', // Map profile_photo to avatar_url field
     bio: 'bio',
     location: 'location',
     website: 'website',
