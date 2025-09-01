@@ -29,6 +29,8 @@ class FraudDetectionService {
   private readonly STORAGE_KEY = 'boneboard_project_owners';
   private readonly CONTRIBUTION_HISTORY_KEY = 'boneboard_contributions';
   private readonly FINGERPRINT_KEY = 'boneboard_fingerprint';
+  private readonly WALLET_SESSION_KEY = 'boneboard_wallet_sessions';
+  private readonly DEVICE_WALLETS_KEY = 'boneboard_device_wallets';
 
   /**
    * Generate a unique browser fingerprint
@@ -171,10 +173,86 @@ class FraudDetectionService {
   }
 
   /**
+   * Track wallet address changes in current session
+   */
+  trackWalletSession(walletAddress: string): void {
+    try {
+      const stored = localStorage.getItem(this.WALLET_SESSION_KEY);
+      const sessions = stored ? JSON.parse(stored) : [];
+      
+      const now = Date.now();
+      const sessionEntry = {
+        wallet: walletAddress,
+        timestamp: now,
+        fingerprint: null // Will be set async
+      };
+      
+      // Add to session history
+      sessions.push(sessionEntry);
+      
+      // Keep only last 24 hours of sessions
+      const filtered = sessions.filter((s: any) => now - s.timestamp < 24 * 60 * 60 * 1000);
+      
+      localStorage.setItem(this.WALLET_SESSION_KEY, JSON.stringify(filtered));
+      
+      // Also track all wallets used on this device
+      this.recordDeviceWallet(walletAddress);
+    } catch (error) {
+      console.warn('Failed to track wallet session:', error);
+    }
+  }
+
+  /**
+   * Record all wallets used on this device
+   */
+  private recordDeviceWallet(walletAddress: string): void {
+    try {
+      const stored = localStorage.getItem(this.DEVICE_WALLETS_KEY);
+      const deviceWallets = stored ? JSON.parse(stored) : [];
+      
+      if (!deviceWallets.includes(walletAddress)) {
+        deviceWallets.push(walletAddress);
+        localStorage.setItem(this.DEVICE_WALLETS_KEY, JSON.stringify(deviceWallets));
+      }
+    } catch (error) {
+      console.warn('Failed to record device wallet:', error);
+    }
+  }
+
+  /**
+   * Get all wallets that have been used on this device
+   */
+  private getDeviceWallets(): string[] {
+    try {
+      const stored = localStorage.getItem(this.DEVICE_WALLETS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Get recent wallet sessions (last 24 hours)
+   */
+  private getRecentWalletSessions(): any[] {
+    try {
+      const stored = localStorage.getItem(this.WALLET_SESSION_KEY);
+      const sessions = stored ? JSON.parse(stored) : [];
+      const now = Date.now();
+      return sessions.filter((s: any) => now - s.timestamp < 24 * 60 * 60 * 1000);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
    * Record project ownership for fraud detection
    */
   recordProjectOwnership(projectId: string, walletAddress: string): void {
     try {
+      // Track this wallet session
+      this.trackWalletSession(walletAddress);
+      
       const stored = localStorage.getItem(this.STORAGE_KEY);
       const owners = stored ? JSON.parse(stored) : {};
       
@@ -182,7 +260,9 @@ class FraudDetectionService {
         owners[projectId] = {
           wallet: walletAddress,
           timestamp: Date.now(),
-          fingerprint: null // Will be set when fingerprint is generated
+          fingerprint: null, // Will be set when fingerprint is generated
+          deviceWallets: this.getDeviceWallets(), // Track all wallets on device at creation time
+          sessionWallets: this.getRecentWalletSessions().map(s => s.wallet) // Track session wallets
         };
       }
       
@@ -232,12 +312,40 @@ class FraudDetectionService {
       }
     };
 
+    // Track this wallet session for future reference
+    this.trackWalletSession(contributorWallet);
+
     // Check 1: Direct wallet address match
     if (contributorWallet.toLowerCase() === projectOwnerWallet.toLowerCase()) {
       result.isAllowed = false;
       result.reason = 'Cannot contribute to your own project';
       result.riskLevel = 'high';
       result.checks.walletMatch = true;
+      return result;
+    }
+
+    // Check 1.5: Device wallet history (Critical for multi-address detection)
+    const deviceWallets = this.getDeviceWallets();
+    if (deviceWallets.includes(projectOwnerWallet) && deviceWallets.includes(contributorWallet)) {
+      result.isAllowed = false;
+      result.reason = 'Cannot contribute: Both project owner and contributor wallets have been used on this device';
+      result.riskLevel = 'high';
+      result.checks.localStorage = true;
+      return result;
+    }
+
+    // Check 1.6: Recent wallet switching detection (Vespr multi-address scenario)
+    const recentSessions = this.getRecentWalletSessions();
+    const last30Minutes = Date.now() - (30 * 60 * 1000);
+    const recentWallets = recentSessions
+      .filter(s => s.timestamp > last30Minutes)
+      .map(s => s.wallet);
+    
+    if (recentWallets.includes(projectOwnerWallet) && recentWallets.includes(contributorWallet)) {
+      result.isAllowed = false;
+      result.reason = 'Suspicious activity: Recent wallet switching detected (within 30 minutes)';
+      result.riskLevel = 'high';
+      result.checks.localStorage = true;
       return result;
     }
 
@@ -265,10 +373,44 @@ class FraudDetectionService {
       console.warn('Fingerprint check failed:', error);
     }
 
-    // Check 3: LocalStorage analysis for known project owners
+    // Check 3: Multi-wallet detection (Enhanced for Vespr scenario)
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       const owners = stored ? JSON.parse(stored) : {};
+      
+      // Check if this project was created by any wallet used on this device
+      const projectOwnerData = owners[projectId];
+      if (projectOwnerData) {
+        // Check if contributor wallet was used in same session as project creation
+        const deviceWallets = this.getDeviceWallets();
+        const recentSessions = this.getRecentWalletSessions();
+        
+        // Block if contributor wallet has been used on this device
+        if (deviceWallets.includes(contributorWallet)) {
+          result.isAllowed = false;
+          result.reason = 'Cannot contribute: This wallet address has been used on this device before';
+          result.riskLevel = 'high';
+          result.checks.localStorage = true;
+          return result;
+        }
+        
+        // Check for recent wallet switching patterns (within last hour)
+        const oneHourAgo = Date.now() - (60 * 60 * 1000);
+        const recentWalletSwitches = recentSessions.filter(s => s.timestamp > oneHourAgo);
+        
+        if (recentWalletSwitches.length > 1) {
+          const walletAddresses = recentWalletSwitches.map(s => s.wallet);
+          // If project owner wallet was used recently and now different wallet is contributing
+          if (walletAddresses.includes(projectOwnerData.wallet) && 
+              walletAddresses.includes(contributorWallet)) {
+            result.isAllowed = false;
+            result.reason = 'Suspicious activity: Recent wallet switching detected on this device';
+            result.riskLevel = 'high';
+            result.checks.localStorage = true;
+            return result;
+          }
+        }
+      }
       
       // Check if contributor wallet is known as owner of other projects
       for (const [pid, data] of Object.entries(owners as Record<string, any>)) {
@@ -279,7 +421,7 @@ class FraudDetectionService {
         }
       }
     } catch (error) {
-      console.warn('LocalStorage check failed:', error);
+      console.warn('Multi-wallet check failed:', error);
     }
 
     // Check 4: Rapid contribution timing (basic implementation)
@@ -314,12 +456,33 @@ class FraudDetectionService {
   }
 
   /**
+   * Initialize wallet tracking for current session
+   */
+  initializeWalletTracking(walletAddress: string): void {
+    this.trackWalletSession(walletAddress);
+  }
+
+  /**
+   * Get fraud detection status for debugging
+   */
+  getDetectionStatus(): any {
+    return {
+      deviceWallets: this.getDeviceWallets(),
+      recentSessions: this.getRecentWalletSessions(),
+      projectOwners: JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '{}'),
+      fingerprint: localStorage.getItem(this.FINGERPRINT_KEY)
+    };
+  }
+
+  /**
    * Clear fraud detection data (for testing/admin purposes)
    */
   clearFraudData(): void {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
       localStorage.removeItem(this.FINGERPRINT_KEY);
+      localStorage.removeItem(this.WALLET_SESSION_KEY);
+      localStorage.removeItem(this.DEVICE_WALLETS_KEY);
       // Clear contribution history for all wallets
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith(this.CONTRIBUTION_HISTORY_KEY)) {

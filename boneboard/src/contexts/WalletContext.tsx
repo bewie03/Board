@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { transactionMonitor } from '../services/transactionMonitor';
+import { fraudDetection } from '../utils/fraudDetection';
 
 // Define the wallet interface
 export interface CardanoWallet {
@@ -62,16 +63,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     return localStorage.getItem('isConnected') === 'true';
   });
   
-  const [walletAddress, setWalletAddress] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('walletAddress');
-  });
-
-  const [connectedWallet, setConnectedWallet] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('connectedWallet');
-  });
-  
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
   const [username, setUsernameState] = useState<string | null>(null);
   const [profilePhoto, setProfilePhotoState] = useState<string | null>(null);
   
@@ -131,19 +124,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   }, []);
 
   // Set username and update wallet-specific localStorage
-  const setUsername = useCallback((name: string) => {
-    setUsernameState(name);
-    if (walletAddress) {
-      saveWalletProfile(walletAddress, name, profilePhoto);
-    }
+  const setUsername = useCallback((newUsername: string) => {
+    if (!walletAddress) return;
+    
+    setUsernameState(newUsername);
+    saveWalletProfile(walletAddress, newUsername, profilePhoto);
   }, [walletAddress, profilePhoto, saveWalletProfile]);
   
   // Set profile photo and update wallet-specific localStorage
-  const setProfilePhoto = useCallback((photoUrl: string | null) => {
-    setProfilePhotoState(photoUrl);
-    if (walletAddress) {
-      saveWalletProfile(walletAddress, username, photoUrl);
-    }
+  const setProfilePhoto = useCallback((newPhoto: string | null) => {
+    if (!walletAddress) return;
+    
+    setProfilePhotoState(newPhoto);
+    saveWalletProfile(walletAddress, username, newPhoto);
   }, [walletAddress, username, saveWalletProfile]);
 
   // Format address for display
@@ -279,12 +272,18 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         console.warn('Using unformatted address due to conversion error:', error);
       }
 
-      updateWallet(wallet, walletId);
-      setWalletAddress(currentAddress);
+      const bech32Address = currentAddress;
+
       setIsConnected(true);
+      setWalletAddress(bech32Address);
+      setConnectedWallet(walletId);
+      walletRef.current = wallet;
       
-      // Load wallet-specific profile data
-      loadWalletProfile(currentAddress);
+      // Track wallet session for fraud detection
+      fraudDetection.initializeWalletTracking(bech32Address);
+      
+      // Load profile data for this wallet
+      loadWalletProfile(bech32Address);
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('walletAddress', currentAddress);
