@@ -25,11 +25,16 @@ export class AdminService {
 
   // Helper method to generate authentication headers
   private async getAuthHeaders(walletAddress: string): Promise<Record<string, string>> {
+    console.log('🔐 Generating auth headers for wallet:', walletAddress);
+    
     const timestamp = Date.now().toString();
     
     // Generate a proper signature using the connected wallet
     const cardano = (window as any).cardano;
     const connectedWallet = localStorage.getItem('connectedWallet');
+    
+    console.log('🔐 Connected wallet:', connectedWallet);
+    console.log('🔐 Cardano available:', !!cardano);
     
     let signature;
     if (cardano && connectedWallet && cardano[connectedWallet]) {
@@ -38,20 +43,31 @@ export class AdminService {
         const message = `Admin action: ${timestamp}`;
         const messageHex = Buffer.from(message, 'utf8').toString('hex');
         signature = await walletApi.signData(walletAddress, messageHex);
+        console.log('🔐 Generated wallet signature:', signature?.substring(0, 20) + '...');
       } catch (error) {
+        console.log('🔐 Wallet signing failed, using fallback:', error);
         // Fallback: generate a valid-format signature for admin wallet
         signature = '84' + '0'.repeat(140);
       }
     } else {
+      console.log('🔐 No wallet available, using fallback signature');
       // Fallback: generate a valid-format signature for admin wallet
       signature = '84' + '0'.repeat(140);
     }
     
-    return {
+    const headers = {
       'x-wallet-address': walletAddress,
       'x-wallet-signature': signature,
       'x-timestamp': timestamp
     };
+    
+    console.log('🔐 Generated auth headers:', {
+      'x-wallet-address': headers['x-wallet-address'],
+      'x-wallet-signature': headers['x-wallet-signature']?.substring(0, 20) + '...',
+      'x-timestamp': headers['x-timestamp']
+    });
+    
+    return headers;
   }
 
   // Platform Settings Management
@@ -85,14 +101,21 @@ export class AdminService {
     requireAdminAuth(walletAddress);
 
     try {
+      console.log('🚀 Starting updatePlatformSettings for wallet:', walletAddress);
       const authHeaders = await this.getAuthHeaders(walletAddress);
+      
+      const requestHeaders = {
+        'Content-Type': 'application/json',
+        ...authHeaders
+      };
+      
+      console.log('🚀 Making request to:', `${this.baseUrl}?type=settings`);
+      console.log('🚀 Request headers:', Object.keys(requestHeaders));
+      console.log('🚀 Request body:', settings);
       
       const response = await fetch(`${this.baseUrl}?type=settings`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-        },
+        headers: requestHeaders,
         body: JSON.stringify({
           ...settings,
           updatedBy: walletAddress,
