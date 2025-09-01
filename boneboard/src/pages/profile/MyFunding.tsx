@@ -311,25 +311,21 @@ const MyFunding: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => setSelectedProject(funding)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                         title="View Details"
                       >
                         <FaEye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleToggleActive(funding.id, funding.is_active)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          funding.is_active
-                            ? 'text-orange-600 hover:bg-orange-50'
-                            : 'text-green-600 hover:bg-green-50'
-                        }`}
+                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                         title={funding.is_active ? 'Pause' : 'Activate'}
                       >
                         {funding.is_active ? <FaPause className="w-4 h-4" /> : <FaPlay className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleDeleteFunding(funding.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete"
                       >
                         <FaTrash className="w-4 h-4" />
@@ -408,25 +404,24 @@ const MyFunding: React.FC = () => {
                       </p>
                     )}
                   </div>
-                </div>
-
-                  {/* Payment Address */}
+                  
+                  {/* Payment Address Section */}
                   <div className="mt-6 pt-6 border-t border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                          <FaCoins className="text-gray-600 text-sm" />
-                        </div>
-                        Payment Address
-                      </h4>
+                    <div className="flex items-center mb-4">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <FaCoins className="text-blue-600 text-lg" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Payment Address</h4>
+                        <p className="text-sm text-gray-600">
+                          All contributions are automatically sent to this wallet address
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      All contributions are automatically sent to this wallet address:
-                    </p>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <code className="text-sm font-mono text-gray-800 break-all block">
+                          <code className="text-sm font-mono text-gray-800 break-all block leading-relaxed">
                             {funding.funding_wallet || funding.wallet_address}
                           </code>
                         </div>
@@ -439,6 +434,7 @@ const MyFunding: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </div>
               </motion.div>
             ))}
           </div>
