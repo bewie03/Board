@@ -111,6 +111,7 @@ const CreateFunding: React.FC = () => {
                 funding_goal: pendingTx.fundingData.funding_goal,
                 funding_deadline: pendingTx.fundingData.funding_deadline,
                 funding_purpose: pendingTx.fundingData.funding_purpose,
+                funding_wallet: pendingTx.fundingData.funding_wallet || prev.funding_wallet,
                 paymentMethod: pendingTx.fundingData.paymentCurrency,
                 txHash: pendingTx.txHash
               }));
@@ -326,6 +327,7 @@ const CreateFunding: React.FC = () => {
         funding_goal: formData.funding_goal,
         funding_deadline: formData.funding_deadline,
         funding_purpose: formData.funding_purpose,
+        funding_wallet: formData.funding_wallet,
         paymentAmount: totalCost.amount,
         paymentCurrency: formData.paymentMethod,
         walletAddress: walletAddress,
