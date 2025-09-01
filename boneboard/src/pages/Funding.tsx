@@ -695,7 +695,7 @@ const Funding: React.FC = () => {
                       }
                       
                       // Check for lines that are too long (approximate 50 chars per line for readability)
-                      const hasLongLine = lines.some(line => line.length > 50);
+                      const hasLongLine = lines.some(line => line.length > 25);
                       if (hasLongLine) {
                         return;
                       }
