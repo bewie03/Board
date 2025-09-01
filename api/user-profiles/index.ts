@@ -107,19 +107,24 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // First, ensure user exists
+  // First, ensure user exists and update username
   let userId;
   const userCheck = await getPool().query('SELECT id FROM users WHERE wallet_address = $1', [walletAddress]);
   
   if (userCheck.rows.length === 0) {
-    // Create user
+    // Create user with username
     const userResult = await getPool().query(
-      'INSERT INTO users (wallet_address) VALUES ($1) RETURNING id',
-      [walletAddress]
+      'INSERT INTO users (wallet_address, username) VALUES ($1, $2) RETURNING id',
+      [walletAddress, nickname]
     );
     userId = userResult.rows[0].id;
   } else {
+    // Update existing user's username
     userId = userCheck.rows[0].id;
+    await getPool().query(
+      'UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2',
+      [nickname, userId]
+    );
   }
 
   // Create or update profile
@@ -176,7 +181,15 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
   const userId = userResult.rows[0].id;
 
-  // Build dynamic update query
+  // Update username in users table if provided
+  if (updates.nickname) {
+    await getPool().query(
+      'UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2',
+      [updates.nickname, userId]
+    );
+  }
+
+  // Build dynamic update query for user_profiles
   const updateFields: string[] = [];
   const params: any[] = [];
   let paramIndex = 1;

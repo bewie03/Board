@@ -42,7 +42,34 @@ const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => 
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="font-medium text-gray-900">
-                  {contribution.display_name || `${contribution.contributor_wallet?.slice(0, 8)}...${contribution.contributor_wallet?.slice(-6)}`}
+                  {contribution.display_name === 'Anonymous' ? (
+                    'Anonymous'
+                  ) : contribution.username ? (
+                    <span>
+                      {contribution.username}
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(contribution.contributor_wallet);
+                          toast.success('Wallet address copied!');
+                        }}
+                        className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                        title="Click to copy full wallet address"
+                      >
+                        (copy address)
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(contribution.contributor_wallet);
+                        toast.success('Wallet address copied!');
+                      }}
+                      className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                      title="Click to copy full wallet address"
+                    >
+                      {`${contribution.contributor_wallet?.slice(0, 8)}...${contribution.contributor_wallet?.slice(-6)}`}
+                    </button>
+                  )}
                 </p>
                 <p className="text-sm text-gray-500">
                   {new Date(contribution.created_at).toLocaleDateString()}

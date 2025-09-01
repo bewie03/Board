@@ -53,11 +53,14 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const contributionsQuery = `
         SELECT 
           fc.*,
+          u.username,
           CASE 
             WHEN fc.is_anonymous = true THEN 'Anonymous'
+            WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             ELSE SUBSTRING(fc.contributor_wallet, 1, 8) || '...' || SUBSTRING(fc.contributor_wallet, -6)
           END as display_name
         FROM funding_contributions fc
+        LEFT JOIN users u ON fc.contributor_wallet = u.wallet_address
         WHERE fc.project_funding_id = $1
         ORDER BY fc.created_at DESC
       `;
