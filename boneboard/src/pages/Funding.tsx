@@ -9,6 +9,61 @@ import { toast } from 'react-toastify';
 import CustomSelect from '../components/CustomSelect';
 import { PROJECT_CATEGORIES } from '../constants/categories';
 
+// Contributors Section Component
+const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [contributions, setContributions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContributions = async () => {
+      try {
+        setLoading(true);
+        const project = await fundingService.getFundingProject(projectId);
+        setContributions(project.contributions || []);
+      } catch (error) {
+        console.error('Error fetching contributions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContributions();
+  }, [projectId]);
+
+  if (loading) {
+    return <div className="text-center py-4">Loading contributors...</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {contributions.length > 0 ? (
+        contributions.map((contribution: any, index: number) => (
+          <div key={index} className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="font-medium text-gray-900">
+                  {contribution.display_name || `${contribution.contributor_wallet?.slice(0, 8)}...${contribution.contributor_wallet?.slice(-6)}`}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {new Date(contribution.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <span className="text-lg font-semibold text-blue-600">
+                {fundingService.formatADA(contribution.ada_amount)} ADA
+              </span>
+            </div>
+            {contribution.message && (
+              <p className="text-gray-700 text-sm italic">"{contribution.message}"</p>
+            )}
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500 text-center py-8">No contributions yet. Be the first to support this project!</p>
+      )}
+    </div>
+  );
+};
+
 const Funding: React.FC = () => {
   const navigate = useNavigate();
   const { isConnected, walletAddress } = useWallet();
@@ -134,6 +189,12 @@ const Funding: React.FC = () => {
       setContributeMessage('');
       setIsAnonymous(false);
       fetchProjects(); // Refresh to show updated funding
+      
+      // Refresh contributors in the side panel if it's open
+      if (selectedProjectForPanel && selectedProjectForPanel.id === selectedProject.id) {
+        // Force re-render of contributors section
+        setSelectedProjectForPanel({...selectedProjectForPanel});
+      }
 
     } catch (error: any) {
       console.error('Contribution error:', error);
@@ -345,10 +406,6 @@ const Funding: React.FC = () => {
                     <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                       <div className="flex items-center space-x-4">
                         <span className="flex items-center">
-                          <FaUsers className="text-green-500 mr-1 text-sm" />
-                          {project.contributor_count} backers
-                        </span>
-                        <span className="flex items-center">
                           <FaCalendarAlt className="text-blue-500 mr-1 text-sm" />
                           {fundingService.formatDeadline(project.funding_deadline)}
                         </span>
@@ -530,32 +587,7 @@ const Funding: React.FC = () => {
                 {/* Contributors Section */}
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Contributors</h3>
-                  <div className="space-y-3">
-                    {selectedProjectForPanel.contributions && selectedProjectForPanel.contributions.length > 0 ? (
-                      selectedProjectForPanel.contributions.map((contribution: any, index: number) => (
-                        <div key={index} className="bg-gray-50 rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {contribution.display_name || contribution.contributor_wallet}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(contribution.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <span className="text-lg font-semibold text-blue-600">
-                              {fundingService.formatADA(contribution.amount)} ADA
-                            </span>
-                          </div>
-                          {contribution.message && (
-                            <p className="text-gray-700 text-sm italic">"{contribution.message}"</p>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-center py-8">No contributions yet. Be the first to support this project!</p>
-                    )}
-                  </div>
+                  <ContributorsSection projectId={selectedProjectForPanel.id} />
                 </div>
 
                 {/* Contribute Button */}
