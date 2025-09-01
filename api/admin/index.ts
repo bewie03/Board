@@ -1,7 +1,6 @@
 // Admin API endpoints for platform management
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
-import { rateLimit } from '../middleware/rateLimiter';
 
 // Database connection pool
 let pool: Pool | null = null;
@@ -78,12 +77,7 @@ const logAdminActivity = async (
   }
 };
 
-// Rate limiting for admin endpoints - more lenient for admin operations
-const adminRateLimit = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes (shorter window)
-  max: 100, // Higher limit for admin operations
-  message: 'Too many admin requests from this IP, please try again later.'
-});
+// Rate limiting removed
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set security headers first
@@ -93,17 +87,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
-  }
-
-  // Apply rate limiting only after OPTIONS handling
-  let rateLimitExceeded = false;
-  adminRateLimit(req, res, () => {
-    rateLimitExceeded = false;
-  });
-  
-  // If rate limit was exceeded, the response was already sent
-  if (res.headersSent) {
-    return;
   }
 
   try {

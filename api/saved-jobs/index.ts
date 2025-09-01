@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
-import { rateLimit } from '../middleware/rateLimiter';
+
 
 // Database connection - create pool inside handler to avoid cold start issues
 let pool: any = null;
@@ -31,16 +31,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-// Rate limiting for saved jobs API
-const savedJobsRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Apply rate limiting
-  savedJobsRateLimit(req, res, () => {});
   
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');

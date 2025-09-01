@@ -1,6 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
-import { rateLimit } from '../middleware/rateLimiter';
 
 // Simple UUID generator function
 function generateUUID(): string {
@@ -33,19 +32,7 @@ function getPool() {
   return pool;
 }
 
-// No rate limiting for reports - removed cooldown
-// const reportsRateLimit = rateLimit({
-//   windowMs: 3 * 60 * 1000, // 3 minutes
-//   max: 2, // allow 2 reports per 3 minutes per IP
-//   message: 'You can only submit 2 reports every 3 minutes. Please wait before submitting another report.'
-// });
-
-// General rate limiting for viewing reports
-const reportsViewRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs for viewing
-  message: 'Too many requests from this IP, please try again later.'
-});
+// Rate limiting completely removed
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers first
@@ -61,17 +48,8 @@ export default async function handler(req: any, res: any) {
     // No rate limiting for report submissions - removed cooldown
     return handleSubmitReport(req, res);
   } else if (req.method === 'GET') {
-    // Apply rate limiting for viewing reports
-    return new Promise((resolve) => {
-      reportsViewRateLimit(req, res, (result?: any) => {
-        if (result) {
-          // Rate limit exceeded, response already sent
-          return resolve(result);
-        }
-        // Rate limit passed, proceed with handling
-        resolve(handleGetReports(req, res));
-      });
-    });
+    // No rate limiting for viewing reports
+    return handleGetReports(req, res);
   } else if (req.method === 'PUT') {
     return handleUpdateReport(req, res);
   } else {

@@ -1,6 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
-import { rateLimit } from '../middleware/rateLimiter';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -9,16 +8,7 @@ const pool = new Pool({
   }
 });
 
-// Rate limiting for funding API
-const fundingRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Apply rate limiting
-  fundingRateLimit(req, res, () => {});
   
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
