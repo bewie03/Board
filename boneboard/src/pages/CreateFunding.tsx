@@ -762,6 +762,14 @@ const CreateFunding: React.FC = () => {
                           <span className="text-gray-600">Deadline:</span>
                           <span className="font-medium">{new Date(formData.funding_deadline).toLocaleDateString()}</span>
                         </div>
+                        {formData.funding_wallet && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Funding Wallet:</span>
+                            <span className="font-medium font-mono text-xs">
+                              {formData.funding_wallet.slice(0, 8)}...{formData.funding_wallet.slice(-6)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
