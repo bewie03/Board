@@ -694,6 +694,12 @@ const Funding: React.FC = () => {
                         return;
                       }
                       
+                      // Check for lines that are too long (approximate 50 chars per line for readability)
+                      const hasLongLine = lines.some(line => line.length > 50);
+                      if (hasLongLine) {
+                        return;
+                      }
+                      
                       setContributionMessage(value);
                     }}
                     onKeyDown={(e) => {
@@ -708,10 +714,13 @@ const Funding: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     rows={3}
                     maxLength={200}
-                    placeholder="Leave a message for the project team... (max 200 chars, 4 lines)"
+                    placeholder="Leave a message for the project team... (max 200 chars, 4 lines, 50 chars per line)"
                   />
                   <div className="text-xs text-gray-500 mt-1">
                     {contributionMessage.length}/200 characters, {contributionMessage.split('\n').length}/4 lines
+                    {contributionMessage.split('\n').some(line => line.length > 50) && (
+                      <span className="text-red-500 ml-2">• Line too long (max 50 chars per line)</span>
+                    )}
                   </div>
                 </div>
 
