@@ -44,31 +44,22 @@ const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => 
                 <p className="font-medium text-gray-900">
                   {contribution.display_name === 'Anonymous' ? (
                     'Anonymous'
-                  ) : contribution.username ? (
-                    <span>
-                      {contribution.username}
+                  ) : (
+                    <div className="flex flex-col">
+                      <span className="text-gray-900 font-medium">
+                        {contribution.username || 'Unknown User'}
+                      </span>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(contribution.contributor_wallet);
                           toast.success('Wallet address copied!');
                         }}
-                        className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                        className="text-xs text-blue-600 hover:text-blue-800 underline text-left mt-1"
                         title="Click to copy full wallet address"
                       >
-                        (copy address)
+                        {contribution.contributor_wallet.slice(0, 8)}...{contribution.contributor_wallet.slice(-6)}
                       </button>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(contribution.contributor_wallet);
-                        toast.success('Wallet address copied!');
-                      }}
-                      className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
-                      title="Click to copy full wallet address"
-                    >
-                      {`${contribution.contributor_wallet?.slice(0, 8)}...${contribution.contributor_wallet?.slice(-6)}`}
-                    </button>
+                    </div>
                   )}
                 </p>
                 <p className="text-sm text-gray-500">
