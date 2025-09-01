@@ -38,8 +38,6 @@ interface JobWithDisplayProps extends Job {
   posted: string;
 }
 
-type ActualJobCategory = 'development' | 'design' | 'marketing' | 'community' | 'business' | 'content' | 'defi' | 'nft' | 'security' | 'research';
-type JobCategory = 'all' | ActualJobCategory;
 type DateRange = 'all' | 'today' | 'week' | 'month';
 type PaymentType = 'all' | 'ada' | 'fiat';
 type JobType = 'all' | 'full-time' | 'part-time' | 'contract' | 'internship';
