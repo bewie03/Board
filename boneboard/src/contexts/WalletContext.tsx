@@ -63,8 +63,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     return localStorage.getItem('isConnected') === 'true';
   });
   
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('walletAddress');
+  });
+  const [connectedWallet, setConnectedWallet] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('connectedWallet');
+  });
   const [username, setUsernameState] = useState<string | null>(null);
   const [profilePhoto, setProfilePhotoState] = useState<string | null>(null);
   
@@ -286,12 +292,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       loadWalletProfile(bech32Address);
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('walletAddress', currentAddress);
+        localStorage.setItem('walletAddress', bech32Address);
         localStorage.setItem('isConnected', 'true');
+        localStorage.setItem('connectedWallet', walletId);
       }
 
       // Start monitoring for pending transactions
-      transactionMonitor.startMonitoring(currentAddress);
+      transactionMonitor.startMonitoring(bech32Address);
 
       console.log(`Successfully connected to ${walletId} wallet`);
 
@@ -349,7 +356,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     if (typeof window === 'undefined') return;
     
     let isMounted = true;
-    let timeoutId: NodeJS.Timeout;
 
     const cleanup = () => {
       walletRef.current = null;
@@ -370,10 +376,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         const savedWallet = localStorage.getItem('connectedWallet');
         
         if (!storedAddress || storedIsConnected !== 'true' || !savedWallet) {
+          cleanup();
           return; // No stored connection
         }
         
-        if (walletAddress) return; // Already connected
+        if (walletAddress && isConnected) return; // Already connected
         
         const cardano = window.cardano;
         if (!cardano) {
@@ -420,6 +427,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             // Start monitoring for pending transactions on reconnect
             transactionMonitor.startMonitoring(formattedAddress);
             
+            // Initialize fraud detection on reconnect
+            await fraudDetection.initializeWalletTracking(formattedAddress, wallet);
+            
             console.log(`Successfully reconnected to ${savedWallet} wallet`);
           }
         } catch (error) {
@@ -434,9 +444,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           cleanup();
         }
       } finally {
-        if (isMounted) {
-          timeoutId = setTimeout(checkWalletConnection, 15000); // Check every 15 seconds
-        }
+        // Don't set up recurring checks - only check once on mount
       }
     };
 
@@ -446,9 +454,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     // Clean up on unmount
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, [walletAddress, updateWallet, convertHexToBech32]);
 
