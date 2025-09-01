@@ -209,9 +209,7 @@ const MyProjects: React.FC = () => {
             <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
           </div>
         
-        </div>
-        
-        <div className="p-6">
+          <div className="p-6">
           {projects.length === 0 ? (
             <div className="text-center py-12">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -369,6 +367,7 @@ const MyProjects: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
 
