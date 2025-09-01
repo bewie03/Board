@@ -35,6 +35,51 @@ interface FundingProject {
   contributions?: any[];
 }
 
+// Copy Button Component with Animation
+const CopyButton: React.FC<{ textToCopy: string; fundingId: string }> = ({ textToCopy }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <motion.button
+      onClick={handleCopy}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md ${
+        copied 
+          ? 'bg-green-500 text-white' 
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
+      whileTap={{ scale: 0.95 }}
+      animate={copied ? { scale: [1, 1.1, 1] } : {}}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div
+        animate={copied ? { rotate: 360 } : { rotate: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {copied ? (
+          <FaCheck className="w-4 h-4" />
+        ) : (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        )}
+      </motion.div>
+      <span className="text-sm font-medium">
+        {copied ? 'Copied!' : 'Copy'}
+      </span>
+    </motion.button>
+  );
+};
+
 const MyFunding: React.FC = () => {
   const navigate = useNavigate();
   const { walletAddress } = useWallet();
@@ -379,48 +424,18 @@ const MyFunding: React.FC = () => {
                       All contributions are automatically sent to this wallet address:
                     </p>
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 mr-4">
-                          <code className="text-sm font-mono text-gray-800 break-all">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <code className="text-sm font-mono text-gray-800 break-all block">
                             {funding.funding_wallet || funding.wallet_address}
                           </code>
                         </div>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(funding.funding_wallet || funding.wallet_address);
-                              // Create a temporary success animation
-                              const button = document.activeElement as HTMLButtonElement;
-                              if (button) {
-                                button.classList.add('animate-pulse');
-                                button.innerHTML = `
-                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  Copied!
-                                `;
-                                setTimeout(() => {
-                                  button.classList.remove('animate-pulse');
-                                  button.innerHTML = `
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                    Copy
-                                  `;
-                                }, 2000);
-                              }
-                              toast.success('Payment address copied to clipboard!');
-                            } catch (err) {
-                              toast.error('Failed to copy address');
-                            }
-                          }}
-                          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-md"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          Copy
-                        </button>
+                        <div className="flex-shrink-0">
+                          <CopyButton 
+                            textToCopy={funding.funding_wallet || funding.wallet_address}
+                            fundingId={funding.id}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
