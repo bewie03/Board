@@ -7,6 +7,77 @@ import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { fundingService } from '../../services/fundingService';
 
+// Contributors Section Component
+const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [contributions, setContributions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContributions = async () => {
+      try {
+        setLoading(true);
+        const project = await fundingService.getFundingProject(projectId);
+        setContributions(project.contributions || []);
+      } catch (error) {
+        console.error('Error fetching contributions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContributions();
+  }, [projectId]);
+
+  if (loading) {
+    return <div className="text-center py-4">Loading contributors...</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {contributions.length > 0 ? (
+        contributions.map((contribution: any, index: number) => (
+          <div key={index} className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                {contribution.display_name === 'Anonymous' ? (
+                  <p className="font-medium text-gray-900">Anonymous</p>
+                ) : (
+                  <div className="flex flex-col">
+                    <span className="text-gray-900 font-medium">
+                      {contribution.username || 'Unknown User'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(contribution.contributor_wallet);
+                        toast.success('Wallet address copied!');
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline text-left mt-1"
+                      title="Click to copy full wallet address"
+                    >
+                      {contribution.contributor_wallet.slice(0, 8)}...{contribution.contributor_wallet.slice(-6)}
+                    </button>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500">
+                  {new Date(contribution.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <span className="text-lg font-semibold text-blue-600">
+                {fundingService.formatADA(contribution.ada_amount)} ADA
+              </span>
+            </div>
+            {contribution.message && (
+              <p className="text-gray-700 text-sm italic">"{contribution.message}"</p>
+            )}
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500 text-center py-8">No contributions yet.</p>
+      )}
+    </div>
+  );
+};
+
 interface FundingProject {
   id: string;
   project_id: string;
@@ -585,32 +656,7 @@ const MyFunding: React.FC = () => {
                 {/* Contributors Section */}
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Contributors</h3>
-                  <div className="space-y-3">
-                    {selectedProject.contributions && selectedProject.contributions.length > 0 ? (
-                      selectedProject.contributions.map((contribution: any, index: number) => (
-                        <div key={index} className="bg-gray-50 rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {contribution.display_name || contribution.contributor_wallet}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(contribution.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <span className="text-lg font-semibold text-blue-600">
-                              {fundingService.formatADA(contribution.amount)} ADA
-                            </span>
-                          </div>
-                          {contribution.message && (
-                            <p className="text-gray-700 text-sm italic">"{contribution.message}"</p>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-center py-8">No contributions yet.</p>
-                    )}
-                  </div>
+                  <ContributorsSection projectId={selectedProject.id} />
                 </div>
               </div>
             </motion.div>
