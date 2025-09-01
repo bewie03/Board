@@ -458,7 +458,7 @@ const JobListings: React.FC = () => {
 
                   {/* Advanced Filters */}
                   {showFilters && (
-                    <div className="pt-6 border-t border-gray-200">
+                    <div className="pt-6">
                       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
                         {/* Date Posted Filter */}
                         <div className="space-y-2">

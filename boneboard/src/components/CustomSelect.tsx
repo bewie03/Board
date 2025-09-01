@@ -128,7 +128,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto scrollbar-hide">
           <div ref={optionsRef} role="listbox">
             {options.map((option, index) => (
               <div
