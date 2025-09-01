@@ -169,8 +169,14 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
   const { wallet } = req.query;
   const updates = req.body;
 
+  console.log('PUT request received:', { wallet, updates });
+
   if (!wallet) {
     return res.status(400).json({ error: 'Wallet address is required' });
+  }
+
+  if (!updates.wallet_address) {
+    return res.status(400).json({ error: 'wallet_address in body is required' });
   }
 
   // Get user ID

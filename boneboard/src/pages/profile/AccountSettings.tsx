@@ -46,7 +46,7 @@ const AccountSettings: React.FC = () => {
       }
 
       // Save username to database via API
-      const response = await fetch('/api/user-profiles', {
+      const response = await fetch(`/api/user-profiles?wallet=${encodeURIComponent(walletAddress)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
