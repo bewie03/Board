@@ -7,7 +7,8 @@ import { fundingService } from '../services/fundingService';
 import { toast } from 'react-toastify';
 import { fraudDetection } from '../utils/fraudDetection';
 import CustomSelect from '../components/CustomSelect';
-import CustomDatePicker from '../components/CustomDatePicker';
+import CustomMonthPicker from '../components/CustomMonthPicker';
+import { calculateFundingCost, calculateMonthsFromNow, formatAdaAmount } from '../utils/fundingPricing';
 import { CreateFundingData } from '../services/fundingService';
 import { contractService } from '../services/contractService';
 
@@ -41,16 +42,14 @@ const CreateFunding: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
-  const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
   
-  const [formData, setFormData] = useState<CreateFundingData & { paymentMethod: 'BONE' | 'ADA' }>({
+  const [formData, setFormData] = useState<CreateFundingData>({
     project_id: '',
     funding_goal: 0,
     funding_deadline: '',
     wallet_address: walletAddress || '',
     funding_wallet: '',
-    funding_purpose: '',
-    paymentMethod: 'BONE'
+    funding_purpose: ''
   });
 
   useEffect(() => {
@@ -161,29 +160,6 @@ const CreateFunding: React.FC = () => {
     };
   }, [navigate, walletAddress]);
 
-  // Load platform pricing on component mount
-  useEffect(() => {
-    const loadPricing = async () => {
-      try {
-        const response = await fetch('/api/admin?type=settings');
-        if (response.ok) {
-          const data = await response.json();
-          setPlatformPricing({
-            fundingListingFee: data.fundingListingFee || 500,
-            fundingListingFeeAda: data.fundingListingFeeAda || 50
-          });
-        }
-      } catch (error) {
-        console.error('Error loading pricing:', error);
-        // Set default pricing if API fails
-        setPlatformPricing({
-          fundingListingFee: 500,
-          fundingListingFeeAda: 50
-        });
-      }
-    };
-    loadPricing();
-  }, []);
 
   const fetchUserProjects = async () => {
     try {
@@ -208,20 +184,27 @@ const CreateFunding: React.FC = () => {
   };
 
   const calculateTotal = () => {
-    if (!platformPricing) {
-      return {
-        amount: formData.paymentMethod === 'ADA' ? 50 : 500,
-        currency: formData.paymentMethod
-      };
+    // Calculate dynamic pricing based on duration
+    if (formData.funding_deadline) {
+      try {
+        const months = calculateMonthsFromNow(formData.funding_deadline);
+        const dynamicCost = calculateFundingCost(months);
+        
+        return {
+          amount: dynamicCost,
+          currency: 'ADA', // Always ADA for funding
+          months
+        };
+      } catch (error) {
+        console.error('Error calculating dynamic cost:', error);
+      }
     }
     
-    const amount = formData.paymentMethod === 'ADA' 
-      ? platformPricing.fundingListingFeeAda 
-      : platformPricing.fundingListingFee;
-    
+    // Fallback to base cost if no deadline selected
     return {
-      amount,
-      currency: formData.paymentMethod
+      amount: 6, // Base cost
+      currency: 'ADA',
+      months: 1
     };
   };
 
@@ -336,15 +319,14 @@ const CreateFunding: React.FC = () => {
         funding_purpose: formData.funding_purpose,
         funding_wallet: formData.funding_wallet,
         paymentAmount: totalCost.amount,
-        paymentCurrency: formData.paymentMethod,
+        duration_months: totalCost.months,
+        paymentCurrency: 'ADA',
         walletAddress: walletAddress,
         timestamp: Date.now()
       };
       
-      // Process payment through smart contract
-      const result = formData.paymentMethod === 'ADA'
-        ? await contractService.postFundingWithADA(fundingData)
-        : await contractService.postFundingWithBONE(fundingData);
+      // Process payment through smart contract (always ADA for funding)
+      const result = await contractService.postFundingWithADA(fundingData);
       
       if (result.success && result.txHash) {
         // Store pending transaction in localStorage for persistent monitoring
@@ -630,20 +612,32 @@ const CreateFunding: React.FC = () => {
               {/* Funding Deadline */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Funding Deadline *
+                  Funding Duration *
                 </label>
-                <CustomDatePicker
+                <CustomMonthPicker
                   value={formData.funding_deadline}
-                  onChange={(date) => setFormData(prev => ({ ...prev, funding_deadline: date }))}
-                  minDate={new Date().toISOString().split('T')[0]}
-                  placeholder="Select funding deadline"
+                  onChange={(monthYear) => setFormData(prev => ({ ...prev, funding_deadline: monthYear }))}
+                  placeholder="Select funding duration"
+                  maxMonths={12}
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  When the funding period should end
+                  How long your funding campaign will run (1-12 months)
                 </p>
+                {formData.funding_deadline && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-800">
+                        Duration: {calculateMonthsFromNow(formData.funding_deadline)} month{calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}
+                      </span>
+                      <span className="text-sm font-bold text-green-900">
+                        Cost: {formatAdaAmount(calculateFundingCost(calculateMonthsFromNow(formData.funding_deadline)))}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-            {/* Funding Cost Notice */}
+            {/* Dynamic Pricing Notice */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -651,12 +645,32 @@ const CreateFunding: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-blue-800">
-                    Funding Creation Fee
+                    Dynamic Pricing Structure
                   </h3>
                   <div className="mt-2 text-sm text-blue-700">
                     <p>
-                      Creating a funding campaign costs <strong>2 ADA</strong> (testing rate). This helps prevent spam
-                      and ensures serious projects.
+                      Funding costs increase with duration to ensure fair platform usage:
+                    </p>
+                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      <div className="bg-white p-2 rounded border">
+                        <div className="font-semibold">1 month</div>
+                        <div className="text-blue-900">6 ADA</div>
+                      </div>
+                      <div className="bg-white p-2 rounded border">
+                        <div className="font-semibold">2 months</div>
+                        <div className="text-blue-900">12 ADA</div>
+                      </div>
+                      <div className="bg-white p-2 rounded border">
+                        <div className="font-semibold">3 months</div>
+                        <div className="text-blue-900">24 ADA</div>
+                      </div>
+                      <div className="bg-white p-2 rounded border">
+                        <div className="font-semibold">12 months</div>
+                        <div className="text-blue-900">12,288 ADA</div>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs">
+                      Cost doubles each month. Select your duration above to see exact pricing.
                     </p>
                   </div>
                 </div>
@@ -772,8 +786,12 @@ const CreateFunding: React.FC = () => {
                           <span className="font-medium">{formData.funding_goal} ADA</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Deadline:</span>
-                          <span className="font-medium">{new Date(formData.funding_deadline).toLocaleDateString()}</span>
+                          <span className="text-gray-600">Duration:</span>
+                          <span className="font-medium">{formData.funding_deadline ? `${calculateMonthsFromNow(formData.funding_deadline)} month${calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}` : 'Not selected'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Campaign Cost:</span>
+                          <span className="font-medium text-blue-600">{formatAdaAmount(totalCost.amount)}</span>
                         </div>
                         {formData.funding_wallet && (
                           <div className="flex justify-between text-sm">
@@ -905,64 +923,23 @@ const CreateFunding: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Payment Method */}
+                    {/* Payment Information */}
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                       <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                         <FaWallet className="mr-2" />
-                        Payment Method
+                        Payment Information
                       </h3>
                   
                       <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <label className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                            formData.paymentMethod === 'BONE' 
-                              ? 'border-blue-500 bg-blue-50' 
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              value="BONE"
-                              checked={formData.paymentMethod === 'BONE'}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <div className="flex items-center">
-                              <span className="text-2xl mr-3">🦴</span>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">BONE Token</div>
-                                <div className="text-xs text-gray-500">Recommended</div>
-                              </div>
+                        {/* ADA Payment Notice */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="flex items-center">
+                            <span className="text-lg mr-3">₳</span>
+                            <div>
+                              <div className="text-sm font-medium text-blue-900">Payment in ADA</div>
+                              <div className="text-xs text-blue-700">All funding campaigns are paid for using Cardano (ADA)</div>
                             </div>
-                            {formData.paymentMethod === 'BONE' && (
-                              <FaCheck className="absolute top-2 right-2 h-4 w-4 text-blue-500" />
-                            )}
-                          </label>
-                          
-                          <label className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                            formData.paymentMethod === 'ADA' 
-                              ? 'border-blue-500 bg-blue-50' 
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              value="ADA"
-                              checked={formData.paymentMethod === 'ADA'}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <div className="flex items-center">
-                              <span className="text-lg mr-3">₳</span>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">ADA</div>
-                                <div className="text-xs text-gray-500">Cardano</div>
-                              </div>
-                            </div>
-                            {formData.paymentMethod === 'ADA' && (
-                              <FaCheck className="absolute top-2 right-2 h-4 w-4 text-blue-500" />
-                            )}
-                          </label>
+                          </div>
                         </div>
                         
                         {/* Cost Breakdown */}
@@ -970,12 +947,16 @@ const CreateFunding: React.FC = () => {
                           <h4 className="text-sm font-medium text-gray-900 mb-3">Cost Breakdown</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Funding Campaign Fee</span>
-                              <span>{totalCost.amount} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
+                              <span className="text-gray-600">Duration</span>
+                              <span>{totalCost.months} month{totalCost.months !== 1 ? 's' : ''}</span>
                             </div>
-                            <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Campaign Fee</span>
+                              <span>{formatAdaAmount(totalCost.amount)}</span>
+                            </div>
+                            <div className="border-t border-gray-200 pt-2 flex justify-between font-medium text-lg">
                               <span>Total</span>
-                              <span>{totalCost.amount} {formData.paymentMethod === 'ADA' ? '₳' : 'BONE'}</span>
+                              <span className="text-blue-600">{formatAdaAmount(totalCost.amount)}</span>
                             </div>
                           </div>
                         </div>
