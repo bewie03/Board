@@ -5,6 +5,7 @@ import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import PageTransition from '../components/PageTransition';
 import { toast } from 'react-toastify';
+import { adminService } from '../services/adminService';
 
 
 const AdminPanel: React.FC = () => {
@@ -85,19 +86,8 @@ const AdminPanel: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin?type=settings', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load settings: ${response.status}`);
-      }
-      
-      const settingsData = await response.json();
+      // Use adminService instead of direct API call
+      const settingsData = await adminService.getPlatformSettings();
       // Settings loaded successfully
       
       setSettings({
@@ -124,17 +114,8 @@ const AdminPanel: React.FC = () => {
       setError(null);
       // Loading reported items
       
-      // Fetch all reports first (both pending and verified to show paused items)
-      const reportsResponse = await fetch('/api/reports', {
-        headers: { 'x-wallet-address': walletAddress }
-      });
-      
-      if (!reportsResponse.ok) {
-        throw new Error(`HTTP error! status: ${reportsResponse.status}`);
-      }
-      
-      const reportsData = await reportsResponse.json();
-      const allReports = reportsData.reports || [];
+      // Use adminService to fetch reports with proper authentication
+      const allReports = await adminService.getReports(walletAddress, false);
       // Reports loaded successfully
       
       // Group reports by scam_identifier (project/job ID)
@@ -226,26 +207,8 @@ const AdminPanel: React.FC = () => {
       setError(null);
       // Removing from reports
       
-      const response = await fetch('/api/reports', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          reportId,
-          action: 'delete',
-          itemId
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[FRONTEND] API Error:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-      }
-      
-      await response.json();
+      // Use adminService instead of direct API call
+      await adminService.processReport(walletAddress, reportId, 'delete', itemId);
       // Report removed successfully
       
       // Reload data
@@ -265,32 +228,15 @@ const AdminPanel: React.FC = () => {
       setLoading(true);
       
       // Determine the correct action based on current status
-      let finalAction = action;
+      let finalAction: 'pause' | 'delete' | 'archive' | 'restore' = action === 'permanent_delete' ? 'delete' : action;
       if (action === 'pause') {
         finalAction = currentStatus === 'paused' ? 'restore' : 'pause';
       }
       
       // Processing action for item
       
-      const response = await fetch('/api/reports', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          reportId,
-          action: finalAction,
-          projectId
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-      }
-      
-      await response.json();
+      // Use adminService instead of direct API call
+      await adminService.processReport(walletAddress, reportId, finalAction, projectId);
       // Action completed successfully
       
       // Update local state immediately for better UX
@@ -338,20 +284,8 @@ const AdminPanel: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin?type=settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify(newSettings)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to update settings: ${response.status}`);
-      }
-      
-      const updatedSettings = await response.json();
+      // Use adminService instead of direct API call
+      const updatedSettings = await adminService.updatePlatformSettings(walletAddress, newSettings);
       // Settings updated successfully
       
       setSettings({ 
