@@ -1,4 +1,6 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pool } from 'pg';
+import { rateLimit } from '../middleware/rateLimiter';
 
 // Simple UUID generator function
 function generateUUID(): string {
@@ -31,10 +33,37 @@ function getPool() {
   return pool;
 }
 
+// Special rate limiting for reports - 5 minute cooldown per user
+const reportsRateLimit = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 1, // only 1 report per 5 minutes per IP
+  message: 'You can only submit one report every 5 minutes. Please wait before submitting another report.'
+});
+
+// General rate limiting for viewing reports
+const reportsViewRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 50 requests per windowMs for viewing
+  message: 'Too many requests from this IP, please try again later.'
+});
+
 export default async function handler(req: any, res: any) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method === 'POST') {
+    // Apply strict rate limiting for report submissions
+    reportsRateLimit(req, res, () => {});
     return handleSubmitReport(req, res);
   } else if (req.method === 'GET') {
+    // Apply general rate limiting for viewing reports
+    reportsViewRateLimit(req, res, () => {});
     return handleGetReports(req, res);
   } else if (req.method === 'PUT') {
     return handleUpdateReport(req, res);
