@@ -257,12 +257,23 @@ class FraudDetectionService {
       const owners = stored ? JSON.parse(stored) : {};
       
       if (!owners[projectId]) {
+        // Get all wallets from current session (last 2 hours) to associate with this project
+        const currentSessionWallets = this.getRecentWalletSessions()
+          .filter(s => Date.now() - s.timestamp < 2 * 60 * 60 * 1000) // 2 hours
+          .map(s => s.wallet);
+        
+        // Include the current wallet if not already in session
+        if (!currentSessionWallets.includes(walletAddress)) {
+          currentSessionWallets.push(walletAddress);
+        }
+        
         owners[projectId] = {
-          wallet: walletAddress,
+          wallet: walletAddress, // Primary wallet used for creation
           timestamp: Date.now(),
           fingerprint: null, // Will be set when fingerprint is generated
-          deviceWallets: this.getDeviceWallets(), // Track all wallets on device at creation time
-          sessionWallets: this.getRecentWalletSessions().map(s => s.wallet) // Track session wallets
+          deviceWallets: this.getDeviceWallets(), // All wallets ever used on device
+          sessionWallets: currentSessionWallets, // All wallets from current session
+          associatedWallets: [...currentSessionWallets] // Copy for tracking wallet associations
         };
       }
       
@@ -324,26 +335,57 @@ class FraudDetectionService {
       return result;
     }
 
-    // Check 1.5: Device wallet history (Critical for multi-address detection)
-    const deviceWallets = this.getDeviceWallets();
-    if (deviceWallets.includes(projectOwnerWallet) && deviceWallets.includes(contributorWallet)) {
+    // Check 1.5: Wallet family detection (all addresses from same wallet)
+    const walletFamilies = this.getAllWalletFamilies();
+    const contributorFamily = this.findWalletFamily(contributorWallet, walletFamilies);
+    const ownerFamily = this.findWalletFamily(projectOwnerWallet, walletFamilies);
+    
+    if (contributorFamily && ownerFamily && contributorFamily.primaryAddress === ownerFamily.primaryAddress) {
       result.isAllowed = false;
-      result.reason = 'Cannot contribute: Both project owner and contributor wallets have been used on this device';
+      result.reason = 'Cannot contribute: Both addresses belong to the same wallet';
       result.riskLevel = 'high';
       result.checks.localStorage = true;
       return result;
     }
 
-    // Check 1.6: Recent wallet switching detection (Vespr multi-address scenario)
+    // Check 1.6: Enhanced multi-address detection (legacy session tracking)
+    const stored = localStorage.getItem(this.STORAGE_KEY);
+    const owners = stored ? JSON.parse(stored) : {};
+    const projectOwnership = owners[projectId];
+    
+    if (projectOwnership) {
+      // Check if contributor wallet is in the project owner's associated wallets
+      const associatedWallets = projectOwnership.associatedWallets || [];
+      if (associatedWallets.includes(contributorWallet)) {
+        result.isAllowed = false;
+        result.reason = 'Cannot contribute: This wallet was used in the same session as the project owner';
+        result.riskLevel = 'high';
+        result.checks.localStorage = true;
+        return result;
+      }
+    }
+
+    // Check 1.6: Real-time wallet switching detection (current session)
     const recentSessions = this.getRecentWalletSessions();
     const last30Minutes = Date.now() - (30 * 60 * 1000);
     const recentWallets = recentSessions
       .filter(s => s.timestamp > last30Minutes)
       .map(s => s.wallet);
     
+    // If both project owner and contributor wallets were used recently, block
     if (recentWallets.includes(projectOwnerWallet) && recentWallets.includes(contributorWallet)) {
       result.isAllowed = false;
       result.reason = 'Suspicious activity: Recent wallet switching detected (within 30 minutes)';
+      result.riskLevel = 'high';
+      result.checks.localStorage = true;
+      return result;
+    }
+
+    // Check 1.7: Device wallet history (fallback check)
+    const deviceWallets = this.getDeviceWallets();
+    if (deviceWallets.includes(projectOwnerWallet) && deviceWallets.includes(contributorWallet)) {
+      result.isAllowed = false;
+      result.reason = 'Cannot contribute: Both wallets have been used on this device';
       result.riskLevel = 'high';
       result.checks.localStorage = true;
       return result;
@@ -456,10 +498,145 @@ class FraudDetectionService {
   }
 
   /**
-   * Initialize wallet tracking for current session
+   * Initialize wallet tracking when wallet connects
    */
-  initializeWalletTracking(walletAddress: string): void {
+  async initializeWalletTracking(walletAddress: string, walletApi?: any): Promise<void> {
     this.trackWalletSession(walletAddress);
+    this.recordDeviceWallet(walletAddress);
+    
+    // Get ALL addresses from the connected wallet
+    if (walletApi) {
+      await this.recordAllWalletAddresses(walletAddress, walletApi);
+    }
+    
+    // Update project associations when user switches wallets
+    this.updateProjectWalletAssociations(walletAddress);
+  }
+
+  /**
+   * Get all addresses from the connected wallet and associate them
+   */
+  private async recordAllWalletAddresses(currentAddress: string, walletApi: any): Promise<void> {
+    try {
+      const allAddresses: string[] = [currentAddress];
+      
+      // Get used addresses from wallet
+      if (walletApi.getUsedAddresses) {
+        const usedAddresses = await walletApi.getUsedAddresses();
+        if (Array.isArray(usedAddresses)) {
+          allAddresses.push(...usedAddresses);
+        }
+      }
+      
+      // Get unused addresses from wallet  
+      if (walletApi.getUnusedAddresses) {
+        const unusedAddresses = await walletApi.getUnusedAddresses();
+        if (Array.isArray(unusedAddresses)) {
+          allAddresses.push(...unusedAddresses);
+        }
+      }
+      
+      // Get change address
+      if (walletApi.getChangeAddress) {
+        const changeAddress = await walletApi.getChangeAddress();
+        if (changeAddress) {
+          allAddresses.push(changeAddress);
+        }
+      }
+      
+      // Remove duplicates and store all addresses as associated
+      const uniqueAddresses = [...new Set(allAddresses)];
+      
+      // Store wallet family (all addresses from same wallet)
+      const walletFamilyKey = `wallet_family_${currentAddress}`;
+      localStorage.setItem(walletFamilyKey, JSON.stringify({
+        addresses: uniqueAddresses,
+        timestamp: Date.now(),
+        primaryAddress: currentAddress
+      }));
+      
+      // Record all addresses as device wallets
+      uniqueAddresses.forEach(addr => this.recordDeviceWallet(addr));
+      
+      console.log(`Recorded ${uniqueAddresses.length} addresses from wallet family`);
+      
+    } catch (error) {
+      console.warn('Failed to get all wallet addresses:', error);
+    }
+  }
+
+  /**
+   * Get all wallet families stored on this device
+   */
+  private getAllWalletFamilies(): any[] {
+    try {
+      const families: any[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('wallet_family_')) {
+          const data = localStorage.getItem(key);
+          if (data) {
+            families.push(JSON.parse(data));
+          }
+        }
+      }
+      return families;
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Find which wallet family an address belongs to
+   */
+  private findWalletFamily(address: string, families: any[]): any | null {
+    return families.find(family => 
+      family.addresses && family.addresses.includes(address)
+    ) || null;
+  }
+
+  /**
+   * Update project associations when user switches to a new wallet address
+   * This catches users switching addresses within the same session/device
+   */
+  private updateProjectWalletAssociations(newWalletAddress: string): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      const owners = stored ? JSON.parse(stored) : {};
+      
+      // Get recent sessions (last 4 hours) to find wallet switching patterns
+      const recentSessions = this.getRecentWalletSessions();
+      const sessionWindow = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
+      const recentWallets = recentSessions
+        .filter(s => s.timestamp > sessionWindow)
+        .map(s => s.wallet);
+      
+      let updated = false;
+      
+      // For each project, check if owner wallet was used recently
+      Object.keys(owners).forEach(projectId => {
+        const project = owners[projectId];
+        
+        // If project owner wallet was active recently, associate new wallet
+        if (recentWallets.includes(project.wallet)) {
+          if (!project.associatedWallets) {
+            project.associatedWallets = [project.wallet];
+          }
+          
+          if (!project.associatedWallets.includes(newWalletAddress)) {
+            project.associatedWallets.push(newWalletAddress);
+            updated = true;
+            console.log(`Associated wallet ${newWalletAddress} with project ${projectId} due to recent activity`);
+          }
+        }
+      });
+      
+      if (updated) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(owners));
+      }
+    } catch (error) {
+      console.warn('Failed to update project wallet associations:', error);
+    }
   }
 
   /**

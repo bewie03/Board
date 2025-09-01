@@ -279,8 +279,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       setConnectedWallet(walletId);
       walletRef.current = wallet;
       
-      // Track wallet session for fraud detection
-      fraudDetection.initializeWalletTracking(bech32Address);
+      // Track wallet session for fraud detection with wallet API access
+      await fraudDetection.initializeWalletTracking(bech32Address, wallet);
       
       // Load profile data for this wallet
       loadWalletProfile(bech32Address);
