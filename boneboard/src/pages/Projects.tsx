@@ -148,6 +148,16 @@ const Projects: React.FC = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const errorData = await response.json();
+          toast.error(errorData.message || 'You can only submit 2 reports every 3 minutes. Please wait before submitting another report.', {
+            position: 'top-right',
+            autoClose: 5000,
+          });
+          setShowReportModal(false);
+          setReportingProject(null);
+          return;
+        }
         throw new Error('Failed to submit report');
       }
 
@@ -156,7 +166,10 @@ const Projects: React.FC = () => {
       setReportingProject(null);
     } catch (error) {
       console.error('Error submitting report:', error);
-      throw error;
+      toast.error('Failed to submit report. Please try again.', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
     }
   };
 

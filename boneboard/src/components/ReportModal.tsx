@@ -54,9 +54,23 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         severity: 'medium',
         scam_identifier: projectId
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting report:', error);
-      alert('Failed to submit report. Please try again.');
+      
+      // Check if it's a rate limit error
+      if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
+        const toast = (await import('react-toastify')).toast;
+        toast.error('You can only submit 2 reports every 3 minutes. Please wait before submitting another report.', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+      } else {
+        const toast = (await import('react-toastify')).toast;
+        toast.error('Failed to submit report. Please try again.', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
+      }
     } finally {
       setLoading(false);
     }
