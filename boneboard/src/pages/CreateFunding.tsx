@@ -453,7 +453,7 @@ const CreateFunding: React.FC = () => {
               You need to create a project first, or all your projects already have active funding campaigns.
             </p>
             <button
-              onClick={() => navigate('/projects/create')}
+              onClick={() => navigate('/create-project')}
               className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
             >
               Create New Project
@@ -621,7 +621,7 @@ const CreateFunding: React.FC = () => {
                   maxMonths={12}
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  How long your funding campaign will run (1-12 months)
+                  How long your funding campaign will run (1-12 months) • Cost doubles each month starting at 6 ADA
                 </p>
                 {formData.funding_deadline && (
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -637,116 +637,18 @@ const CreateFunding: React.FC = () => {
                 )}
               </div>
 
-            {/* Dynamic Pricing Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <FaInfoCircle className="text-blue-600 text-lg" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    Dynamic Pricing Structure
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>
-                      Funding costs increase with duration to ensure fair platform usage:
-                    </p>
-                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                      <div className="bg-white p-2 rounded border">
-                        <div className="font-semibold">1 month</div>
-                        <div className="text-blue-900">6 ADA</div>
-                      </div>
-                      <div className="bg-white p-2 rounded border">
-                        <div className="font-semibold">2 months</div>
-                        <div className="text-blue-900">12 ADA</div>
-                      </div>
-                      <div className="bg-white p-2 rounded border">
-                        <div className="font-semibold">3 months</div>
-                        <div className="text-blue-900">24 ADA</div>
-                      </div>
-                      <div className="bg-white p-2 rounded border">
-                        <div className="font-semibold">12 months</div>
-                        <div className="text-blue-900">12,288 ADA</div>
-                      </div>
-                    </div>
-                    <p className="mt-2 text-xs">
-                      Cost doubles each month. Select your duration above to see exact pricing.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* How BoneBoard Funding Works */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <FaInfoCircle className="text-blue-600 text-xl mr-3" />
-                <h3 className="text-lg font-semibold text-blue-900">How BoneBoard Funding Works</h3>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <FaInfoCircle className="text-blue-600 text-lg mr-2" />
+                <h3 className="text-md font-medium text-blue-900">How BoneBoard Funding Works</h3>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
-                      1
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Direct Wallet Funding</h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Contributors send ADA directly to your project wallet - no middleman fees
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
-                      2
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Blockchain Security</h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        All transactions are permanently recorded on Cardano blockchain
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Real-time Analytics</h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Track funding progress, contributors, and engagement metrics live
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
-                      4
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">Community Driven</h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Build a community around your project with contributor recognition
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-white border border-blue-200 rounded-lg">
-                <div className="flex items-center">
-                  <FaInfoCircle className="text-blue-600 text-lg mr-3" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">
-                      Pro Tip: Projects with clear funding purposes and realistic goals get 3x more contributions!
-                    </p>
-                  </div>
-                </div>
+              <div className="space-y-3 text-sm text-blue-700">
+                <p>• Contributors send ADA directly to your project wallet - no middleman fees</p>
+                <p>• All transactions are permanently recorded on Cardano blockchain</p>
+                <p>• Track funding progress and contributors in real-time</p>
               </div>
             </div>
 
