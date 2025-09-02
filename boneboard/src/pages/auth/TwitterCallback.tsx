@@ -2,7 +2,14 @@ import React, { useEffect } from 'react';
 
 const TwitterCallback: React.FC = () => {
   useEffect(() => {
+    let callbackExecuted = false; // Prevent multiple executions
+    
     const handleCallback = async () => {
+      if (callbackExecuted) {
+        console.log('Callback already executed, skipping...');
+        return;
+      }
+      callbackExecuted = true;
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
@@ -75,7 +82,7 @@ const TwitterCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, []);
+  }, []); // Empty dependency array ensures this only runs once
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

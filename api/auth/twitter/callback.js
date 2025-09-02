@@ -1,3 +1,6 @@
+// Prevent duplicate processing of the same authorization code
+const processedCodes = new Set();
+
 export default async function handler(req, res) {
   console.log('Twitter OAuth callback started', {
     method: req.method,
@@ -34,6 +37,25 @@ export default async function handler(req, res) {
     if (!code || !state || !codeVerifier) {
       console.error('Missing required parameters:', { code: !!code, state: !!state, codeVerifier: !!codeVerifier });
       return res.status(400).json({ error: 'Missing code, state, or codeVerifier' });
+    }
+
+    // Check if this authorization code has already been processed
+    if (processedCodes.has(code)) {
+      console.log('Authorization code already processed, rejecting duplicate request');
+      return res.status(400).json({ 
+        error: 'Authorization code already used',
+        message: 'This authorization code has already been processed'
+      });
+    }
+
+    // Mark this code as being processed
+    processedCodes.add(code);
+    
+    // Clean up old codes (keep only last 100 to prevent memory leaks)
+    if (processedCodes.size > 100) {
+      const codesArray = Array.from(processedCodes);
+      processedCodes.clear();
+      codesArray.slice(-50).forEach(c => processedCodes.add(c));
     }
 
     // Use consistent redirect URI - must match exactly what was used in initial auth request
