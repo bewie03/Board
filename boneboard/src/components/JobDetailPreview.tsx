@@ -121,15 +121,15 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
               </p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <FaClock className="text-green-600 text-lg" />
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <FaClock className="text-blue-600 text-lg" />
               </div>
               <p className="text-sm text-gray-500 mb-1">Job Type</p>
               <p className="font-semibold text-gray-900">{formatText(type) || 'Not specified'}</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <FaMoneyBillWave className="text-purple-600 text-lg" />
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <FaMoneyBillWave className="text-blue-600 text-lg" />
               </div>
               <p className="text-sm text-gray-500 mb-1">Salary</p>
               <p className="font-semibold text-gray-900">{salary || 'Not specified'}</p>

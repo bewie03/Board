@@ -839,8 +839,7 @@ const JobListings: React.FC = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'tween', duration: 0.3 }}
-                className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60] transform" 
-                style={{ top: '0px' }}
+                className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60] transform overflow-y-auto"
               >
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -943,15 +942,15 @@ const JobListings: React.FC = () => {
                           </p>
                         </div>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaClock className="text-green-600 text-lg" />
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaClock className="text-blue-600 text-lg" />
                           </div>
                           <p className="text-sm text-gray-500 mb-1">Job Type</p>
                           <p className="font-semibold text-gray-900">{selectedJob.type}</p>
                         </div>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaMoneyBillWave className="text-purple-600 text-lg" />
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMoneyBillWave className="text-blue-600 text-lg" />
                           </div>
                           <p className="text-sm text-gray-500 mb-1">Salary</p>
                           <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
@@ -1027,9 +1026,9 @@ const JobListings: React.FC = () => {
                           href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                         >
-                          <FaLink className="flex-shrink-0 mr-2 h-4 w-4" />
+                          <FaLink className="h-4 w-4 mr-2" />
                           <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
                         </a>
                       </div>
@@ -1039,7 +1038,7 @@ const JobListings: React.FC = () => {
                     {(selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap gap-2">
                           {selectedJob.twitter && (
                             <a 
                               href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
@@ -1048,7 +1047,7 @@ const JobListings: React.FC = () => {
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
                               <FaXTwitter className="h-4 w-4 mr-2" />
-                              <span>(Twitter)</span>
+                              <span>Twitter</span>
                             </a>
                           )}
                           
@@ -1057,7 +1056,7 @@ const JobListings: React.FC = () => {
                               href={selectedJob.discord.inviteUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
                               <FaDiscord className="h-4 w-4 mr-2" />
                               <span>Discord</span>

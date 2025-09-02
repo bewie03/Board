@@ -70,7 +70,6 @@ const SavedJobs: React.FC = () => {
   const [savedJobsData, setSavedJobsData] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [emailCopied, setEmailCopied] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingJob, setReportingJob] = useState<Job | null>(null);
 
@@ -547,15 +546,15 @@ const SavedJobs: React.FC = () => {
                           </p>
                         </div>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaClock className="text-green-600 text-lg" />
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaClock className="text-blue-600 text-lg" />
                           </div>
                           <p className="text-sm text-gray-500 mb-1">Job Type</p>
                           <p className="font-semibold text-gray-900">{selectedJob.type}</p>
                         </div>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaMoneyBillWave className="text-purple-600 text-lg" />
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMoneyBillWave className="text-blue-600 text-lg" />
                           </div>
                           <p className="text-sm text-gray-500 mb-1">Salary</p>
                           <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
@@ -609,6 +608,15 @@ const SavedJobs: React.FC = () => {
                       </div>
                     )}
 
+                    {/* How to Apply */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
+                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                          <p className="leading-relaxed">{selectedJob.howToApply}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -623,9 +631,9 @@ const SavedJobs: React.FC = () => {
                           href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                         >
-                          <FaLink className="flex-shrink-0 mr-2 h-4 w-4" />
+                          <FaLink className="h-4 w-4 mr-2" />
                           <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
                         </a>
                       </div>
@@ -635,7 +643,7 @@ const SavedJobs: React.FC = () => {
                     {(selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
                       <div>
                         <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap gap-2">
                           {selectedJob.twitter && (
                             <a 
                               href={`https://twitter.com/${selectedJob.twitter.replace('@', '')}`} 
@@ -644,7 +652,7 @@ const SavedJobs: React.FC = () => {
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
                               <FaXTwitter className="h-4 w-4 mr-2" />
-                              <span>X (Twitter)</span>
+                              <span>Twitter</span>
                             </a>
                           )}
                           
@@ -653,7 +661,7 @@ const SavedJobs: React.FC = () => {
                               href={selectedJob.discord} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
                               <FaDiscord className="h-4 w-4 mr-2" />
                               <span>Discord</span>
@@ -661,30 +669,13 @@ const SavedJobs: React.FC = () => {
                           )}
                           
                           {selectedJob.contactEmail && (
-                            <button 
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                  setEmailCopied(true);
-                                  setTimeout(() => setEmailCopied(false), 2000);
-                                } catch (err) {
-                                  window.location.href = `mailto:${selectedJob.contactEmail}`;
-                                }
-                              }}
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            <a 
+                              href={`mailto:${selectedJob.contactEmail}`} 
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
-                              {emailCopied ? (
-                                <>
-                                  <FaCheck className="h-4 w-4 mr-2 text-green-600" />
-                                  <span className="text-green-600">Copied!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <FaEnvelope className="h-4 w-4 mr-2" />
-                                  <span>Email</span>
-                                </>
-                              )}
-                            </button>
+                              <FaEnvelope className="h-4 w-4 mr-2" />
+                              <span>Email</span>
+                            </a>
                           )}
                         </div>
                       </div>

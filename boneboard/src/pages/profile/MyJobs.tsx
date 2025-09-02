@@ -43,7 +43,6 @@ const MyJobs: React.FC = () => {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [emailCopied, setEmailCopied] = useState(false);
 
 
   const clearSelectedJob = () => {
@@ -560,8 +559,8 @@ const MyJobs: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaClock className="text-green-600 text-lg" />
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaClock className="text-blue-600 text-lg" />
                           </div>
                           <p className="text-sm text-gray-500 mb-1">Job Type</p>
                           <div className="font-semibold text-gray-900">
@@ -583,8 +582,8 @@ const MyJobs: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaMoneyBillWave className="text-purple-600 text-lg" />
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMoneyBillWave className="text-blue-600 text-lg" />
                           </div>
                           <p className="text-sm text-gray-500 mb-1">Salary</p>
                           <div className="font-semibold text-gray-900">
@@ -808,70 +807,108 @@ const MyJobs: React.FC = () => {
                     
                     {/* Contact */}
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact Email</h4>
-                      {editingJob ? (
-                        <input
-                          type="email"
-                          value={editFormData.contactEmail || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          placeholder="jobs@company.com"
-                        />
-                      ) : (
-                        <div className="flex flex-wrap gap-4">
-                          {selectedJob.twitter && (
-                            <a 
-                              href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaXTwitter className="h-4 w-4 mr-2" />
-                              <span>X (Twitter)</span>
-                            </a>
-                          )}
-                          
-                          {selectedJob.discord && (
-                            <a 
-                              href={(selectedJob.discord as any)?.inviteUrl || selectedJob.discord} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
-                            >
-                              <FaDiscord className="h-4 w-4 mr-2" />
-                              <span>Discord</span>
-                            </a>
-                          )}
-                          
-                          {selectedJob.contactEmail && (
-                            <button 
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                  setEmailCopied(true);
-                                  setTimeout(() => setEmailCopied(false), 2000);
-                                } catch (err) {
-                                  window.location.href = `mailto:${selectedJob.contactEmail}`;
-                                }
-                              }}
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                              {emailCopied ? (
-                                <>
-                                  <FaCheck className="h-4 w-4 mr-2 text-green-600" />
-                                  <span className="text-green-600">Copied!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <FaEnvelope className="h-4 w-4 mr-2" />
-                                  <span>Email</span>
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {(editingJob ? editFormData.twitter : selectedJob.twitter) && (
+                          <div className="flex items-center">
+                            {editingJob ? (
+                              <input
+                                type="text"
+                                value={editFormData.twitter || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
+                                placeholder="@username"
+                              />
+                            ) : (
+                              <a 
+                                href={`https://twitter.com/${selectedJob.twitter?.replace('@', '')}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                              >
+                                <FaXTwitter className="h-4 w-4 mr-2" />
+                                <span>Twitter</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        
+                        {(editingJob ? editFormData.discord : selectedJob.discord) && (
+                          <div className="flex items-center">
+                            {editingJob ? (
+                              <input
+                                type="text"
+                                value={editFormData.discord || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
+                                placeholder="Discord invite link"
+                              />
+                            ) : (
+                              <a 
+                                href={selectedJob.discord} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                              >
+                                <FaDiscord className="h-4 w-4 mr-2" />
+                                <span>Discord</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        
+                        {(editingJob ? editFormData.contactEmail : selectedJob.contactEmail) && (
+                          <div className="flex items-center">
+                            {editingJob ? (
+                              <input
+                                type="email"
+                                value={editFormData.contactEmail || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
+                                placeholder="contact@company.com"
+                              />
+                            ) : (
+                              <a 
+                                href={`mailto:${selectedJob.contactEmail}`} 
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                              >
+                                <FaEnvelope className="h-4 w-4 mr-2" />
+                                <span>Email</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setEditingJob(editingJob ? null : selectedJob)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        {editingJob ? 'Cancel' : 'Edit Job'}
+                      </button>
+                      {editingJob && (
+                        <button
+                          onClick={handleSaveEdit}
+                          disabled={false}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                        >
+                          Save Changes
+                        </button>
                       )}
                     </div>
+                    <button
+                      onClick={() => handleDeleteJob(selectedJob.id)}
+                      className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      Delete Job
+                    </button>
                   </div>
                 </div>
               </div>
