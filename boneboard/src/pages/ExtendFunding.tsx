@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaClock, FaCalendarAlt } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaCalendarAlt, FaCheck, FaTimes, FaWallet } from 'react-icons/fa';
 import { useWallet } from '../contexts/WalletContext';
 import { useContract } from '../hooks/useContract';
 import { toast } from 'react-toastify';
