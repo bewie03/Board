@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -13,11 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { projectId, months, walletAddress, txHash } = req.body;
+    const { projectId, newExpiryDate, walletAddress } = req.body;
 
-    if (!projectId || !months || !walletAddress || !txHash) {
+    if (!projectId || !newExpiryDate || !walletAddress) {
       return res.status(400).json({ 
-        error: 'Missing required fields: projectId, months, walletAddress, txHash' 
+        error: 'Missing required fields: projectId, newExpiryDate, walletAddress' 
       });
     }
 
@@ -31,32 +31,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Project not found or unauthorized' });
     }
 
-    // Calculate new expiry date by adding months to current expiry
-    const currentExpiry = new Date(projectCheck.rows[0].expires_at);
-    const newExpiryDate = new Date(currentExpiry);
-    newExpiryDate.setMonth(newExpiryDate.getMonth() + months);
-
     // Update the project's expiry date
     const updateResult = await pool.query(
       `UPDATE projects 
        SET expires_at = $1, updated_at = CURRENT_TIMESTAMP 
        WHERE id = $2 AND wallet_address = $3 
        RETURNING id, expires_at`,
-      [newExpiryDate.toISOString(), projectId, walletAddress]
+      [newExpiryDate, projectId, walletAddress]
     );
 
     if (updateResult.rows.length === 0) {
       return res.status(500).json({ error: 'Failed to update project expiry date' });
     }
 
-    console.log(`Project ${projectId} expiry extended by ${months} months to: ${newExpiryDate.toISOString()}`);
+    console.log(`Project ${projectId} expiry updated to: ${newExpiryDate}`);
 
     res.status(200).json({
       success: true,
-      message: 'Project expiry date extended successfully',
-      newExpiryDate: newExpiryDate.toISOString(),
-      projectId,
-      txHash
+      message: 'Project expiry date updated successfully',
+      newExpiryDate,
+      projectId
     });
 
   } catch (error) {

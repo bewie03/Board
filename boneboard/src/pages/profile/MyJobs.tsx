@@ -5,12 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaLink, FaCalendarPlus } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaLink } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import CustomSelect from '../../components/CustomSelect';
 import { JOB_CATEGORIES } from '../../constants/categories';
-import CustomMonthPicker from '../../components/CustomMonthPicker';
-import { calculateMonthsFromNow } from '../../utils/fundingPricing';
 
 // Helper function to get expiry time string
 const getExpiryTimeString = (expiryDate: string): string => {
@@ -47,10 +45,6 @@ const MyJobs: React.FC = () => {
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showExpiredJobs, setShowExpiredJobs] = useState(false);
-  const [showReactivateModal, setShowReactivateModal] = useState(false);
-  const [jobToReactivate, setJobToReactivate] = useState<Job | null>(null);
-  const [reactivationMonths, setReactivationMonths] = useState('');
-  const [reactivating, setReactivating] = useState(false);
 
 
   const clearSelectedJob = () => {
@@ -119,58 +113,6 @@ const MyJobs: React.FC = () => {
     }
   };
 
-  const handleReactivateJob = async () => {
-    if (!jobToReactivate || !reactivationMonths) return;
-
-    setReactivating(true);
-    try {
-      // Calculate new expiry date from selected months
-      const monthsToAdd = calculateMonthsFromNow(reactivationMonths);
-      const currentDate = new Date();
-      const newExpiresAt = new Date(currentDate);
-      newExpiresAt.setMonth(newExpiresAt.getMonth() + monthsToAdd);
-
-      const response = await fetch('/api/jobs', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'reactivate',
-          jobId: jobToReactivate.id,
-          newExpiresAt: newExpiresAt.toISOString()
-        })
-      });
-
-      if (response.ok) {
-        // Move job from expired to active list
-        const updatedJob = {
-          ...jobToReactivate,
-          status: 'confirmed' as const,
-          expiresAt: newExpiresAt.toISOString()
-        };
-        
-        setJobs([...jobs, updatedJob]);
-        setExpiredJobs(expiredJobs.filter(job => job.id !== jobToReactivate.id));
-        setShowReactivateModal(false);
-        setJobToReactivate(null);
-        setReactivationMonths('');
-        toast.success(`Job reactivated successfully!`);
-      } else {
-        toast.error('Failed to reactivate job');
-      }
-    } catch (error) {
-      console.error('Error reactivating job:', error);
-      toast.error('Error reactivating job');
-    } finally {
-      setReactivating(false);
-    }
-  };
-
-  const handleOpenReactivateModal = (job: Job) => {
-    setJobToReactivate(job);
-    setShowReactivateModal(true);
-  };
 
   const handlePauseJob = async (jobId: string) => {
     const job = jobs.find(j => j.id === jobId);
@@ -405,16 +347,6 @@ const MyJobs: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                window.location.href = `/extend-job/${job.id}`;
-                              }}
-                              className="p-2 text-gray-400 hover:text-green-600 transition-colors"
-                              title="Extend job listing"
-                            >
-                              <FaCalendarPlus className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
                                 handlePauseJob(job.id);
                               }}
                               className="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
@@ -531,16 +463,6 @@ const MyJobs: React.FC = () => {
                                   </div>
                                 </div>
                                 <div className="flex space-x-1 flex-shrink-0">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleOpenReactivateModal(job);
-                                    }}
-                                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                                    title="Reactivate job"
-                                  >
-                                    <FaClock className="h-4 w-4" />
-                                  </button>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1165,72 +1087,6 @@ const MyJobs: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Reactivation Modal */}
-        <AnimatePresence>
-          {showReactivateModal && jobToReactivate && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-              onClick={() => setShowReactivateModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center mb-6">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <FaClock className="text-blue-600 text-lg" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Reactivate Job</h3>
-                    <p className="text-sm text-gray-600">
-                      Reactivate "{jobToReactivate.title}" for a new duration
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reactivation Duration
-                    </label>
-                    <CustomMonthPicker
-                      value={reactivationMonths}
-                      onChange={setReactivationMonths}
-                      maxMonths={12}
-                      placeholder="Select reactivation duration"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      onClick={() => {
-                        setShowReactivateModal(false);
-                        setJobToReactivate(null);
-                        setReactivationMonths('');
-                      }}
-                      className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleReactivateJob}
-                      disabled={reactivating || !reactivationMonths}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {reactivating ? 'Reactivating...' : 'Reactivate Job'}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </PageTransition>
   );

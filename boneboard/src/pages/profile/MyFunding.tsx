@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaDiscord, FaClock } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaDiscord } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
@@ -285,10 +285,6 @@ const MyFunding: React.FC = () => {
     }
   };
 
-  const handleExtendFunding = (project: FundingProject) => {
-    navigate(`/extend-funding/${project.id}`);
-  };
-
 
   if (loading) {
     return (
@@ -396,13 +392,6 @@ const MyFunding: React.FC = () => {
                         title={funding.is_active ? 'Pause' : 'Activate'}
                       >
                         {funding.is_active ? <FaPause className="w-4 h-4" /> : <FaPlay className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => handleExtendFunding(funding)}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Extend Funding Period"
-                      >
-                        <FaClock className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteFunding(funding.id)}
