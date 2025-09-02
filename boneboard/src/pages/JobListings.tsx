@@ -82,7 +82,7 @@ const JobListings: React.FC = () => {
   const [selectedJobType, setSelectedJobType] = useState<JobType>('all');
   const [selectedWorkArrangement, setSelectedWorkArrangement] = useState<WorkArrangement>('all');
   const [selectedVerificationFilter, setSelectedVerificationFilter] = useState<VerificationFilter>('all');
-  const [emailCopied, setEmailCopied] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingJob, setReportingJob] = useState<JobWithDisplayProps | null>(null);
@@ -117,6 +117,17 @@ const JobListings: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCategoryDropdown]);
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedEmail(text);
+      setTimeout(() => setCopiedEmail(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -955,63 +966,62 @@ const JobListings: React.FC = () => {
                       </div>
                     </div>
 
-                  {/* Job Content */}
-                  <div className="p-6 space-y-8">
-                    {/* Description */}
-                    <div>
+                    {/* Job Content */}
+                    <div className="space-y-8">
+                      {/* Description */}
+                      <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
                       <div className="prose prose-sm max-w-none text-gray-700">
                         <p className="whitespace-pre-line leading-relaxed">{selectedJob.description}</p>
                       </div>
                     </div>
 
-                    {/* Required Skills */}
-                    {selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 && (
+                      {/* Required Skills */}
+                      {selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedJob.requiredSkills
+                              .filter(skill => skill && skill.trim() !== '')
+                              .map((skill, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                              >
+                                {skill.replace(/[{}"\\/\s]+/g, ' ').trim()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Additional Information */}
+                      {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                          <div className="prose prose-sm max-w-none text-gray-700">
+                            <p className="whitespace-pre-line leading-relaxed">
+                              {selectedJob.additionalInfo
+                                .filter(info => info && info.trim() !== '')
+                                .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
+                                .join('\n')
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* How to Apply */}
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedJob.requiredSkills
-                            .filter(skill => skill && skill.trim() !== '')
-                            .map((skill, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
-                            >
-                              {skill.replace(/[{}"\\/\s]+/g, ' ').trim()}
-                            </span>
-                          ))}
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
+                        <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                          <div className="prose prose-sm max-w-none text-gray-700">
+                            <p className="leading-relaxed">{selectedJob.howToApply}</p>
+                          </div>
                         </div>
                       </div>
-                    )}
 
-                    {/* Additional Information */}
-                    {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
-                        <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="whitespace-pre-line leading-relaxed">
-                            {selectedJob.additionalInfo
-                              .filter(info => info && info.trim() !== '')
-                              .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
-                              .join('\n')
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* How to Apply */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
-                        <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="leading-relaxed">{selectedJob.howToApply}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Contact & Links */}
-                    <div>
+                      {/* Contact & Links */}
                       {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
                         <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
                           <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
@@ -1042,8 +1052,8 @@ const JobListings: React.FC = () => {
                             
                             {selectedJob.discord && (
                               <a 
-                                href={selectedJob.discord.inviteUrl} 
-                                target="_blank" 
+                                href={typeof selectedJob.discord === 'string' ? selectedJob.discord : selectedJob.discord.inviteUrl}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                               >
@@ -1054,18 +1064,10 @@ const JobListings: React.FC = () => {
                             
                             {selectedJob.contactEmail && (
                               <button 
-                                onClick={async () => {
-                                  try {
-                                    await navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                    setEmailCopied(true);
-                                    setTimeout(() => setEmailCopied(false), 2000);
-                                  } catch (err) {
-                                    window.location.href = `mailto:${selectedJob.contactEmail}`;
-                                  }
-                                }}
-                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                onClick={() => copyToClipboard(selectedJob.contactEmail)}
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                               >
-                                {emailCopied ? (
+                                {copiedEmail === selectedJob.contactEmail ? (
                                   <>
                                     <FaCheck className="h-4 w-4 mr-2 text-green-600" />
                                     <span className="text-green-600">Copied!</span>
@@ -1085,7 +1087,6 @@ const JobListings: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
             </motion.div>
             </>
           )}
