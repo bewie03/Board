@@ -775,10 +775,16 @@ const MyJobs: React.FC = () => {
                       )}
                     </div>
 
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex flex-col space-y-4">
                     {/* Contact & Links */}
                     {((editingJob ? editFormData.website : selectedJob.website) || (editingJob ? editFormData.twitter : selectedJob.twitter) || (editingJob ? editFormData.discord : selectedJob.discord) || (editingJob ? editFormData.contactEmail : selectedJob.contactEmail)) && (
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact & Links</h4>
                         <div className="flex flex-wrap gap-2">
                           {(editingJob ? editFormData.website : selectedJob.website) && (
                             <div className="flex items-center">

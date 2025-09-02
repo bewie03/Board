@@ -604,9 +604,19 @@ const SavedJobs: React.FC = () => {
                         </div>
                       )}
 
+                      {/* How to Apply */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
+                        <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                          <div className="prose prose-sm max-w-none text-gray-700">
+                            <p className="leading-relaxed">{selectedJob.howToApply}</p>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Contact & Links */}
                       {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
-                        <div>
+                        <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
                           <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
                           <div className="flex flex-wrap gap-2">
                             {selectedJob.website && (
@@ -674,16 +684,6 @@ const SavedJobs: React.FC = () => {
                           </div>
                         </div>
                       )}
-
-                      {/* How to Apply */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                        <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
-                          <div className="prose prose-sm max-w-none text-gray-700">
-                            <p className="leading-relaxed">{selectedJob.howToApply}</p>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
