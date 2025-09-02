@@ -75,6 +75,17 @@ export interface FreelancerProfileData {
   portfolio?: string[];
 }
 
+export interface ExtensionData {
+  id: string;
+  type: 'project' | 'job';
+  title: string;
+  months: number;
+  walletAddress: string;
+  paymentAmount: number;
+  paymentCurrency: 'BONE' | 'ADA';
+  timestamp: number;
+}
+
 export class ContractService {
   private lucid: Lucid | null = null;
 
@@ -87,31 +98,29 @@ export class ContractService {
       console.log('API Key length:', BLOCKFROST_API_KEY?.length || 0);
       
       if (!BLOCKFROST_API_KEY) {
-        throw new Error('Blockfrost API key not configured. Please set VITE_BLOCKFROST_API_KEY environment variable.');
+        throw new Error('Blockfrost API key is required');
       }
-      
-      // Initialize Lucid with Blockfrost provider
-      const lucid = await Lucid.new(
-        new Blockfrost(
-          `https://cardano-${NETWORK.toLowerCase()}.blockfrost.io/api/v0`,
-          BLOCKFROST_API_KEY
-        ),
-        NETWORK as 'Preview' | 'Mainnet'
+
+      const blockfrost = new Blockfrost(
+        `https://cardano-${NETWORK.toLowerCase()}.blockfrost.io/api/v0`,
+        BLOCKFROST_API_KEY
       );
+
+      this.lucid = await Lucid.new(blockfrost, NETWORK as any);
       
-      // Select wallet if provided
       if (walletApi) {
-        lucid.selectWallet(walletApi);
+        this.lucid.selectWallet(walletApi);
+        console.log('Wallet selected successfully');
       }
       
-      this.lucid = lucid;
       console.log('Lucid initialized successfully');
       return true;
     } catch (error) {
       console.error('Failed to initialize Lucid:', error);
-      return false;
+      throw error;
     }
   }
+
 
   async postJobWithBONE(jobData: JobPostingData): Promise<{ success: boolean; txHash?: string; error?: string }> {
     if (!this.lucid) {
@@ -151,7 +160,12 @@ export class ContractService {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ amount: boneAmount })
+          body: JSON.stringify({
+            tx_hash: txHash,
+            bone_amount: boneAmount,
+            wallet_address: jobData.walletAddress,
+            action_type: 'job_posting'
+          })
         });
       } catch (error) {
         console.warn('Failed to track BONE payment in database:', error);
@@ -419,42 +433,111 @@ export class ContractService {
     }
   }
 
-  private parsePaymentError(error: any, currency: 'ADA' | 'BONE', amount: number): string {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    
-    // Check for insufficient funds patterns (including InputsExhaustedError)
-    if (errorMessage.includes('insufficient') || 
-        errorMessage.includes('not enough') || 
-        errorMessage.includes('UTxO Balance Insufficient') ||
-        errorMessage.includes('InsufficientCollateral') ||
-        errorMessage.includes('ValueNotConserved') ||
-        errorMessage.includes('InputsExhaustedError') ||
-        errorMessage.includes('inputs exhausted')) {
-      return `Not enough ${currency} in your wallet. You need at least ${amount} ${currency} to complete this payment.`;
+  async extendWithADA(extensionData: ExtensionData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
     }
-    
-    // Check for asset not found (BONE token not in wallet)
-    if (errorMessage.includes('asset') && errorMessage.includes('not found')) {
-      return `${currency} token not found in your wallet. Please ensure you have ${amount} ${currency} tokens.`;
+
+    try {
+      console.log('Creating ADA extension transaction...');
+      
+      // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
+      const feeInLovelace = BigInt(extensionData.paymentAmount * 1_000_000);
+      
+      console.log(`Sending ${extensionData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace });
+
+      console.log('Building transaction...');
+      const completeTx = await tx.complete();
+      
+      console.log('Signing transaction...');
+      const signedTx = await completeTx.sign().complete();
+      
+      console.log('Submitting transaction...');
+      const txHash = await signedTx.submit();
+      
+      console.log('Extension transaction submitted successfully:', txHash);
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error extending with ADA:', error);
+      const errorMessage = this.parsePaymentError(error, 'ADA', extensionData.paymentAmount);
+      return { success: false, error: errorMessage };
     }
-    
-    // Check for wallet connection issues
-    if (errorMessage.includes('wallet') || errorMessage.includes('connection')) {
-      return 'Wallet connection error. Please reconnect your wallet and try again.';
+  }
+
+  async extendWithBONE(extensionData: ExtensionData): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
     }
-    
-    // Check for network issues
-    if (errorMessage.includes('network') || errorMessage.includes('timeout')) {
-      return 'Network error. Please check your connection and try again.';
+
+    try {
+      // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
+      const boneAmount = Math.floor(extensionData.paymentAmount);
+      
+      // Construct the full asset ID: policyId + tokenName (hex)
+      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
+      
+      console.log(`Sending ${boneAmount} BONE tokens for extension`);
+      console.log(`Asset ID: ${fullAssetId}`);
+      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
+      
+      // Build the transaction
+      const tx = this.lucid.newTx()
+        .payToAddress(
+          JOB_POSTING_ADDRESS,
+          { 
+            [fullAssetId]: BigInt(boneAmount)
+          }
+        );
+
+      // Complete and submit the transaction
+      const completeTx = await tx.complete();
+      const signedTx = await completeTx.sign().complete();
+      const txHash = await signedTx.submit();
+
+      // Track BONE payment in database
+      try {
+        await fetch('/api/burnedbone', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount: boneAmount })
+        });
+      } catch (error) {
+        console.warn('Failed to track BONE payment in database:', error);
+      }
+
+      return { success: true, txHash };
+    } catch (error) {
+      console.error('Error extending with BONE:', error);
+      const boneAmount = Math.floor(extensionData.paymentAmount);
+      const errorMessage = this.parsePaymentError(error, 'BONE', boneAmount);
+      return { success: false, error: errorMessage };
     }
+  }
+
+  parsePaymentError(error: any, currency: string, amount: number): string {
+    const errorStr = error?.toString() || '';
     
-    // Check for transaction building errors
-    if (errorMessage.includes('transaction') && (errorMessage.includes('build') || errorMessage.includes('construct'))) {
+    if (errorStr.includes('UTxO Balance Insufficient')) {
+      return `Insufficient ${currency} balance. You need ${amount} ${currency} plus transaction fees.`;
+    } else if (errorStr.includes('BadInputsUTxO')) {
+      return `Transaction input error. Please try again or check your wallet balance.`;
+    } else if (errorStr.includes('ValueNotConserved')) {
+      return `Transaction value error. Please check your ${currency} balance and try again.`;
+    } else if (errorStr.includes('CollateralContainsNonADA')) {
+      return `Collateral error. Please ensure your wallet has sufficient ADA for transaction fees.`;
+    } else if (errorStr.includes('user declined')) {
+      return `Transaction cancelled by user.`;
+    } else if (errorStr.includes('transaction') && (errorStr.includes('build') || errorStr.includes('construct'))) {
       return 'Unable to create transaction. Please check your wallet balance and try again.';
+    } else {
+      return `Payment failed: ${errorStr}`;
     }
-    
-    // Default to a user-friendly message instead of technical error
-    return 'Payment failed. Please check your wallet balance and try again.';
   }
 
   async getJobPostings(): Promise<any[]> {
