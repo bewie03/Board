@@ -72,6 +72,7 @@ const SavedJobs: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingJob, setReportingJob] = useState<Job | null>(null);
+  const [emailCopied, setEmailCopied] = useState(false);
 
   // Load saved jobs for the connected wallet
   useEffect(() => {
@@ -558,129 +559,144 @@ const SavedJobs: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Job Description */}
-                    <div className="mb-8">
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
-                      <div className="prose prose-sm max-w-none text-gray-700">
-                        <p className="leading-relaxed">{selectedJob.description}</p>
-                      </div>
-                    </div>
-
-                    {/* Required Skills */}
-                    {selectedJob.requiredSkills && selectedJob.requiredSkills.length > 0 && (
-                      <div className="mb-8">
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedJob.requiredSkills.map((skill, index) => (
-                            <span 
-                              key={index}
-                              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Additional Information */}
-                    {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
-                      <div className="mb-8">
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                    {/* Job Content */}
+                    <div className="space-y-8">
+                      {/* Description */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
                         <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="whitespace-pre-line leading-relaxed">
-                            {selectedJob.additionalInfo
-                              .filter(info => info && info.trim() !== '')
-                              .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
-                              .join('\n')
-                            }
-                          </p>
+                          <p className="whitespace-pre-line leading-relaxed">{selectedJob.description}</p>
                         </div>
                       </div>
-                    )}
 
-                    {/* How to Apply */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
-                        <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="leading-relaxed">{selectedJob.howToApply}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 mt-8">
-                      <div className="flex flex-col space-y-4">
-                        {/* Contact & Links */}
-                        {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact & Links</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedJob.website && (
-                                <a 
-                                  href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                                >
-                                  <FaLink className="h-4 w-4 mr-2" />
-                                  <span>Website</span>
-                                </a>
-                              )}
-                              
-                              {selectedJob.twitter && (
-                                <a 
-                                  href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                                >
-                                  <FaXTwitter className="h-4 w-4 mr-2" />
-                                  <span>Twitter</span>
-                                </a>
-                              )}
-                              
-                              {selectedJob.discord && (
-                                <a 
-                                  href={selectedJob.discord} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                                >
-                                  <FaDiscord className="h-4 w-4 mr-2" />
-                                  <span>Discord</span>
-                                </a>
-                              )}
-                              
-                              {selectedJob.contactEmail && (
-                                <button 
-                                  onClick={() => {
-                                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                                      navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                      toast.success('Email copied to clipboard!');
-                                    } else {
-                                      window.location.href = `mailto:${selectedJob.contactEmail}`;
-                                    }
-                                  }}
-                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                                >
-                                  <FaEnvelope className="h-4 w-4 mr-2" />
-                                  <span>Copy Email</span>
-                                </button>
-                              )}
-                            </div>
+                      {/* Required Skills */}
+                      {selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedJob.requiredSkills
+                              .filter(skill => skill && skill.trim() !== '')
+                              .map((skill, index) => (
+                              <span 
+                                key={index}
+                                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                              >
+                                {skill.replace(/[{}"\\/\s]+/g, ' ').trim()}
+                              </span>
+                            ))}
                           </div>
-                        )}
+                        </div>
+                      )}
+
+                      {/* Additional Information */}
+                      {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                          <div className="prose prose-sm max-w-none text-gray-700">
+                            <p className="whitespace-pre-line leading-relaxed">
+                              {selectedJob.additionalInfo
+                                .filter(info => info && info.trim() !== '')
+                                .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
+                                .join('\n')
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* How to Apply */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
+                        <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                          <div className="prose prose-sm max-w-none text-gray-700">
+                            <p className="leading-relaxed">{selectedJob.howToApply}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Footer */}
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div className="flex flex-col space-y-4">
+                    {/* Contact & Links */}
+                    {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact & Links</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedJob.website && (
+                            <a 
+                              href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                            >
+                              <FaLink className="h-4 w-4 mr-2" />
+                              <span>Website</span>
+                            </a>
+                          )}
+                          
+                          {selectedJob.twitter && (
+                            <a 
+                              href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                            >
+                              <FaXTwitter className="h-4 w-4 mr-2" />
+                              <span>Twitter</span>
+                            </a>
+                          )}
+                          
+                          {selectedJob.discord && (
+                            <a 
+                              href={selectedJob.discord} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                            >
+                              <FaDiscord className="h-4 w-4 mr-2" />
+                              <span>Discord</span>
+                            </a>
+                          )}
+                          
+                          {selectedJob.contactEmail && (
+                            <button 
+                              onClick={async () => {
+                                try {
+                                  await navigator.clipboard.writeText(selectedJob.contactEmail!);
+                                  setEmailCopied(true);
+                                  setTimeout(() => setEmailCopied(false), 2000);
+                                } catch (err) {
+                                  window.location.href = `mailto:${selectedJob.contactEmail}`;
+                                }
+                              }}
+                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                              {emailCopied ? (
+                                <>
+                                  <FaCheck className="h-4 w-4 mr-2 text-green-600" />
+                                  <span className="text-green-600">Copied!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FaEnvelope className="h-4 w-4 mr-2" />
+                                  <span>Email</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
         {/* Report Modal */}
         <ReportModal

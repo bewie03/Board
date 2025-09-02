@@ -617,7 +617,7 @@ const MyJobs: React.FC = () => {
                   </div>
 
                   {/* Job Content */}
-                  <div className="px-6 py-6 space-y-8">
+                  <div className="p-6 space-y-8">
                     {/* Description */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
