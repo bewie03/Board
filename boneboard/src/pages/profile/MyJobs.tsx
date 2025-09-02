@@ -570,7 +570,7 @@ const MyJobs: React.FC = () => {
                                 { value: 'Full-time', label: 'Full-time' },
                                 { value: 'Part-time', label: 'Part-time' },
                                 { value: 'Contract', label: 'Contract' },
-                                { value: 'Freelance', label: 'Freelance' }
+                                { value: 'Internship', label: 'Internship' }
                               ]}
                               value={editFormData.type || ''}
                               onChange={(value) => setEditFormData(prev => ({ ...prev, type: value }))}
@@ -588,23 +588,29 @@ const MyJobs: React.FC = () => {
                           <p className="text-sm text-gray-500 mb-1">Salary</p>
                           <div className="font-semibold text-gray-900">
                           {editingJob ? (
-                            <div className="flex flex-col items-center space-y-1">
+                            <div className="flex flex-col items-center space-y-2">
                               <input
                                 type="text"
                                 value={editFormData.salary || ''}
                                 onChange={(e) => setEditFormData(prev => ({ ...prev, salary: e.target.value }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-24 text-center"
-                                placeholder="Salary"
+                                className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-center"
+                                placeholder="Amount"
                               />
-                              <select
-                                value={editFormData.salaryType || 'FIAT'}
-                                onChange={(e) => setEditFormData(prev => ({ ...prev, salaryType: e.target.value as 'ADA' | 'FIAT' | 'Other' }))}
-                                className="text-xs bg-transparent border border-gray-200 rounded px-1 py-0.5 focus:border-blue-500 outline-none"
-                              >
-                                <option value="ADA">ADA</option>
-                                <option value="FIAT">FIAT</option>
-                                <option value="Other">Other</option>
-                              </select>
+                              <div className="w-32">
+                                <CustomSelect
+                                  options={[
+                                    { value: 'ADA', label: '₳ ADA' },
+                                    { value: 'FIAT', label: '$ USD' },
+                                    { value: 'EUR', label: '€ EUR' },
+                                    { value: 'GBP', label: '£ GBP' },
+                                    { value: 'Other', label: 'Other' }
+                                  ]}
+                                  value={editFormData.salaryType || 'FIAT'}
+                                  onChange={(value) => setEditFormData(prev => ({ ...prev, salaryType: value as 'ADA' | 'FIAT' | 'Other' }))}
+                                  placeholder="Currency"
+                                  className="text-xs"
+                                />
+                              </div>
                             </div>
                           ) : (
                             <span>{selectedJob.salary}</span>
@@ -777,27 +783,30 @@ const MyJobs: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex flex-col space-y-4">
                     {/* Links */}
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
                       {editingJob ? (
-                        <input
-                          type="url"
-                          value={editFormData.website || ''}
-                          onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          placeholder="https://company.com"
-                        />
+                        <div className="flex items-center space-x-2">
+                          <FaLink className="h-4 w-4 text-gray-500" />
+                          <input
+                            type="url"
+                            value={editFormData.website || ''}
+                            onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            placeholder="https://company.com"
+                          />
+                        </div>
                       ) : selectedJob.website ? (
                         <a 
                           href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                         >
-                          <FaLink className="flex-shrink-0 mr-2 h-4 w-4" />
+                          <FaLink className="h-4 w-4 mr-2" />
                           <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
                         </a>
                       ) : (
@@ -812,13 +821,16 @@ const MyJobs: React.FC = () => {
                         {(editingJob ? editFormData.twitter : selectedJob.twitter) && (
                           <div className="flex items-center">
                             {editingJob ? (
-                              <input
-                                type="text"
-                                value={editFormData.twitter || ''}
-                                onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                                placeholder="@username"
-                              />
+                              <div className="flex items-center space-x-2">
+                                <FaXTwitter className="h-4 w-4 text-gray-500" />
+                                <input
+                                  type="text"
+                                  value={editFormData.twitter || ''}
+                                  onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
+                                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  placeholder="@username"
+                                />
+                              </div>
                             ) : (
                               <a 
                                 href={`https://twitter.com/${selectedJob.twitter?.replace('@', '')}`} 
@@ -836,13 +848,16 @@ const MyJobs: React.FC = () => {
                         {(editingJob ? editFormData.discord : selectedJob.discord) && (
                           <div className="flex items-center">
                             {editingJob ? (
-                              <input
-                                type="text"
-                                value={editFormData.discord || ''}
-                                onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                                placeholder="Discord invite link"
-                              />
+                              <div className="flex items-center space-x-2">
+                                <FaDiscord className="h-4 w-4 text-gray-500" />
+                                <input
+                                  type="text"
+                                  value={editFormData.discord || ''}
+                                  onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
+                                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  placeholder="Discord invite link"
+                                />
+                              </div>
                             ) : (
                               <a 
                                 href={selectedJob.discord} 
@@ -884,7 +899,7 @@ const MyJobs: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-2">
                       <button

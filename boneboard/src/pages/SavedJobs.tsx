@@ -621,7 +621,7 @@ const SavedJobs: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex flex-col space-y-4">
                     {/* Links */}
                     {selectedJob.website && (
