@@ -31,6 +31,17 @@ const MyProjects: React.FC = () => {
   const [characterCount, setCharacterCount] = useState(0);
   const [lineCount, setLineCount] = useState(1);
 
+  // Helper function to get job count for a project
+  const getProjectJobCount = (project: Project) => {
+    const projectName = project.title || project.name;
+    return allJobs.filter(job => 
+      job.company && projectName && (
+        job.company.toLowerCase().includes(projectName.toLowerCase()) ||
+        projectName.toLowerCase().includes(job.company.toLowerCase())
+      )
+    ).length;
+  };
+
   useEffect(() => {
     const fetchUserProjects = async () => {
       if (isConnected && walletAddress) {
@@ -314,7 +325,7 @@ const MyProjects: React.FC = () => {
                 </Link>
               </div>
               
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {projects.map((project, index) => (
                   <motion.div 
                     key={project.id}
@@ -328,16 +339,41 @@ const MyProjects: React.FC = () => {
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedProject(project)}
-                    className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer relative overflow-hidden"
                   >
-                    <div className="p-6">
-                      <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 rounded-full mr-4 bg-white border border-gray-200 flex items-center justify-center">
+                    {/* Edit and Delete buttons - positioned absolutely */}
+                    <div className="absolute top-3 right-3 flex space-x-1 z-10">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditProject(project);
+                        }}
+                        className="p-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-gray-400 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-sm"
+                        title="Edit project"
+                      >
+                        <FaEdit className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteProject(project.id);
+                        }}
+                        className="p-1.5 bg-white/80 backdrop-blur-sm rounded-lg text-gray-400 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-sm"
+                        title="Delete project"
+                      >
+                        <FaTrash className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="p-4">
+                      {/* Logo and Title Section */}
+                      <div className="flex items-start space-x-3 mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center flex-shrink-0">
                           {project.logo ? (
                             <img 
                               src={project.logo} 
                               alt={`${project.name} logo`}
-                              className="w-full h-full rounded-full object-cover"
+                              className="w-full h-full rounded-xl object-cover"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                                 const parent = (e.target as HTMLImageElement).parentElement;
@@ -350,12 +386,12 @@ const MyProjects: React.FC = () => {
                             <FaBuilding className="text-blue-600 text-lg" />
                           )}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            <h3 className="text-lg font-semibold text-gray-900">{project.title || project.name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="text-lg font-semibold text-gray-900 truncate">{project.title || project.name}</h3>
                             {project.isVerified && (
                               <div 
-                                className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                                className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
                                 title="Verified project"
                               >
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -364,70 +400,82 @@ const MyProjects: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {project.category}
                           </span>
                         </div>
-                        <div className="flex space-x-1">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditProject(project);
-                            }}
-                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                            title="Edit project"
-                          >
-                            <FaEdit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteProject(project.id);
-                            }}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                            title="Delete project"
-                          >
-                            <FaTrash className="h-4 w-4" />
-                          </button>
-                        </div>
                       </div>
                       
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      {/* Description */}
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
                         {project.description}
                       </p>
                       
-                      <div className="flex items-center justify-end mb-4">
-                        <div className="flex space-x-2">
+                      {/* Bottom Section */}
+                      <div className="flex items-center justify-between">
+                        {/* Social Links */}
+                        <div className="flex items-center space-x-2">
                           {project.website && (
-                            <a href={project.website} target="_blank" rel="noopener noreferrer">
-                              <FaGlobe className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                            <a 
+                              href={project.website} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                              title="Website"
+                            >
+                              <FaGlobe className="h-4 w-4" />
                             </a>
                           )}
-                          {(typeof project.twitter === 'object' && project.twitter?.verified) && (
-                            <a href={`https://twitter.com/${project.twitter.username}`} target="_blank" rel="noopener noreferrer">
-                              <FaXTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                          {/* Twitter - check both object with verified and string formats */}
+                          {((typeof project.twitter === 'object' && project.twitter?.username) || 
+                            (typeof project.twitter === 'string' && project.twitter) ||
+                            project.twitterLink) && (
+                            <a 
+                              href={
+                                typeof project.twitter === 'object' && project.twitter?.username
+                                  ? `https://twitter.com/${project.twitter.username}`
+                                  : typeof project.twitter === 'string' && project.twitter
+                                    ? project.twitter.startsWith('http') ? project.twitter : `https://twitter.com/${project.twitter}`
+                                    : project.twitterLink?.startsWith('http') ? project.twitterLink : `https://twitter.com/${project.twitterLink}`
+                              }
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                              title="Twitter"
+                            >
+                              <FaXTwitter className="h-4 w-4" />
                             </a>
                           )}
-                          {(typeof project.twitter === 'string' && project.twitter) && (
-                            <a href={project.twitter.startsWith('http') ? project.twitter : `https://twitter.com/${project.twitter}`} target="_blank" rel="noopener noreferrer">
-                              <FaXTwitter className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-                            </a>
-                          )}
-                          {(typeof project.discord === 'object' && project.discord?.verified) && (
-                            <a href={project.discord.inviteUrl} target="_blank" rel="noopener noreferrer">
-                              <FaDiscord className="h-4 w-4 text-gray-400 hover:text-indigo-600" />
-                            </a>
-                          )}
-                          {(typeof project.discord === 'string' && project.discord) && (
-                            <a href={project.discord} target="_blank" rel="noopener noreferrer">
-                              <FaDiscord className="h-4 w-4 text-gray-400 hover:text-indigo-600" />
+                          {/* Discord - check both object and string formats */}
+                          {((typeof project.discord === 'object' && project.discord?.inviteUrl) ||
+                            (typeof project.discord === 'string' && project.discord) ||
+                            project.discordLink) && (
+                            <a 
+                              href={
+                                typeof project.discord === 'object' && project.discord?.inviteUrl
+                                  ? project.discord.inviteUrl
+                                  : typeof project.discord === 'string' && project.discord
+                                    ? project.discord
+                                    : project.discordLink || ''
+                              }
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                              title="Discord"
+                            >
+                              <FaDiscord className="h-4 w-4" />
                             </a>
                           )}
                         </div>
-                      </div>
-                      
-                      <div className="text-xs text-gray-500">
-                        Created {new Date(project.timestamp || project.createdAt || Date.now()).toLocaleDateString()}
+                        
+                        {/* Jobs Count */}
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-600">{getProjectJobCount(project)}</div>
+                          <div className="text-xs text-gray-500">jobs</div>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
