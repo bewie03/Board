@@ -458,90 +458,91 @@ const MyJobs: React.FC = () => {
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                   <div className="p-6">
-                    {/* Job Header */}
-                    <div className="flex items-start">
+                    {/* Header Section */}
+                    <div className="flex gap-6 mb-6">
+                      {/* Logo */}
+                      <div className="flex-shrink-0">
+                        {selectedJob.companyLogo ? (
+                          <img 
+                            src={selectedJob.companyLogo} 
+                            alt={`${selectedJob.company} logo`}
+                            className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const parent = (e.target as HTMLImageElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200"><span class="text-gray-400 text-base font-medium">No Logo</span></div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                            <FaBuilding className="text-gray-400 text-xl" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Title and Company */}
                       <div className="flex-1">
                         {editingJob ? (
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             <input
                               type="text"
                               value={editFormData.title || ''}
                               onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-                              className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-200 focus:border-blue-500 outline-none w-full"
+                              className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-200 focus:border-blue-500 outline-none w-full pb-2"
                               placeholder="Job Title"
                             />
-                            <input
-                              type="text"
-                              value={editFormData.company || ''}
-                              onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
-                              className="text-lg text-gray-600 bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none w-full"
-                              placeholder="Company Name"
-                            />
-                            <CustomSelect
-                              options={JOB_CATEGORIES.map(category => ({
-                                value: category.id,
-                                label: category.name
-                              }))}
-                              value={editFormData.category || ''}
-                              onChange={(value) => setEditFormData(prev => ({ ...prev, category: value }))}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 focus:border-blue-500 outline-none"
-                            />
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="text"
+                                value={editFormData.company || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
+                                className="text-xl text-gray-700 font-medium bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none flex-1"
+                                placeholder="Company Name"
+                              />
+                              <CustomSelect
+                                options={JOB_CATEGORIES.map(category => ({
+                                  value: category.id,
+                                  label: category.name
+                                }))}
+                                value={editFormData.category || ''}
+                                onChange={(value) => setEditFormData(prev => ({ ...prev, category: value }))}
+                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 focus:border-blue-500 outline-none"
+                              />
+                            </div>
                           </div>
                         ) : (
-                          <div className="flex-1 min-w-0">
-                            <h1 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h1>
-                            <div className="mt-2">
-                              <div className="flex items-center">
-                                <span className="text-lg text-gray-600">
-                                  {selectedJob.company}
-                                </span>
-                                {selectedJob.isProjectVerified && (
-                                  <div 
-                                    className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
-                                    title="Verified project"
-                                  >
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="mt-2">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
-                                  {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
-                                </span>
-                              </div>
+                          <div>
+                            <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-3">
+                              {selectedJob.title}
+                              {selectedJob.isProjectVerified && (
+                                <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                                  <FaCheck className="text-white text-sm" />
+                                </div>
+                              )}
+                            </h2>
+                            
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl text-gray-700 font-medium">{selectedJob.company}</span>
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
+                                {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
+                              </span>
                             </div>
                           </div>
                         )}
                       </div>
-                      <div className="ml-6 flex-shrink-0">
-                        <div className="h-20 w-20 rounded-full border border-gray-200 flex items-center justify-center bg-white">
-                          {selectedJob.companyLogo ? (
-                            <img 
-                              className="h-full w-full rounded-full object-cover" 
-                              src={selectedJob.companyLogo}
-                              alt={`${selectedJob.company} logo`}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                                const parent = (e.target as HTMLImageElement).parentElement;
-                                if (parent) {
-                                  parent.innerHTML = '<div class="text-blue-600 text-2xl"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
-                                }
-                              }}
-                            />
-                          ) : (
-                            <FaBuilding className="text-blue-600 text-2xl" />
-                          )}
-                        </div>
-                      </div>
                     </div>
                     
-                    {/* Job Details Bar */}
-                    <div className="mt-6 pt-4 border-t border-gray-100">
-                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <FaMapMarkerAlt className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                    {/* Job Details Cards */}
+                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                      <div className="grid grid-cols-3 gap-6">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMapMarkerAlt className="text-blue-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Work Style</p>
+                          <div className="font-semibold text-gray-900">
                           {editingJob ? (
                             <CustomSelect
                               options={[
@@ -556,9 +557,14 @@ const MyJobs: React.FC = () => {
                           ) : (
                             <span>{selectedJob.workArrangement === 'remote' ? 'Remote' : selectedJob.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
                           )}
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <FaClock className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaClock className="text-green-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Job Type</p>
+                          <div className="font-semibold text-gray-900">
                           {editingJob ? (
                             <CustomSelect
                               options={[
@@ -574,22 +580,27 @@ const MyJobs: React.FC = () => {
                           ) : (
                             <span>{selectedJob.type}</span>
                           )}
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <FaMoneyBillWave className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMoneyBillWave className="text-purple-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Salary</p>
+                          <div className="font-semibold text-gray-900">
                           {editingJob ? (
-                            <div className="flex items-center space-x-2">
+                            <div className="flex flex-col items-center space-y-1">
                               <input
                                 type="text"
                                 value={editFormData.salary || ''}
                                 onChange={(e) => setEditFormData(prev => ({ ...prev, salary: e.target.value }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-32"
+                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none w-24 text-center"
                                 placeholder="Salary"
                               />
                               <select
                                 value={editFormData.salaryType || 'FIAT'}
                                 onChange={(e) => setEditFormData(prev => ({ ...prev, salaryType: e.target.value as 'ADA' | 'FIAT' | 'Other' }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
+                                className="text-xs bg-transparent border border-gray-200 rounded px-1 py-0.5 focus:border-blue-500 outline-none"
                               >
                                 <option value="ADA">ADA</option>
                                 <option value="FIAT">FIAT</option>
@@ -599,6 +610,7 @@ const MyJobs: React.FC = () => {
                           ) : (
                             <span>{selectedJob.salary}</span>
                           )}
+                          </div>
                         </div>
                       </div>
                     </div>

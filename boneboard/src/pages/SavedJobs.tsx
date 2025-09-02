@@ -489,66 +489,77 @@ const SavedJobs: React.FC = () => {
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
-                  {/* Job Header */}
-                  <div className="px-6 py-6 border-b border-gray-200">
-                    <div className="flex justify-between items-start">
+                  <div className="p-6">
+                    {/* Header Section */}
+                    <div className="flex gap-6 mb-6">
+                      {/* Logo */}
+                      <div className="flex-shrink-0">
+                        {selectedJob.logo ? (
+                          <img 
+                            src={selectedJob.logo} 
+                            alt={`${selectedJob.company} logo`}
+                            className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const parent = (e.target as HTMLImageElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200"><span class="text-gray-400 text-base font-medium">No Logo</span></div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                            <FaBuilding className="text-gray-400 text-xl" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Title and Company */}
                       <div className="flex-1">
-                        <h1 className="text-2xl font-bold text-gray-900">{selectedJob.title}</h1>
-                        <div className="mt-2 flex items-center">
-                          <span className="text-lg text-gray-600">
-                            {selectedJob.company}
-                          </span>
+                        <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-3">
+                          {selectedJob.title}
                           {selectedJob.isProjectVerified && (
-                            <div 
-                              className="ml-2 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
-                              title="Verified project"
-                            >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
+                            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                              <FaCheck className="text-white text-sm" />
                             </div>
                           )}
-                        </div>
-                        <div className="mt-2">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                        </h2>
+                        
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl text-gray-700 font-medium">{selectedJob.company}</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
                             {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
                           </span>
                         </div>
                       </div>
-                      <div className="ml-6 flex-shrink-0">
-                        {selectedJob.logo ? (
-                          <img 
-                            className="h-20 w-20 rounded-full border border-gray-200 object-cover" 
-                            src={selectedJob.logo} 
-                            alt={`${selectedJob.company} logo`}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                        ) : null}
-                        <div className={`h-20 w-20 rounded-full border border-gray-200 bg-blue-100 flex items-center justify-center ${selectedJob.logo ? 'hidden' : ''}`}>
-                          <FaBuilding className="h-10 w-10 text-blue-600" />
-                        </div>
-                      </div>
                     </div>
                     
-                    {/* Job Meta Info */}
-                    <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                      <div className="flex items-center">
-                        <FaMapMarkerAlt className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">
-                          {selectedJob.workArrangement === 'remote' ? 'Remote' : selectedJob.workArrangement === 'hybrid' ? 'Hybrid' : selectedJob.workArrangement === 'onsite' ? 'On-site' : 'Remote'}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <FaClock className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">{selectedJob.type}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <FaMoneyBillWave className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
-                        <span className="text-gray-700">{selectedJob.salary}</span>
+                    {/* Job Details Cards */}
+                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                      <div className="grid grid-cols-3 gap-6">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMapMarkerAlt className="text-blue-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Work Style</p>
+                          <p className="font-semibold text-gray-900">
+                            {selectedJob.workArrangement === 'remote' ? 'Remote' : selectedJob.workArrangement === 'hybrid' ? 'Hybrid' : selectedJob.workArrangement === 'onsite' ? 'On-site' : 'Remote'}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaClock className="text-green-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Job Type</p>
+                          <p className="font-semibold text-gray-900">{selectedJob.type}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMoneyBillWave className="text-purple-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Salary</p>
+                          <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -559,7 +570,7 @@ const SavedJobs: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
                       <div className="prose prose-sm max-w-none text-gray-700">
-                        <p className="leading-relaxed whitespace-pre-wrap">{selectedJob.description}</p>
+                        <p className="whitespace-pre-line leading-relaxed">{selectedJob.description}</p>
                       </div>
                     </div>
 
@@ -598,15 +609,6 @@ const SavedJobs: React.FC = () => {
                       </div>
                     )}
 
-                    {/* How to Apply */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
-                        <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="leading-relaxed">{selectedJob.howToApply}</p>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 

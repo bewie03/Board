@@ -65,60 +65,75 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
 }) => {
   return (
     <div className="w-full max-w-full overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-200 max-w-full overflow-hidden">
-        <div className="flex justify-between items-start max-w-full">
-          <div className="flex-1 min-w-0 pr-4 max-w-full overflow-hidden">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 break-words word-wrap overflow-wrap-anywhere">
-              {title || 'Job Title'}
-            </h3>
-            <div className="mt-1">
-              <p className="text-sm text-gray-500 break-words word-wrap overflow-wrap-anywhere">
-                {company || 'Company Name'}
-              </p>
-              <div className="mt-1">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                  {getCategoryName(category) || 'Uncategorized'}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="ml-4 flex-shrink-0">
+      <div className="p-6">
+        {/* Header Section */}
+        <div className="flex gap-6 mb-6">
+          {/* Logo */}
+          <div className="flex-shrink-0">
             {logo ? (
               <img 
-                className="h-16 w-16 rounded-full border border-gray-200 object-cover" 
                 src={logo} 
                 alt={`${company || 'Company'} logo`}
+                className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   if (parent) {
-                    // Create safe DOM element instead of innerHTML
                     const placeholder = document.createElement('div');
-                    placeholder.className = 'h-16 w-16 rounded-full border border-gray-200 bg-gray-100';
+                    placeholder.className = 'w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200';
+                    placeholder.innerHTML = '<span class="text-gray-400 text-base font-medium">No Logo</span>';
                     parent.replaceChild(placeholder, target);
                   }
                 }}
               />
             ) : (
-              <div className="h-16 w-16 rounded-full border border-gray-200 bg-gray-100"></div>
+              <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                <span className="text-gray-400 text-base font-medium">No Logo</span>
+              </div>
             )}
           </div>
+          {/* Title and Company */}
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              {title || 'Job Title'}
+            </h2>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-xl text-gray-700 font-medium">{company || 'Company Name'}</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
+                {getCategoryName(category) || 'Uncategorized'}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="mt-4 pt-3 border-t border-gray-100 max-w-full overflow-hidden">
-          <div className="flex flex-col gap-y-2 text-sm text-gray-600 max-w-full">
-            <span className="flex items-center min-w-0 max-w-full">
-              <FaMapMarkerAlt className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              <span className="break-words overflow-wrap-anywhere">{workArrangement === 'remote' ? 'Remote' : workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}</span>
-            </span>
-            <span className="flex items-center min-w-0 max-w-full">
-              <FaMoneyBillWave className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              <span className="break-words overflow-wrap-anywhere">{salary || 'Salary'}</span>
-            </span>
-            <span className="flex items-center min-w-0 max-w-full">
-              <FaClock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-              <span className="break-words overflow-wrap-anywhere">{type || 'Full-time'}</span>
-            </span>
+        
+        {/* Job Details Cards */}
+        <div className="bg-gray-50 rounded-lg p-6 mb-6">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <FaMapMarkerAlt className="text-blue-600 text-lg" />
+              </div>
+              <p className="text-sm text-gray-500 mb-1">Work Style</p>
+              <p className="font-semibold text-gray-900">
+                {workArrangement === 'remote' ? 'Remote' : workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <FaClock className="text-green-600 text-lg" />
+              </div>
+              <p className="text-sm text-gray-500 mb-1">Job Type</p>
+              <p className="font-semibold text-gray-900">{formatText(type) || 'Not specified'}</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <FaMoneyBillWave className="text-purple-600 text-lg" />
+              </div>
+              <p className="text-sm text-gray-500 mb-1">Salary</p>
+              <p className="font-semibold text-gray-900">{salary || 'Not specified'}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -128,16 +143,19 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
           <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-all max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>{description || 'Job description will appear here...'}</div>
         </div>
         
-        {requiredSkills.length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-lg font-medium text-gray-900 mb-2">Required Skills</h4>
-            <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
-              {requiredSkills.map((skill, index) => (
-                <span 
+        {/* Required Skills */}
+        {requiredSkills && requiredSkills.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
+            <div className="flex flex-wrap gap-2">
+              {requiredSkills
+                .filter(skill => skill && skill.trim() !== '')
+                .map((skill, index) => (
+                <span
                   key={index}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 max-w-full overflow-hidden"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
                 >
-                  <span className="break-words overflow-wrap-anywhere" style={{wordBreak: 'break-word'}}>{skill}</span>
+                  {skill.replace(/[{}"\\\s]+/g, ' ').trim()}
                 </span>
               ))}
             </div>
@@ -163,89 +181,60 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         </div>
 
         {(website || twitter || discord || contactEmail) && (
-          <div className="mt-6 pt-4 border-t border-gray-200 px-6 pb-6 max-w-full overflow-hidden">
-            {/* Links section */}
-            {website && (
-              <div className="mb-6 max-w-full overflow-hidden">
-                <h4 className="text-sm font-medium text-gray-500 mb-3">LINKS</h4>
-                <div className="flex items-center max-w-full overflow-hidden">
+          <div className="mt-6 pt-6 border-t border-gray-200 bg-gray-50 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact Information</h4>
+            <div className="space-y-3">
+              {website && (
+                <div className="flex items-center">
+                  <FaLink className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
                   <a 
-                    href={website.startsWith('http') ? website : `https://${website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline max-w-full overflow-hidden"
+                    href={website} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
                   >
-                    <FaLink className="flex-shrink-0 mr-2 h-3.5 w-3.5" />
-                    <span className="break-all max-w-full overflow-hidden" style={{wordBreak: 'break-all'}}>{website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
+                    {website}
                   </a>
                 </div>
-              </div>
-            )}
-            
-            {/* Contact section */}
-            {(twitter || discord || contactEmail) && (
-              <>
-                <h4 className="text-sm font-medium text-gray-500 mb-3">CONTACT</h4>
-                <div className="flex flex-wrap gap-4 max-w-full overflow-hidden">
-                  {twitter && (
-                    <a 
-                      href={`https://twitter.com/${twitter.replace('@', '')}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm text-gray-900 hover:text-blue-600"
-                      title="Twitter"
-                    >
-                      <FaXTwitter className="h-4 w-4 mr-1.5" />
-                      <span>(Twitter)</span>
-                    </a>
-                  )}
-                  
-                  {discord && (
-                    <a 
-                      href={discord} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm text-gray-900 hover:text-indigo-600"
-                      title="Discord"
-                    >
-                      <FaDiscord className="h-4 w-4 mr-1.5" />
-                      <span>Discord</span>
-                    </a>
-                  )}
-                  
-                  {contactEmail && (
-                    <button 
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        try {
-                          await navigator.clipboard.writeText(contactEmail.trim());
-                          // Change button text to show copied state
-                          const button = e.currentTarget;
-                          const originalText = button.textContent;
-                          button.textContent = 'Copied!';
-                          button.className = button.className.replace('text-blue-600', 'text-green-600');
-                          
-                          // Revert back after 2 seconds
-                          setTimeout(() => {
-                            button.textContent = originalText;
-                            button.className = button.className.replace('text-green-600', 'text-blue-600');
-                          }, 2000);
-                        } catch (err) {
-                          console.error('Failed to copy email: ', err);
-                          // Fallback to mailto if clipboard fails
-                          window.location.href = `mailto:${contactEmail.trim()}`;
-                        }
-                      }}
-                      className="inline-flex items-center text-sm text-gray-900 hover:text-blue-600 focus:outline-none"
-                      title={`Copy email to clipboard: ${contactEmail}`}
-                    >
-                      <FaEnvelope className="h-4 w-4 mr-1.5" />
-                      <span>Email</span>
-                    </button>
-                  )}
+              )}
+              {twitter && (
+                <div className="flex items-center">
+                  <FaXTwitter className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
+                  <a 
+                    href={twitter} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
+                  >
+                    {twitter}
+                  </a>
                 </div>
-              </>
-            )}
+              )}
+              {discord && (
+                <div className="flex items-center">
+                  <FaDiscord className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
+                  <a 
+                    href={discord} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
+                  >
+                    {discord}
+                  </a>
+                </div>
+              )}
+              {contactEmail && (
+                <div className="flex items-center">
+                  <FaEnvelope className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
+                  <a 
+                    href={`mailto:${contactEmail}`} 
+                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
+                  >
+                    {contactEmail}
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
