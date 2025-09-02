@@ -539,7 +539,7 @@ const MyJobs: React.FC = () => {
                     
                     {/* Job Details Bar */}
                     <div className="mt-6 pt-4 border-t border-gray-100">
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
                         <div className="flex items-center">
                           <FaMapMarkerAlt className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
                           {editingJob ? (

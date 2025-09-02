@@ -535,7 +535,7 @@ const SavedJobs: React.FC = () => {
                     </div>
                     
                     {/* Job Meta Info */}
-                    <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
+                    <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                       <div className="flex items-center">
                         <FaMapMarkerAlt className="flex-shrink-0 mr-3 h-4 w-4 text-gray-400" />
                         <span className="text-gray-700">
