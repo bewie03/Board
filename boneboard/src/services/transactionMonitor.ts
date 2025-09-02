@@ -24,6 +24,15 @@ interface PendingExtensionTransaction {
   timestamp: number;
 }
 
+interface PendingJobExtensionTransaction {
+  txHash: string;
+  jobId: string;
+  months: number;
+  paymentMethod: 'ADA' | 'BONE';
+  walletAddress: string;
+  timestamp: number;
+}
+
 class TransactionMonitor {
   private checkInterval: NodeJS.Timeout | null = null;
   private isChecking = false;
@@ -89,6 +98,15 @@ class TransactionMonitor {
     
     for (const pendingKey of pendingExtensionKeys) {
       await this.checkPendingExtensionTransactions(pendingKey);
+    }
+
+    // Check job extension transactions
+    const pendingJobExtensionKeys = Object.keys(localStorage).filter(key => 
+      key.startsWith('pendingJobExtensionTx_')
+    );
+    
+    for (const pendingKey of pendingJobExtensionKeys) {
+      await this.checkPendingJobExtensionTransactions(pendingKey);
     }
   }
 
@@ -422,6 +440,89 @@ class TransactionMonitor {
       // If status is 'pending', keep checking
     } catch (error) {
       console.error('Error checking extension transaction:', error);
+    }
+  }
+
+  private async checkPendingJobExtensionTransactions(pendingKey: string) {
+    const pendingTxData = localStorage.getItem(pendingKey);
+    
+    if (!pendingTxData) {
+      return;
+    }
+
+    try {
+      const pendingTx: PendingJobExtensionTransaction = JSON.parse(pendingTxData);
+      console.log('Found pending job extension transaction:', { jobId: pendingTx.jobId, timestamp: pendingTx.timestamp });
+      
+      // Check if transaction is older than 5 minutes (timeout)
+      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+      if (pendingTx.timestamp < fiveMinutesAgo) {
+        console.log('Job extension transaction timeout reached, removing from localStorage');
+        localStorage.removeItem(pendingKey);
+        toast.error('Job extension transaction confirmation timeout. Your payment may still be processing on the blockchain.');
+        return;
+      }
+
+      // Initialize Lucid before checking transaction status
+      try {
+        const walletApi = await this.getWalletApi();
+        if (walletApi) {
+          await contractService.initializeLucid(walletApi);
+        }
+      } catch (error) {
+        console.log('Could not initialize Lucid for job extension status check, will retry later');
+        return;
+      }
+      
+      console.log('Checking job extension transaction status for:', pendingTx.txHash);
+      // Check transaction status
+      const status = await contractService.checkTransactionStatus(pendingTx.txHash);
+      console.log('Job extension transaction status:', status);
+      
+      if (status === 'confirmed') {
+        console.log('Job extension transaction confirmed, updating job deadline');
+        
+        // Remove from localStorage BEFORE making API call to prevent duplicates
+        localStorage.removeItem(pendingKey);
+        
+        // Call API to extend the job
+        try {
+          const response = await fetch('/api/jobs/extend', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              jobId: pendingTx.jobId,
+              months: pendingTx.months,
+              walletAddress: pendingTx.walletAddress,
+              txHash: pendingTx.txHash
+            }),
+          });
+
+          if (response.ok) {
+            console.log('Job extension completed successfully');
+            
+            // Dispatch success event
+            window.dispatchEvent(new CustomEvent('jobExtensionCompletedSuccessfully'));
+            toast.success('Job listing extended successfully!');
+          } else {
+            const errorData = await response.json();
+            console.error('Job extension API error:', errorData);
+            toast.error(`Failed to extend job: ${errorData.error || 'Unknown error'}`);
+          }
+        } catch (error) {
+          console.error('Error calling job extension API:', error);
+          toast.error('Failed to extend job');
+        }
+      } else if (status === 'failed') {
+        console.log('Job extension transaction failed, removing from localStorage');
+        localStorage.removeItem(pendingKey);
+        toast.error('Job extension transaction failed. Please try again.');
+      }
+      // If status is 'pending', keep checking
+    } catch (error) {
+      console.error('Error checking job extension transaction:', error);
     }
   }
 }

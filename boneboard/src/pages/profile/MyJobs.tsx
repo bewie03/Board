@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { JobService, Job } from '../../services/jobService';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaLink } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaLink, FaCalendarPlus } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import CustomSelect from '../../components/CustomSelect';
 import { JOB_CATEGORIES } from '../../constants/categories';
@@ -401,6 +401,16 @@ const MyJobs: React.FC = () => {
                               title="Edit job"
                             >
                               <FaEdit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = `/extend-job/${job.id}`;
+                              }}
+                              className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                              title="Extend job listing"
+                            >
+                              <FaCalendarPlus className="h-4 w-4" />
                             </button>
                             <button
                               onClick={(e) => {

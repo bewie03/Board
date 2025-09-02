@@ -18,6 +18,7 @@ import SavedJobs from './pages/SavedJobs';
 import Funding from './pages/Funding';
 import CreateFunding from './pages/CreateFunding';
 import ExtendFunding from './pages/ExtendFunding';
+import ExtendJob from './pages/ExtendJob';
 import FundingDetail from './pages/FundingDetail';
 // Freelancer imports commented out
 // import Freelancers from './pages/Freelancers';
@@ -67,6 +68,7 @@ function AnimatedRoutes() {
         <Route path="/funding" element={<Funding />} />
         <Route path="/funding/create" element={<CreateFunding />} />
         <Route path="/extend-funding/:projectId" element={<ExtendFunding />} />
+        <Route path="/extend-job/:jobId" element={<ExtendJob />} />
         <Route path="/funding/:id" element={<FundingDetail />} />
         <Route path="/admin" element={<AdminPanel />} />
         {/* Profile Routes */}

@@ -11,6 +11,8 @@ export interface UseContractReturn {
   getWalletApi: () => Promise<any>;
   extendWithADA: (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>) => Promise<{ success: boolean; txHash?: string; error?: string }>;
   extendWithBONE: (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>) => Promise<{ success: boolean; txHash?: string; error?: string }>;
+  extendJobWithADA: (extensionData: any) => Promise<{ success: boolean; txHash?: string; error?: string }>;
+  extendJobWithBONE: (extensionData: any) => Promise<{ success: boolean; txHash?: string; error?: string }>;
 }
 
 export const useContract = (): UseContractReturn => {
@@ -185,12 +187,14 @@ export const useContract = (): UseContractReturn => {
     }
   }, [walletAddress]);
 
-  const extendWithBONE = useCallback(async (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>): Promise<{ success: boolean; txHash?: string; error?: string }> => {
-    if (!walletAddress) {
+  const extendWithBONE = useCallback(async (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>) => {
+    if (!walletAddress || !isConnected) {
+      toast.error('Please connect your wallet first');
       return { success: false, error: 'Wallet not connected' };
     }
 
     setIsLoading(true);
+    
     try {
       const result = await contractService.extendWithBONE({
         ...extensionData,
@@ -198,11 +202,57 @@ export const useContract = (): UseContractReturn => {
         timestamp: Date.now()
       });
       
-      if (result.success) {
-        toast.success('Extension payment submitted successfully!');
-      } else {
-        toast.error(result.error || 'Extension payment failed');
-      }
+      return result;
+    } catch (error: any) {
+      const errorMessage = contractService.parsePaymentError(error, 'BONE', extensionData.paymentAmount);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [walletAddress]);
+
+  const extendJobWithADA = useCallback(async (extensionData: any) => {
+    if (!walletAddress || !isConnected) {
+      toast.error('Please connect your wallet first');
+      return { success: false, error: 'Wallet not connected' };
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // For now, use the same extension logic as funding
+      const result = await contractService.extendWithADA({
+        ...extensionData,
+        walletAddress,
+        timestamp: Date.now()
+      });
+      
+      return result;
+    } catch (error: any) {
+      const errorMessage = contractService.parsePaymentError(error, 'ADA', extensionData.paymentAmount);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [walletAddress]);
+
+  const extendJobWithBONE = useCallback(async (extensionData: any) => {
+    if (!walletAddress || !isConnected) {
+      toast.error('Please connect your wallet first');
+      return { success: false, error: 'Wallet not connected' };
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // For now, use the same extension logic as funding
+      const result = await contractService.extendWithBONE({
+        ...extensionData,
+        walletAddress,
+        timestamp: Date.now()
+      });
       
       return result;
     } catch (error: any) {
@@ -221,6 +271,8 @@ export const useContract = (): UseContractReturn => {
     checkTxStatus,
     getWalletApi,
     extendWithADA,
-    extendWithBONE
+    extendWithBONE,
+    extendJobWithADA,
+    extendJobWithBONE
   };
 };
