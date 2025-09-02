@@ -919,7 +919,31 @@ const MyJobs: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => setEditingJob(editingJob ? null : selectedJob)}
+                        onClick={() => {
+                          if (editingJob) {
+                            setEditingJob(null);
+                            setEditFormData({});
+                          } else {
+                            setEditingJob(selectedJob);
+                            setEditFormData({
+                              title: selectedJob?.title,
+                              company: selectedJob?.company,
+                              description: selectedJob?.description,
+                              salary: selectedJob?.salary,
+                              salaryType: selectedJob?.salaryType,
+                              category: selectedJob?.category,
+                              type: selectedJob?.type,
+                              contactEmail: selectedJob?.contactEmail,
+                              website: selectedJob?.website,
+                              twitter: selectedJob?.twitter,
+                              discord: selectedJob?.discord,
+                              workArrangement: selectedJob?.workArrangement,
+                              requiredSkills: selectedJob?.requiredSkills,
+                              additionalInfo: selectedJob?.additionalInfo,
+                              howToApply: selectedJob?.howToApply,
+                            });
+                          }
+                        }}
                         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
                         {editingJob ? 'Cancel' : 'Edit Job'}
