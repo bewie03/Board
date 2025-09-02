@@ -64,9 +64,20 @@ const verifyOAuthState = (platform: 'twitter' | 'discord', state: string): boole
   return storedState === state;
 };
 
+// Prevent multiple simultaneous OAuth flows
+let twitterOAuthInProgress = false;
+
 // Twitter OAuth functions
 export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; profileImageUrl?: string }> => {
   return new Promise(async (resolve, reject) => {
+    // Prevent multiple simultaneous OAuth flows
+    if (twitterOAuthInProgress) {
+      reject(new Error('Twitter OAuth already in progress. Please wait.'));
+      return;
+    }
+    
+    twitterOAuthInProgress = true;
+    
     // Check if we have valid credentials, if not use demo mode
     if (!hasValidCredentials('twitter')) {
       // Twitter OAuth not configured, using fallback
@@ -78,6 +89,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
       }
       
       setTimeout(() => {
+        twitterOAuthInProgress = false; // Reset flag
         resolve({
           username: username.replace('@', ''),
           id: `twitter_${Date.now()}`
@@ -114,6 +126,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
     );
     
     if (!popup) {
+      twitterOAuthInProgress = false; // Reset flag on popup failure
       reject(new Error('Popup blocked. Please allow popups for this site.'));
       return;
     }
@@ -126,6 +139,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         clearInterval(checkClosed);
         popup.close();
         window.removeEventListener('message', messageListener);
+        twitterOAuthInProgress = false; // Reset flag on success
         // Clean up session storage
         sessionStorage.removeItem('twitter_code_verifier');
         sessionStorage.removeItem(`oauth_state_twitter`);
@@ -143,6 +157,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         clearInterval(checkClosed);
         popup.close();
         window.removeEventListener('message', messageListener);
+        twitterOAuthInProgress = false; // Reset flag on error
         // Clean up session storage on error
         sessionStorage.removeItem('twitter_code_verifier');
         sessionStorage.removeItem(`oauth_state_twitter`);
@@ -155,6 +170,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
       if (popup.closed) {
         clearInterval(checkClosed);
         window.removeEventListener('message', messageListener);
+        twitterOAuthInProgress = false; // Reset flag on manual close
         // Clean up session storage if popup closed manually
         sessionStorage.removeItem('twitter_code_verifier');
         sessionStorage.removeItem(`oauth_state_twitter`);
