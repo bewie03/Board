@@ -118,12 +118,21 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
     
     const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
     
+    // Close any existing popup with the same name first
+    const existingPopup = (window as any).twitterOAuthPopup;
+    if (existingPopup && !existingPopup.closed) {
+      existingPopup.close();
+    }
+    
     // Open popup window for OAuth
     const popup = window.open(
       authUrl,
       'twitter-oauth',
       'width=500,height=600,scrollbars=yes,resizable=yes'
     );
+    
+    // Store reference to prevent multiple popups
+    (window as any).twitterOAuthPopup = popup;
     
     if (!popup) {
       twitterOAuthInProgress = false; // Reset flag on popup failure
@@ -140,6 +149,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         popup.close();
         window.removeEventListener('message', messageListener);
         twitterOAuthInProgress = false; // Reset flag on success
+        (window as any).twitterOAuthPopup = null; // Clear popup reference
         // Clean up session storage
         sessionStorage.removeItem('twitter_code_verifier');
         sessionStorage.removeItem(`oauth_state_twitter`);
@@ -158,6 +168,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         popup.close();
         window.removeEventListener('message', messageListener);
         twitterOAuthInProgress = false; // Reset flag on error
+        (window as any).twitterOAuthPopup = null; // Clear popup reference
         // Clean up session storage on error
         sessionStorage.removeItem('twitter_code_verifier');
         sessionStorage.removeItem(`oauth_state_twitter`);
@@ -171,6 +182,7 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         clearInterval(checkClosed);
         window.removeEventListener('message', messageListener);
         twitterOAuthInProgress = false; // Reset flag on manual close
+        (window as any).twitterOAuthPopup = null; // Clear popup reference
         // Clean up session storage if popup closed manually
         sessionStorage.removeItem('twitter_code_verifier');
         sessionStorage.removeItem(`oauth_state_twitter`);
