@@ -580,14 +580,14 @@ const SavedJobs: React.FC = () => {
                     )}
 
                     {/* How to Apply */}
-                    {selectedJob.howToApply && (
-                      <div className="mb-8">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">HOW TO APPLY</h3>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
+                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
                         <div className="prose prose-sm max-w-none text-gray-700">
                           <p className="leading-relaxed">{selectedJob.howToApply}</p>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
 
@@ -617,7 +617,7 @@ const SavedJobs: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                           {selectedJob.twitter && (
                             <a 
-                              href={`https://twitter.com/${selectedJob.twitter.replace('@', '')}`} 
+                              href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
@@ -640,13 +640,16 @@ const SavedJobs: React.FC = () => {
                           )}
                           
                           {selectedJob.contactEmail && (
-                            <a 
-                              href={`mailto:${selectedJob.contactEmail}`} 
+                            <button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(selectedJob.contactEmail!);
+                                toast.success('Email copied to clipboard!');
+                              }}
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
                               <FaEnvelope className="h-4 w-4 mr-2" />
-                              <span>Email</span>
-                            </a>
+                              <span>Copy Email</span>
+                            </button>
                           )}
                         </div>
                       </div>

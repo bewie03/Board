@@ -781,120 +781,128 @@ const MyJobs: React.FC = () => {
                 <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex flex-col space-y-4">
                     {/* Links */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
-                      {editingJob ? (
-                        <div className="flex items-center space-x-2">
-                          <FaLink className="h-4 w-4 text-gray-500" />
-                          <input
-                            type="url"
-                            value={editFormData.website || ''}
-                            onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            placeholder="https://company.com"
-                          />
-                        </div>
-                      ) : selectedJob.website ? (
-                        <a 
-                          href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLink className="h-4 w-4 mr-2" />
-                          <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
-                        </a>
-                      ) : (
-                        <p className="text-sm text-gray-500">No website provided</p>
-                      )}
-                    </div>
+                    {(selectedJob.website || editingJob) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
+                        {editingJob ? (
+                          <div className="flex items-center space-x-2">
+                            <FaLink className="h-4 w-4 text-gray-500" />
+                            <input
+                              type="url"
+                              value={editFormData.website || ''}
+                              onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              placeholder="https://company.com"
+                            />
+                          </div>
+                        ) : selectedJob.website ? (
+                          <a 
+                            href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                          >
+                            <FaLink className="h-4 w-4 mr-2" />
+                            <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
+                          </a>
+                        ) : null}
+                      </div>
+                    )}
                     
                     {/* Contact */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {(editingJob ? editFormData.twitter : selectedJob.twitter) && (
-                          <div className="flex items-center">
-                            {editingJob ? (
-                              <div className="flex items-center space-x-2">
-                                <FaXTwitter className="h-4 w-4 text-gray-500" />
-                                <input
-                                  type="text"
-                                  value={editFormData.twitter || ''}
-                                  onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
-                                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                  placeholder="@username"
-                                />
-                              </div>
-                            ) : (
-                              <a 
-                                href={`https://twitter.com/${selectedJob.twitter?.replace('@', '')}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                              >
-                                <FaXTwitter className="h-4 w-4 mr-2" />
-                                <span>Twitter</span>
-                              </a>
-                            )}
-                          </div>
-                        )}
-                        
-                        {(editingJob ? editFormData.discord : selectedJob.discord) && (
-                          <div className="flex items-center">
-                            {editingJob ? (
-                              <div className="flex items-center space-x-2">
-                                <FaDiscord className="h-4 w-4 text-gray-500" />
-                                <input
-                                  type="text"
-                                  value={editFormData.discord || ''}
-                                  onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
-                                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                  placeholder="Discord invite link"
-                                />
-                              </div>
-                            ) : (
-                              <a 
-                                href={selectedJob.discord} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                              >
-                                <FaDiscord className="h-4 w-4 mr-2" />
-                                <span>Discord</span>
-                              </a>
-                            )}
-                          </div>
-                        )}
-                        
-                        {(editingJob ? editFormData.contactEmail : selectedJob.contactEmail) && (
-                          <div className="flex items-center">
-                            {editingJob ? (
-                              <input
-                                type="email"
-                                value={editFormData.contactEmail || ''}
-                                onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
-                                className="text-sm bg-transparent border border-gray-200 rounded px-2 py-1 focus:border-blue-500 outline-none"
-                                placeholder="contact@company.com"
-                              />
-                            ) : (
-                              <a 
-                                href={`mailto:${selectedJob.contactEmail}`} 
-                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                              >
-                                <FaEnvelope className="h-4 w-4 mr-2" />
-                                <span>Email</span>
-                              </a>
-                            )}
-                          </div>
-                        )}
+                    {((editingJob ? editFormData.twitter : selectedJob.twitter) || (editingJob ? editFormData.discord : selectedJob.discord) || (editingJob ? editFormData.contactEmail : selectedJob.contactEmail)) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {(editingJob ? editFormData.twitter : selectedJob.twitter) && (
+                            <div className="flex items-center">
+                              {editingJob ? (
+                                <div className="flex items-center space-x-2">
+                                  <FaXTwitter className="h-4 w-4 text-gray-500" />
+                                  <input
+                                    type="text"
+                                    value={editFormData.twitter || ''}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
+                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    placeholder="@username"
+                                  />
+                                </div>
+                              ) : (
+                                <a 
+                                  href={`https://twitter.com/${selectedJob.twitter?.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaXTwitter className="h-4 w-4 mr-2" />
+                                  <span>Twitter</span>
+                                </a>
+                              )}
+                            </div>
+                          )}
+                          
+                          {(editingJob ? editFormData.discord : selectedJob.discord) && (
+                            <div className="flex items-center">
+                              {editingJob ? (
+                                <div className="flex items-center space-x-2">
+                                  <FaDiscord className="h-4 w-4 text-gray-500" />
+                                  <input
+                                    type="text"
+                                    value={editFormData.discord || ''}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
+                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    placeholder="Discord invite link"
+                                  />
+                                </div>
+                              ) : (
+                                <a 
+                                  href={selectedJob.discord} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaDiscord className="h-4 w-4 mr-2" />
+                                  <span>Discord</span>
+                                </a>
+                              )}
+                            </div>
+                          )}
+                          
+                          {(editingJob ? editFormData.contactEmail : selectedJob.contactEmail) && (
+                            <div className="flex items-center">
+                              {editingJob ? (
+                                <div className="flex items-center space-x-2">
+                                  <FaEnvelope className="h-4 w-4 text-gray-500" />
+                                  <input
+                                    type="email"
+                                    value={editFormData.contactEmail || ''}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    placeholder="contact@company.com"
+                                  />
+                                </div>
+                              ) : (
+                                <button 
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(selectedJob.contactEmail!);
+                                    toast.success('Email copied to clipboard!');
+                                  }}
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaEnvelope className="h-4 w-4 mr-2" />
+                                  <span>Copy Email</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div className="flex space-x-2">
                       <button
