@@ -4,11 +4,10 @@ import { Link } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import { motion } from 'framer-motion';
 import { JobService } from '../services/jobService';
-import { ProjectService } from '../services/projectService';
 
 const Home: React.FC = () => {
   const [jobCount, setJobCount] = useState(0);
-  const [projectCount, setProjectCount] = useState(0);
+  const [fundsRaised, setFundsRaised] = useState(0);
   const [boneBurnt, setBoneBurnt] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -16,10 +15,17 @@ const Home: React.FC = () => {
     const loadData = async () => {
       try {
         const activeJobs = await JobService.getActiveJobs();
-        const allProjects = await ProjectService.getAllProjects();
         
         setJobCount(activeJobs.length);
-        setProjectCount(allProjects.length);
+        
+        // Get total funds raised
+        const fundsResponse = await fetch('/api/funding?action=total-raised');
+        if (fundsResponse.ok) {
+          const fundsData = await fundsResponse.json();
+          setFundsRaised(fundsData.totalRaised);
+        } else {
+          setFundsRaised(0);
+        }
         
         // Get total BONE burnt from database
         const burnedBoneResponse = await fetch('/api/burnedbone');
@@ -33,7 +39,7 @@ const Home: React.FC = () => {
         console.error('Error loading home data:', error);
         // Set fallback values if API fails
         setJobCount(0);
-        setProjectCount(0);
+        setFundsRaised(0);
         setBoneBurnt(0);
       } finally {
         setLoading(false);
@@ -228,7 +234,7 @@ const Home: React.FC = () => {
               transition={{ duration: 0.5, delay: 0.7 }}
               className="group"
             >
-              <Link to="/projects" className="block">
+              <Link to="/funding" className="block">
                 <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-center border border-gray-200 hover:border-blue-300 cursor-pointer">
                   {loading ? (
                     <div className="animate-pulse">
@@ -237,8 +243,8 @@ const Home: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{projectCount}</div>
-                      <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">Total Projects</div>
+                      <div className="text-4xl font-bold text-blue-600 mb-3 group-hover:scale-110 transition-transform">{fundsRaised}</div>
+                      <div className="text-gray-800 font-semibold text-lg group-hover:text-blue-600 transition-colors">ADA Raised</div>
                     </>
                   )}
                 </div>

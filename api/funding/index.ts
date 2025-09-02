@@ -38,6 +38,20 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     const { action, id, owner } = req.query;
     console.log('Funding API GET request:', { action, id, owner });
 
+    if (action === 'total-raised') {
+      // Get total funds raised across all projects
+      const totalQuery = `
+        SELECT COALESCE(SUM(current_funding), 0) as total_raised
+        FROM project_funding 
+        WHERE is_active = true
+      `;
+      
+      const result = await pool.query(totalQuery);
+      const totalRaised = parseFloat(result.rows[0].total_raised) || 0;
+      
+      return res.status(200).json({ totalRaised: Math.round(totalRaised) });
+    }
+
     if (action === 'single' && id) {
       // Get single funding project with contributions
       const fundingQuery = `
