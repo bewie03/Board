@@ -1095,6 +1095,7 @@ const JobListings: React.FC = () => {
                     )}
                   </div>
                 </div>
+                </div>
               </div>
             </motion.div>
             </>
