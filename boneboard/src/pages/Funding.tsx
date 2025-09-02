@@ -442,7 +442,6 @@ const Funding: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <FaDollarSign />
                             Contribute
                           </>
                         )}
@@ -660,20 +659,20 @@ const Funding: React.FC = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-xl shadow-2xl p-0 w-full max-w-lg overflow-hidden"
             >
-              {/* Header with gradient background */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+              {/* Header */}
+              <div className="bg-white border-b border-gray-200 px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-xl font-bold text-white">
+                    <h3 className="text-xl font-bold text-gray-900">
                       Support This Project
                     </h3>
-                    <p className="text-blue-100 text-sm mt-1">
+                    <p className="text-gray-600 text-sm mt-1">
                       {selectedProject.title}
                     </p>
                   </div>
                   <button
                     onClick={() => setShowContributeModal(false)}
-                    className="text-blue-100 hover:text-white p-2 hover:bg-blue-600 rounded-lg transition-colors"
+                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <FaTimes className="w-5 h-5" />
                   </button>
@@ -681,15 +680,12 @@ const Funding: React.FC = () => {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Amount Input with ADA Symbol */}
+                {/* Amount Input */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-3">
                     Contribution Amount
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-blue-600 text-lg font-bold">₳</span>
-                    </div>
                     <input
                       type="number"
                       step="0.000001"
@@ -702,7 +698,7 @@ const Funding: React.FC = () => {
                           setContributionAmount(value);
                         }
                       }}
-                      className="w-full pl-12 pr-4 py-3 text-lg font-medium border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 focus:bg-white"
+                      className="w-full px-4 py-3 text-lg font-medium border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 focus:bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0.00"
                     />
                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
@@ -810,7 +806,7 @@ const Funding: React.FC = () => {
                   <button
                     onClick={handleContribute}
                     disabled={contributing || !contributionAmount}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg"
+                    className="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg"
                   >
                     {contributing ? (
                       <div className="flex items-center justify-center">
@@ -822,7 +818,6 @@ const Funding: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
-                        <span className="text-lg mr-2">₳</span>
                         Contribute {contributionAmount ? `${contributionAmount} ADA` : ''}
                       </div>
                     )}
