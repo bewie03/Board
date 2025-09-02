@@ -886,7 +886,7 @@ const JobListings: React.FC = () => {
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                   <div className="p-6">
                     {/* Header Section */}
-                    <div className="flex gap-6 mb-6">
+                    <div className="flex gap-6 mb-6 ml-2">
                       {/* Logo */}
                       <div className="flex-shrink-0">
                         {selectedJob.logo ? (
@@ -927,7 +927,7 @@ const JobListings: React.FC = () => {
                     </div>
                     
                     {/* Job Details Cards */}
-                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <div className="bg-gray-50 rounded-lg p-6 mb-6 ml-2">
                       <div className="grid grid-cols-3 gap-6">
                         <div className="text-center">
                           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
