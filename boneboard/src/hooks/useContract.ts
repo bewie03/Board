@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { contractService, JobPostingData } from '../services/contractService';
+import { contractService, JobPostingData, ExtensionData } from '../services/contractService';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
 
@@ -9,6 +9,8 @@ export interface UseContractReturn {
   getJobs: () => Promise<any[]>;
   checkTxStatus: (txHash: string) => Promise<'pending' | 'confirmed' | 'failed'>;
   getWalletApi: () => Promise<any>;
+  extendWithADA: (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>) => Promise<{ success: boolean; txHash?: string; error?: string }>;
+  extendWithBONE: (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>) => Promise<{ success: boolean; txHash?: string; error?: string }>;
 }
 
 export const useContract = (): UseContractReturn => {
@@ -154,11 +156,71 @@ export const useContract = (): UseContractReturn => {
     }
   };
 
+  const extendWithADA = useCallback(async (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>): Promise<{ success: boolean; txHash?: string; error?: string }> => {
+    if (!walletAddress) {
+      return { success: false, error: 'Wallet not connected' };
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await contractService.extendWithADA({
+        ...extensionData,
+        walletAddress,
+        timestamp: Date.now()
+      });
+      
+      if (result.success) {
+        toast.success('Extension payment submitted successfully!');
+      } else {
+        toast.error(result.error || 'Extension payment failed');
+      }
+      
+      return result;
+    } catch (error: any) {
+      const errorMessage = contractService.parsePaymentError(error, 'ADA', extensionData.paymentAmount);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [walletAddress]);
+
+  const extendWithBONE = useCallback(async (extensionData: Omit<ExtensionData, 'walletAddress' | 'timestamp'>): Promise<{ success: boolean; txHash?: string; error?: string }> => {
+    if (!walletAddress) {
+      return { success: false, error: 'Wallet not connected' };
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await contractService.extendWithBONE({
+        ...extensionData,
+        walletAddress,
+        timestamp: Date.now()
+      });
+      
+      if (result.success) {
+        toast.success('Extension payment submitted successfully!');
+      } else {
+        toast.error(result.error || 'Extension payment failed');
+      }
+      
+      return result;
+    } catch (error: any) {
+      const errorMessage = contractService.parsePaymentError(error, 'BONE', extensionData.paymentAmount);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [walletAddress]);
+
   return {
     isLoading,
     postJob,
     getJobs,
     checkTxStatus,
-    getWalletApi
+    getWalletApi,
+    extendWithADA,
+    extendWithBONE
   };
 };
