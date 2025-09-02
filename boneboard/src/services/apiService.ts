@@ -272,8 +272,13 @@ export class ApiService {
       category: updates.category,
       logo: updates.logo,
       website: updates.website,
-      discordLink: updates.discord,
-      twitterLink: updates.twitter,
+      discordLink: typeof updates.discord === 'object' ? updates.discord?.inviteUrl || '' : updates.discord,
+      twitterLink: typeof updates.twitter === 'object' ? 
+        (updates.twitter?.verified ? `https://twitter.com/${updates.twitter.username}` : updates.twitter?.username || '') 
+        : updates.twitter,
+      // Store the full Twitter object for verified connections
+      twitter: typeof updates.twitter === 'object' ? updates.twitter : undefined,
+      discord: typeof updates.discord === 'object' ? updates.discord : undefined,
       status: updates.status,
       isVerified: updates.isVerified,
       verifiedAt: updates.verifiedAt,

@@ -118,14 +118,6 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
       return;
     }
     
-    // Listen for the callback
-    const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkClosed);
-        reject(new Error('OAuth cancelled by user'));
-      }
-    }, 1000);
-    
     // Listen for messages from the popup
     const messageListener = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
@@ -134,12 +126,15 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         clearInterval(checkClosed);
         popup.close();
         window.removeEventListener('message', messageListener);
+        // Clean up session storage
         sessionStorage.removeItem('twitter_code_verifier');
+        sessionStorage.removeItem(`oauth_state_twitter`);
         
         if (verifyOAuthState('twitter', event.data.state)) {
           resolve({
             username: event.data.username,
-            id: event.data.id
+            id: event.data.id,
+            profileImageUrl: event.data.profileImageUrl
           });
         } else {
           reject(new Error('Invalid OAuth state'));
@@ -148,10 +143,24 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         clearInterval(checkClosed);
         popup.close();
         window.removeEventListener('message', messageListener);
+        // Clean up session storage on error
         sessionStorage.removeItem('twitter_code_verifier');
+        sessionStorage.removeItem(`oauth_state_twitter`);
         reject(new Error(event.data.error));
       }
     };
+    
+    // Listen for popup close and cleanup
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', messageListener);
+        // Clean up session storage if popup closed manually
+        sessionStorage.removeItem('twitter_code_verifier');
+        sessionStorage.removeItem(`oauth_state_twitter`);
+        reject(new Error('OAuth cancelled by user'));
+      }
+    }, 1000);
     
     window.addEventListener('message', messageListener);
   });

@@ -125,35 +125,59 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   const result = await getPool().query(query, params);
   
   // Transform database result to match frontend interface
-  const projects = result.rows.map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    category: row.category,
-    fundingGoal: parseFloat(row.funding_goal) || 0,
-    currentFunding: parseFloat(row.current_funding) || 0,
-    backers: parseInt(row.backers) || 0,
-    status: row.status,
-    createdAt: row.created_at,
-    upvotes: 0, // Not implemented yet
-    downvotes: 0, // Not implemented yet
-    userVote: null,
-    logo: row.logo,
-    logo_url: row.logo_url,
-    website: row.website,
-    fundingAddress: row.funding_address,
-    discordLink: row.discord_link,
-    twitterLink: row.twitter_link,
-    walletAddress: row.wallet_address,
-    paymentAmount: parseFloat(row.payment_amount) || 0,
-    paymentCurrency: row.payment_currency,
-    txHash: row.tx_hash,
-    expiresAt: row.expires_at,
-    isVerified: row.is_verified || row.status === 'verified',
-    is_verified: row.is_verified || row.status === 'verified',
-    verifiedAt: row.verified_at,
-    verifiedBy: row.verified_by
-  }));
+  const projects = result.rows.map((row: any) => {
+    // Parse JSON fields if they exist
+    let twitter = row.twitter;
+    let discord = row.discord;
+    
+    try {
+      if (typeof twitter === 'string' && twitter.startsWith('{')) {
+        twitter = JSON.parse(twitter);
+      }
+    } catch (e) {
+      // Keep as string if parsing fails
+    }
+    
+    try {
+      if (typeof discord === 'string' && discord.startsWith('{')) {
+        discord = JSON.parse(discord);
+      }
+    } catch (e) {
+      // Keep as string if parsing fails
+    }
+    
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      category: row.category,
+      fundingGoal: parseFloat(row.funding_goal) || 0,
+      currentFunding: parseFloat(row.current_funding) || 0,
+      backers: parseInt(row.backers) || 0,
+      status: row.status,
+      createdAt: row.created_at,
+      upvotes: 0, // Not implemented yet
+      downvotes: 0, // Not implemented yet
+      userVote: null,
+      logo: row.logo,
+      logo_url: row.logo_url,
+      website: row.website,
+      fundingAddress: row.funding_address,
+      discordLink: row.discord_link,
+      twitterLink: row.twitter_link,
+      twitter: twitter, // Include parsed Twitter object
+      discord: discord, // Include parsed Discord object
+      walletAddress: row.wallet_address,
+      paymentAmount: parseFloat(row.payment_amount) || 0,
+      paymentCurrency: row.payment_currency,
+      txHash: row.tx_hash,
+      expiresAt: row.expires_at,
+      isVerified: row.is_verified || row.status === 'verified',
+      is_verified: row.is_verified || row.status === 'verified',
+      verifiedAt: row.verified_at,
+      verifiedBy: row.verified_by
+    };
+  });
 
   return res.status(200).json(projects);
 }
@@ -343,14 +367,21 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     website: 'website',
     fundingAddress: 'funding_address',
     discordLink: 'discord_link',
-    twitterLink: 'twitter_link'
+    twitterLink: 'twitter_link',
+    twitter: 'twitter',
+    discord: 'discord'
   };
 
   Object.entries(updates).forEach(([key, value]) => {
     const dbField = fieldMapping[key];
     if (dbField) {
       updateFields.push(`${dbField} = $${paramIndex}`);
-      params.push(value);
+      // Handle JSON objects for twitter and discord fields
+      if (key === 'twitter' || key === 'discord') {
+        params.push(typeof value === 'object' ? JSON.stringify(value) : value);
+      } else {
+        params.push(value);
+      }
       paramIndex++;
     }
   });

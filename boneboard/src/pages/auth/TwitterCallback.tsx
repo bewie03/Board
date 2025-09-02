@@ -58,6 +58,7 @@ const TwitterCallback: React.FC = () => {
           type: 'TWITTER_OAUTH_SUCCESS',
           username: userData.username,
           id: userData.id,
+          profileImageUrl: userData.profileImageUrl,
           state: state
         }, window.location.origin);
 
