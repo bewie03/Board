@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { fundingService } from '../../services/fundingService';
-import { calculateFundingCost } from '../../utils/fundingPricing';
-import { useContract } from '../../hooks/useContract';
 
 // Contributors Section Component
 const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
@@ -156,7 +154,6 @@ const CopyButton: React.FC<{ textToCopy: string; fundingId: string }> = ({ textT
 const MyFunding: React.FC = () => {
   const navigate = useNavigate();
   const { walletAddress } = useWallet();
-  const { extendWithADA, extendWithBONE, isLoading: contractLoading } = useContract();
   const [fundingProjects, setFundingProjects] = useState<FundingProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPurpose, setEditingPurpose] = useState<string | null>(null);
@@ -164,12 +161,6 @@ const MyFunding: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-  const [showExtendModal, setShowExtendModal] = useState(false);
-  const [projectToExtend, setProjectToExtend] = useState<FundingProject | null>(null);
-  const [extensionMonths, setExtensionMonths] = useState('');
-  const [selectedPaymentCurrency, setSelectedPaymentCurrency] = useState<'ADA' | 'BONE'>('ADA');
-  const [, setExtensionCost] = useState(0);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'confirming' | 'success' | 'failed' | 'timeout' | 'error'>('idle');
 
   useEffect(() => {
     if (walletAddress) {
@@ -295,88 +286,9 @@ const MyFunding: React.FC = () => {
   };
 
   const handleExtendFunding = (project: FundingProject) => {
-    setProjectToExtend(project);
-    setShowExtendModal(true);
+    navigate(`/extend-funding/${project.id}`);
   };
 
-  const handleExtendProject = async () => {
-    if (!projectToExtend || !walletAddress || !extensionMonths) return;
-
-    const months = parseInt(extensionMonths);
-    const cost = calculateFundingCost(months);
-    
-    setPaymentStatus('processing');
-    
-    try {
-      const extensionData = {
-        id: projectToExtend.id,
-        type: 'project' as const,
-        title: projectToExtend.title || 'Untitled Project',
-        paymentAmount: cost,
-        paymentCurrency: selectedPaymentCurrency,
-        months
-      };
-
-      let result;
-      if (selectedPaymentCurrency === 'ADA') {
-        result = await extendWithADA(extensionData);
-      } else {
-        result = await extendWithBONE(extensionData);
-      }
-
-      if (result.success && result.txHash) {
-        setPaymentStatus('confirming');
-        toast.info('Payment submitted! Waiting for blockchain confirmation...');
-        
-        // Wait for transaction confirmation before updating expiry
-        const confirmationInterval = setInterval(async () => {
-          try {
-            const response = await fetch('/api/funding/extend', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                projectId: projectToExtend.id,
-                months,
-                walletAddress,
-                txHash: result.txHash
-              }),
-            });
-
-            if (response.ok) {
-              clearInterval(confirmationInterval);
-              setPaymentStatus('success');
-              toast.success('Project extended successfully!');
-              setShowExtendModal(false);
-              setProjectToExtend(null);
-              setExtensionMonths('');
-              setSelectedPaymentCurrency('ADA');
-              fetchMyFunding();
-            }
-          } catch (error) {
-            console.error('Error checking extension status:', error);
-          }
-        }, 5000); // Check every 5 seconds
-
-        // Stop checking after 5 minutes
-        setTimeout(() => {
-          clearInterval(confirmationInterval);
-          if (paymentStatus === 'confirming') {
-            setPaymentStatus('timeout');
-            toast.warning('Transaction confirmation taking longer than expected. Please check your wallet.');
-          }
-        }, 300000);
-      } else {
-        setPaymentStatus('failed');
-        toast.error(result.error || 'Extension payment failed');
-      }
-    } catch (error) {
-      console.error('Error extending project:', error);
-      setPaymentStatus('failed');
-      toast.error('Failed to extend project');
-    }
-  };
 
   if (loading) {
     return (
@@ -817,118 +729,6 @@ const MyFunding: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Extension Modal */}
-      <AnimatePresence>
-        {showExtendModal && projectToExtend && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
-            >
-              <h3 className="text-lg font-semibold mb-4">Extend Project</h3>
-              <p className="text-gray-600 mb-4">
-                Extend "{projectToExtend.title}" funding period
-              </p>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Extension Period (months)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="12"
-                  value={extensionMonths}
-                  onChange={(e) => {
-                    setExtensionMonths(e.target.value);
-                    if (e.target.value) {
-                      setExtensionCost(calculateFundingCost(parseInt(e.target.value)));
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter number of months"
-                />
-              </div>
-
-              {extensionMonths && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-800">
-                    <strong>Extension Cost:</strong> {calculateFundingCost(parseInt(extensionMonths))} ADA
-                  </p>
-                </div>
-              )}
-
-              {extensionMonths && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Payment Currency
-                  </label>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => setSelectedPaymentCurrency('ADA')}
-                      className={`flex-1 px-4 py-2 rounded-md border ${
-                        selectedPaymentCurrency === 'ADA'
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Pay with ADA
-                    </button>
-                    <button
-                      onClick={() => setSelectedPaymentCurrency('BONE')}
-                      className={`flex-1 px-4 py-2 rounded-md border ${
-                        selectedPaymentCurrency === 'BONE'
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      Pay with BONE
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {paymentStatus === 'processing' && (
-                <div className="mb-4 p-3 bg-yellow-50 rounded-md">
-                  <p className="text-sm text-yellow-800">Processing payment...</p>
-                </div>
-              )}
-
-              {paymentStatus === 'confirming' && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-800">Waiting for blockchain confirmation...</p>
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowExtendModal(false);
-                    setProjectToExtend(null);
-                    setExtensionMonths('');
-                    setSelectedPaymentCurrency('ADA');
-                    setPaymentStatus('idle');
-                  }}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                  disabled={paymentStatus === 'processing' || paymentStatus === 'confirming'}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleExtendProject}
-                  disabled={!extensionMonths || paymentStatus === 'processing' || paymentStatus === 'confirming' || contractLoading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {paymentStatus === 'processing' ? 'Processing...' : 
-                   paymentStatus === 'confirming' ? 'Confirming...' : 
-                   'Pay & Extend'}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

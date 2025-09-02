@@ -15,6 +15,15 @@ interface PendingFundingTransaction {
   timestamp: number;
 }
 
+interface PendingExtensionTransaction {
+  txHash: string;
+  projectId: string;
+  months: number;
+  paymentMethod: 'ADA' | 'BONE';
+  walletAddress: string;
+  timestamp: number;
+}
+
 class TransactionMonitor {
   private checkInterval: NodeJS.Timeout | null = null;
   private isChecking = false;
@@ -71,6 +80,15 @@ class TransactionMonitor {
     for (const pendingKey of pendingFundingKeys) {
       const txHash = pendingKey.replace('pendingFundingTx_', '');
       await this.checkPendingFundingTransactions(txHash);
+    }
+
+    // Check extension transactions
+    const pendingExtensionKeys = Object.keys(localStorage).filter(key => 
+      key.startsWith('pendingExtensionTx_')
+    );
+    
+    for (const pendingKey of pendingExtensionKeys) {
+      await this.checkPendingExtensionTransactions(pendingKey);
     }
   }
 
@@ -264,18 +282,13 @@ class TransactionMonitor {
             funding_wallet: pendingTx.fundingData.funding_wallet || pendingTx.walletAddress
           };
           
+          // Create the funding project
           await fundingService.createFundingProject(createFundingData, pendingTx.walletAddress);
           
-          // Only remove from localStorage after successful save
+          // Remove from localStorage after successful creation
           localStorage.removeItem(pendingKey);
-          
-          // Dispatch custom event for UI to handle success state
-          window.dispatchEvent(new CustomEvent('fundingCreatedSuccessfully', {
-            detail: { txHash: pendingTx.txHash }
-          }));
-          
-          toast.success(`Funding project created successfully! Transaction confirmed: ${pendingTx.txHash.substring(0, 8)}...`);
-          return;
+          console.log('Funding project created successfully after payment confirmation');
+          window.dispatchEvent(new CustomEvent('fundingCreatedSuccessfully'));
         } catch (error: any) {
           console.error('Error creating funding project:', error);
           
@@ -326,6 +339,89 @@ class TransactionMonitor {
     } catch (error) {
       console.error('Error getting wallet API:', error);
       return null;
+    }
+  }
+
+  private async checkPendingExtensionTransactions(pendingKey: string) {
+    const pendingTxData = localStorage.getItem(pendingKey);
+    
+    if (!pendingTxData) {
+      return;
+    }
+
+    try {
+      const pendingTx: PendingExtensionTransaction = JSON.parse(pendingTxData);
+      console.log('Found pending extension transaction:', { projectId: pendingTx.projectId, timestamp: pendingTx.timestamp });
+      
+      // Check if transaction is older than 5 minutes (timeout)
+      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+      if (pendingTx.timestamp < fiveMinutesAgo) {
+        console.log('Extension transaction timeout reached, removing from localStorage');
+        localStorage.removeItem(pendingKey);
+        toast.error('Extension transaction confirmation timeout. Your payment may still be processing on the blockchain.');
+        return;
+      }
+
+      // Initialize Lucid before checking transaction status
+      try {
+        const walletApi = await this.getWalletApi();
+        if (walletApi) {
+          await contractService.initializeLucid(walletApi);
+        }
+      } catch (error) {
+        console.log('Could not initialize Lucid for extension status check, will retry later');
+        return;
+      }
+      
+      console.log('Checking extension transaction status for:', pendingTx.txHash);
+      // Check transaction status
+      const status = await contractService.checkTransactionStatus(pendingTx.txHash);
+      console.log('Extension transaction status:', status);
+      
+      if (status === 'confirmed') {
+        console.log('Extension transaction confirmed, updating project deadline');
+        
+        // Remove from localStorage BEFORE making API call to prevent duplicates
+        localStorage.removeItem(pendingKey);
+        
+        // Call API to extend the project
+        try {
+          const response = await fetch('/api/funding/extend', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              projectId: pendingTx.projectId,
+              months: pendingTx.months,
+              walletAddress: pendingTx.walletAddress,
+              txHash: pendingTx.txHash
+            }),
+          });
+
+          if (response.ok) {
+            console.log('Extension completed successfully');
+            
+            // Dispatch success event
+            window.dispatchEvent(new CustomEvent('extensionCompletedSuccessfully'));
+            toast.success('Project funding period extended successfully!');
+          } else {
+            const errorData = await response.json();
+            console.error('Extension API error:', errorData);
+            toast.error(`Failed to extend project: ${errorData.error || 'Unknown error'}`);
+          }
+        } catch (error) {
+          console.error('Error calling extension API:', error);
+          toast.error('Failed to extend project');
+        }
+      } else if (status === 'failed') {
+        console.log('Extension transaction failed, removing from localStorage');
+        localStorage.removeItem(pendingKey);
+        toast.error('Extension transaction failed. Please try again.');
+      }
+      // If status is 'pending', keep checking
+    } catch (error) {
+      console.error('Error checking extension transaction:', error);
     }
   }
 }
