@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaDiscord } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaDiscord, FaClock } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
@@ -161,6 +161,10 @@ const MyFunding: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [projectToExtend, setProjectToExtend] = useState<FundingProject | null>(null);
+  const [newExpiryDate, setNewExpiryDate] = useState('');
+  const [extending, setExtending] = useState(false);
 
   useEffect(() => {
     if (walletAddress) {
@@ -285,6 +289,46 @@ const MyFunding: React.FC = () => {
     }
   };
 
+  const handleExtendFunding = (project: FundingProject) => {
+    setProjectToExtend(project);
+    setShowExtendModal(true);
+  };
+
+  const handleExtendProject = async () => {
+    if (!projectToExtend || !walletAddress || !newExpiryDate) return;
+
+    setExtending(true);
+    try {
+      const response = await fetch('/api/funding/extend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: projectToExtend.id,
+          newExpiryDate,
+          walletAddress
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Project expiry date updated successfully!');
+        setShowExtendModal(false);
+        setProjectToExtend(null);
+        setNewExpiryDate('');
+        fetchMyFunding(); // Refresh the list
+      } else {
+        const errorData = await response.json();
+        toast.error(`Failed to update expiry date: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error updating project expiry:', error);
+      toast.error('Failed to update project expiry date');
+    } finally {
+      setExtending(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -391,6 +435,13 @@ const MyFunding: React.FC = () => {
                         title={funding.is_active ? 'Pause' : 'Activate'}
                       >
                         {funding.is_active ? <FaPause className="w-4 h-4" /> : <FaPlay className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleExtendFunding(funding)}
+                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Extend Funding Period"
+                      >
+                        <FaClock className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteFunding(funding.id)}
@@ -710,6 +761,88 @@ const MyFunding: React.FC = () => {
                   className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
                 >
                   Delete Project
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Extension Modal */}
+      <AnimatePresence>
+        {showExtendModal && projectToExtend && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowExtendModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <FaClock className="text-blue-600 text-lg" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Extend Funding Period</h3>
+                  <p className="text-sm text-gray-600">
+                    {projectToExtend.title || projectToExtend.project_title}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Expiry Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newExpiryDate}
+                    onChange={(e) => setNewExpiryDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Select the new expiry date for your funding project
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowExtendModal(false);
+                    setProjectToExtend(null);
+                    setNewExpiryDate('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  disabled={extending}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExtendProject}
+                  disabled={extending || !newExpiryDate}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {extending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <FaClock className="mr-2" />
+                      Update Expiry Date
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
