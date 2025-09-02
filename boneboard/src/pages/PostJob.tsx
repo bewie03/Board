@@ -580,16 +580,18 @@ const PostJob: React.FC = () => {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700">
-                          Salary * <span className="text-xs text-gray-500">({formData.salary.length}/50)</span>
+                          Salary * <span className="text-xs text-gray-500">({formData.salary.length}/20)</span>
                         </label>
                         <input
                           type="text"
                           name="salary"
                           value={formData.salary}
                           onChange={(e) => {
-                            setFormData(prev => ({ ...prev, salary: e.target.value }));
+                            if (e.target.value.length <= 20) {
+                              setFormData(prev => ({ ...prev, salary: e.target.value }));
+                            }
                           }}
-                          maxLength={50}
+                          maxLength={20}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                           placeholder="e.g. 80,000-90,000"
                           required

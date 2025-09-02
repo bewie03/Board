@@ -590,11 +590,11 @@ const MyJobs: React.FC = () => {
                                 type="text"
                                 value={editFormData.salary || ''}
                                 onChange={(e) => {
-                                  if (e.target.value.length <= 50) {
+                                  if (e.target.value.length <= 20) {
                                     setEditFormData(prev => ({ ...prev, salary: e.target.value }));
                                   }
                                 }}
-                                maxLength={50}
+                                maxLength={20}
                                 className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-center"
                                 placeholder="Amount"
                               />
