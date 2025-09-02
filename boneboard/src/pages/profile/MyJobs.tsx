@@ -517,14 +517,14 @@ const MyJobs: React.FC = () => {
                               {selectedJob.title}
                             </h2>
                             
-                            <p className="text-xl text-gray-600 mb-4 flex items-center gap-3">
+                            <div className="text-xl text-gray-600 mb-4 flex items-center gap-3">
                               {selectedJob.company}
                               {selectedJob.isProjectVerified && (
                                 <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                                   <FaCheck className="text-white text-sm" />
                                 </div>
                               )}
-                            </p>
+                            </div>
                           </div>
                         )}
                       </div>
