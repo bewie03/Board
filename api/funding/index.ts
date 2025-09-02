@@ -198,6 +198,24 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
+      // Convert funding_deadline from "YYYY-MM" format to proper timestamp
+      // Set deadline to the last day of the selected month at 23:59:59
+      let formattedDeadline;
+      try {
+        if (funding_deadline.match(/^\d{4}-\d{2}$/)) {
+          // Input is in "YYYY-MM" format, convert to end of month
+          const [year, month] = funding_deadline.split('-');
+          const lastDayOfMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+          formattedDeadline = `${year}-${month}-${lastDayOfMonth.toString().padStart(2, '0')} 23:59:59`;
+        } else {
+          // Assume it's already a proper timestamp
+          formattedDeadline = funding_deadline;
+        }
+      } catch (error) {
+        console.error('Error formatting deadline:', error);
+        return res.status(400).json({ error: 'Invalid funding deadline format' });
+      }
+
       // Verify project ownership - check both user_id match and direct wallet_address match
       console.log('DEBUG: Checking project ownership for project_id:', project_id, 'wallet:', walletAddress);
       console.log('DEBUG: Received funding_wallet:', funding_wallet);
@@ -261,7 +279,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       const result = await pool.query(insertQuery, [
         project_id,
         funding_goal,
-        funding_deadline,
+        formattedDeadline,
         bone_posting_fee,
         bone_tx_hash,
         wallet_address,
@@ -392,6 +410,22 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
     const { is_active, funding_goal, funding_deadline, funding_purpose } = req.body;
 
+    // Convert funding_deadline from "YYYY-MM" format to proper timestamp if provided
+    let formattedDeadline = funding_deadline;
+    if (funding_deadline) {
+      try {
+        if (funding_deadline.match(/^\d{4}-\d{2}$/)) {
+          // Input is in "YYYY-MM" format, convert to end of month
+          const [year, month] = funding_deadline.split('-');
+          const lastDayOfMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+          formattedDeadline = `${year}-${month}-${lastDayOfMonth.toString().padStart(2, '0')} 23:59:59`;
+        }
+      } catch (error) {
+        console.error('Error formatting deadline in PUT:', error);
+        return res.status(400).json({ error: 'Invalid funding deadline format' });
+      }
+    }
+
     // Verify ownership - use pf.wallet_address for funding project ownership
     const ownershipCheck = await pool.query(`
       SELECT pf.* 
@@ -422,7 +456,7 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     const result = await pool.query(updateQuery, [
       is_active,
       funding_goal,
-      funding_deadline,
+      formattedDeadline,
       funding_purpose,
       id
     ]);
