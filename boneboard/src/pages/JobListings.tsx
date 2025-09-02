@@ -839,7 +839,8 @@ const JobListings: React.FC = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'tween', duration: 0.3 }}
-                className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60] transform overflow-y-auto"
+                className="fixed inset-y-0 right-0 w-full max-w-2xl bg-white shadow-xl z-[60]" 
+                style={{ top: '0px' }}
               >
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -1016,8 +1017,8 @@ const JobListings: React.FC = () => {
                   <div className="flex flex-col space-y-4">
                     {/* Contact & Links */}
                     {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact & Links</h4>
+                      <div className="bg-white border border-gray-300 rounded-md p-4">
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedJob.website && (
                             <a 
