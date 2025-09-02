@@ -738,18 +738,23 @@ const PostJob: React.FC = () => {
                   <div className="space-y-2 sm:col-span-2 pt-2">
                     <div className="flex justify-between items-center">
                       <label className="block text-sm font-medium text-gray-700">
-                        Job Description * <span className="text-xs text-gray-500">({formData.description.length}/300)</span>
+                        Job Description * <span className="text-xs text-gray-500">({formData.description.length}/500)</span>
                       </label>
                       <span className="text-xs text-gray-500">
-                        {formData.description.length}/300 characters
+                        {formData.description.length}/500 characters
                       </span>
                     </div>
                     <textarea
                       name="description"
-                      rows={4}
+                      rows={10}
                       value={formData.description}
-                      onChange={handleChange}
-                      maxLength={300}
+                      onChange={(e) => {
+                        const lines = e.target.value.split('\n');
+                        if (lines.length <= 10 && e.target.value.length <= 500) {
+                          handleChange(e);
+                        }
+                      }}
+                      maxLength={500}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Provide a detailed description of the job role, responsibilities and any other relevant details that would help candidates understand the position."
                       required
@@ -838,10 +843,10 @@ const PostJob: React.FC = () => {
                   <div className="space-y-2 sm:col-span-2">
                     <div className="flex justify-between items-center">
                       <label className="block text-sm font-medium text-gray-700">
-                        Additional Information (Optional) <span className="text-xs text-gray-500">({formData.additionalInfo.length}/300)</span>
+                        Additional Information (Optional) <span className="text-xs text-gray-500">({formData.additionalInfo.join('\n').length}/400)</span>
                       </label>
                       <span className="text-xs text-gray-500">
-                        {formData.additionalInfo.join('\n').length}/300 characters
+                        {formData.additionalInfo.join('\n').length}/400 characters
                       </span>
                     </div>
                     <div className="relative">
@@ -850,23 +855,25 @@ const PostJob: React.FC = () => {
                         rows={4}
                         value={formData.additionalInfo.join('\n')}
                         onChange={(e) => {
-                          if (e.target.value.length <= 300) {
+                          if (e.target.value.length <= 400) {
                             const lines = e.target.value.split('\n');
-                            setFormData(prev => ({
-                              ...prev,
-                              additionalInfo: lines
-                            }));
+                            if (lines.length <= 10) {
+                              setFormData(prev => ({
+                                ...prev,
+                                additionalInfo: lines
+                              }));
+                            }
                           }
                         }}
-                        maxLength={300}
+                        maxLength={400}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter any additional information about the job, benefits, or company culture. Each new line will be treated as a separate point."
                       />
-                      {formData.additionalInfo.join('\n').length >= 270 && (
+                      {formData.additionalInfo.join('\n').length >= 350 && (
                         <div className={`text-xs mt-1 text-right ${
-                          formData.additionalInfo.join('\n').length >= 300 ? 'text-red-600' : 'text-gray-500'
+                          formData.additionalInfo.join('\n').length >= 400 ? 'text-red-600' : 'text-gray-500'
                         }`}>
-                          {300 - formData.additionalInfo.join('\n').length} characters remaining
+                          {400 - formData.additionalInfo.join('\n').length} characters remaining
                         </div>
                       )}
                     </div>
@@ -876,10 +883,10 @@ const PostJob: React.FC = () => {
                   <div className="space-y-2 sm:col-span-2">
                     <div className="flex justify-between items-center">
                       <label className="block text-sm font-medium text-gray-700">
-                        How to Apply * <span className="text-xs text-gray-500">({formData.howToApply.length}/300)</span>
+                        How to Apply * <span className="text-xs text-gray-500">({formData.howToApply.length}/250)</span>
                       </label>
                       <span className="text-xs text-gray-500">
-                        {formData.howToApply.length}/300 characters
+                        {formData.howToApply.length}/250 characters
                       </span>
                     </div>
                     <div className="bg-gray-50 border border-gray-300 rounded-md p-3">
@@ -887,8 +894,13 @@ const PostJob: React.FC = () => {
                         name="howToApply"
                         rows={3}
                         value={formData.howToApply}
-                        onChange={handleChange}
-                        maxLength={300}
+                        onChange={(e) => {
+                          const lines = e.target.value.split('\n');
+                          if (lines.length <= 10 && e.target.value.length <= 250) {
+                            handleChange(e);
+                          }
+                        }}
+                        maxLength={250}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                         placeholder="Enter application instructions, URL, or email address where applicants should send their applications"
                         required

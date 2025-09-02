@@ -81,9 +81,9 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
               {title || 'Job Title'}
             </h2>
             
-            <p className="text-xl text-gray-600 mb-4">
+            <div className="text-xl text-gray-600 mb-4 flex items-center gap-3">
               {company || 'Company Name'}
-            </p>
+            </div>
           </div>
         </div>
         
@@ -159,13 +159,12 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 pt-6 border-t border-gray-200 bg-gray-50 rounded-lg p-4">
-          <div className="flex flex-col space-y-4">
-            {/* Links */}
-            {website && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
+        {/* Contact & Links */}
+        {(website || twitter || discord || contactEmail) && (
+          <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
+            <div className="flex flex-wrap gap-2">
+              {website && (
                 <a 
                   href={website.startsWith('http') ? website : `https://${website}`}
                   target="_blank"
@@ -173,54 +172,46 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
                   className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                 >
                   <FaLink className="h-4 w-4 mr-2" />
-                  <span>{website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
+                  <span>Website</span>
                 </a>
-              </div>
-            )}
-            
-            {/* Contact */}
-            {(twitter || discord || contactEmail) && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
-                <div className="flex flex-wrap gap-2">
-                  {twitter && (
-                    <a 
-                      href={`https://twitter.com/${twitter.startsWith('@') ? twitter.substring(1) : twitter}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                    >
-                      <FaXTwitter className="h-4 w-4 mr-2" />
-                      <span>Twitter</span>
-                    </a>
-                  )}
-                  
-                  {discord && (
-                    <a 
-                      href={discord} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                    >
-                      <FaDiscord className="h-4 w-4 mr-2" />
-                      <span>Discord</span>
-                    </a>
-                  )}
-                  
-                  {contactEmail && (
-                    <a 
-                      href={`mailto:${contactEmail}`} 
-                      className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                    >
-                      <FaEnvelope className="h-4 w-4 mr-2" />
-                      <span>Email</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+              )}
+              
+              {twitter && (
+                <a 
+                  href={`https://twitter.com/${twitter.startsWith('@') ? twitter.substring(1) : twitter}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                >
+                  <FaXTwitter className="h-4 w-4 mr-2" />
+                  <span>Twitter</span>
+                </a>
+              )}
+              
+              {discord && (
+                <a 
+                  href={discord} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                >
+                  <FaDiscord className="h-4 w-4 mr-2" />
+                  <span>Discord</span>
+                </a>
+              )}
+              
+              {contactEmail && (
+                <a 
+                  href={`mailto:${contactEmail}`} 
+                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                >
+                  <FaEnvelope className="h-4 w-4 mr-2" />
+                  <span>Email</span>
+                </a>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

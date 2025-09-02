@@ -625,13 +625,18 @@ const MyJobs: React.FC = () => {
                         <div className="space-y-2">
                           <textarea
                             value={editFormData.description || ''}
-                            onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value.slice(0, 300) }))}
-                            maxLength={300}
-                            rows={6}
+                            onChange={(e) => {
+                              const lines = e.target.value.split('\n');
+                              if (lines.length <= 10 && e.target.value.length <= 500) {
+                                setEditFormData(prev => ({ ...prev, description: e.target.value }));
+                              }
+                            }}
+                            maxLength={500}
+                            rows={10}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             placeholder="Describe the role, responsibilities, and requirements..."
                           />
-                          <p className="text-xs text-gray-500 text-right">{(editFormData.description || '').length}/300 characters</p>
+                          <p className="text-xs text-gray-500 text-right">{(editFormData.description || '').length}/500 characters</p>
                         </div>
                       ) : (
                         <div className="prose prose-sm max-w-none text-gray-700">
@@ -720,20 +725,22 @@ const MyJobs: React.FC = () => {
                               return String(editFormData.additionalInfo).replace(/[{}"\\/\s]+/g, ' ').trim();
                             })()}
                             onChange={(e) => {
-                              const text = e.target.value.slice(0, 300);
-                              setEditFormData(prev => ({ ...prev, additionalInfo: text.split('\n').map(info => info.trim()) }));
+                              const lines = e.target.value.split('\n');
+                              if (lines.length <= 10 && e.target.value.length <= 400) {
+                                setEditFormData(prev => ({ ...prev, additionalInfo: lines.map(info => info.trim()) }));
+                              }
                             }}
-                            maxLength={300}
-                            rows={4}
+                            maxLength={400}
+                            rows={10}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             placeholder="Enter additional information (one item per line)"
                           />
                           <p className="text-xs text-gray-500 text-right">{(() => {
-                            if (!editFormData.additionalInfo) return '0/300 characters';
+                            if (!editFormData.additionalInfo) return '0/400 characters';
                             if (Array.isArray(editFormData.additionalInfo)) {
-                              return `${editFormData.additionalInfo.join('\n').length}/300 characters`;
+                              return `${editFormData.additionalInfo.join('\n').length}/400 characters`;
                             }
-                            return `${String(editFormData.additionalInfo).length}/300 characters`;
+                            return `${String(editFormData.additionalInfo).length}/400 characters`;
                           })()}</p>
                         </div>
                       ) : selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 ? (
@@ -758,13 +765,18 @@ const MyJobs: React.FC = () => {
                         <div className="space-y-2">
                           <textarea
                             value={editFormData.howToApply || ''}
-                            onChange={(e) => setEditFormData(prev => ({ ...prev, howToApply: e.target.value.slice(0, 300) }))}
-                            maxLength={300}
-                            rows={4}
+                            onChange={(e) => {
+                              const lines = e.target.value.split('\n');
+                              if (lines.length <= 10 && e.target.value.length <= 250) {
+                                setEditFormData(prev => ({ ...prev, howToApply: e.target.value }));
+                              }
+                            }}
+                            maxLength={250}
+                            rows={10}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             placeholder="Instructions for applicants..."
                           />
-                          <p className="text-xs text-gray-500 text-right">{(editFormData.howToApply || '').length}/300 characters</p>
+                          <p className="text-xs text-gray-500 text-right">{(editFormData.howToApply || '').length}/250 characters</p>
                         </div>
                       ) : (
                         <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
