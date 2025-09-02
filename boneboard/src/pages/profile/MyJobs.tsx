@@ -9,6 +9,8 @@ import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTi
 import { FaXTwitter } from 'react-icons/fa6';
 import CustomSelect from '../../components/CustomSelect';
 import { JOB_CATEGORIES } from '../../constants/categories';
+import CustomMonthPicker from '../../components/CustomMonthPicker';
+import { calculateMonthsFromNow } from '../../utils/fundingPricing';
 
 // Helper function to get expiry time string
 const getExpiryTimeString = (expiryDate: string): string => {
@@ -45,6 +47,10 @@ const MyJobs: React.FC = () => {
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showExpiredJobs, setShowExpiredJobs] = useState(false);
+  const [showReactivateModal, setShowReactivateModal] = useState(false);
+  const [jobToReactivate, setJobToReactivate] = useState<Job | null>(null);
+  const [reactivationMonths, setReactivationMonths] = useState('');
+  const [reactivating, setReactivating] = useState(false);
 
 
   const clearSelectedJob = () => {
@@ -113,8 +119,17 @@ const MyJobs: React.FC = () => {
     }
   };
 
-  const handleReactivateJob = async (jobId: string, duration: number = 30) => {
+  const handleReactivateJob = async () => {
+    if (!jobToReactivate || !reactivationMonths) return;
+
+    setReactivating(true);
     try {
+      // Calculate new expiry date from selected months
+      const monthsToAdd = calculateMonthsFromNow(reactivationMonths);
+      const currentDate = new Date();
+      const newExpiresAt = new Date(currentDate);
+      newExpiresAt.setMonth(newExpiresAt.getMonth() + monthsToAdd);
+
       const response = await fetch('/api/jobs', {
         method: 'PUT',
         headers: {
@@ -122,35 +137,39 @@ const MyJobs: React.FC = () => {
         },
         body: JSON.stringify({
           action: 'reactivate',
-          jobId,
-          duration
+          jobId: jobToReactivate.id,
+          newExpiresAt: newExpiresAt.toISOString()
         })
       });
 
       if (response.ok) {
         // Move job from expired to active list
-        const reactivatedJob = expiredJobs.find(job => job.id === jobId);
-        if (reactivatedJob) {
-          const newExpiresAt = new Date();
-          newExpiresAt.setDate(newExpiresAt.getDate() + duration);
-          
-          const updatedJob = {
-            ...reactivatedJob,
-            status: 'confirmed' as const,
-            expiresAt: newExpiresAt.toISOString()
-          };
-          
-          setJobs([...jobs, updatedJob]);
-          setExpiredJobs(expiredJobs.filter(job => job.id !== jobId));
-          toast.success(`Job reactivated for ${duration} days!`);
-        }
+        const updatedJob = {
+          ...jobToReactivate,
+          status: 'confirmed' as const,
+          expiresAt: newExpiresAt.toISOString()
+        };
+        
+        setJobs([...jobs, updatedJob]);
+        setExpiredJobs(expiredJobs.filter(job => job.id !== jobToReactivate.id));
+        setShowReactivateModal(false);
+        setJobToReactivate(null);
+        setReactivationMonths('');
+        toast.success(`Job reactivated successfully!`);
       } else {
         toast.error('Failed to reactivate job');
       }
     } catch (error) {
       console.error('Error reactivating job:', error);
       toast.error('Error reactivating job');
+    } finally {
+      setReactivating(false);
     }
+  };
+
+  const handleOpenReactivateModal = (job: Job) => {
+    setJobToReactivate(job);
+    setShowReactivateModal(true);
   };
 
   const handlePauseJob = async (jobId: string) => {
@@ -439,7 +458,7 @@ const MyJobs: React.FC = () => {
                     </div>
 
                     {showExpiredJobs && (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {expiredJobs.map((job, index) => (
                           <motion.div 
                             key={job.id}
@@ -450,59 +469,92 @@ const MyJobs: React.FC = () => {
                               delay: index * 0.1,
                               ease: 'easeOut'
                             }}
-                            className="bg-gray-50 border border-gray-200 rounded-lg shadow-sm opacity-75"
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setSelectedJob(job)}
+                            className="bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer opacity-75"
                           >
-                            <div className="p-4">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-start space-x-3 flex-1 min-w-0">
+                            <div className="p-6">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-start space-x-4 flex-1 min-w-0">
                                   {/* Company Logo */}
                                   <div className="flex-shrink-0">
                                     {job.companyLogo ? (
                                       <img 
-                                        className="h-10 w-10 rounded-full border border-gray-200 object-cover opacity-75" 
+                                        className="h-12 w-12 rounded-full border border-gray-200 object-cover" 
                                         src={job.companyLogo} 
                                         alt={`${job.company} logo`}
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = 'none';
+                                          const parent = target.parentElement;
+                                          if (parent) {
+                                            parent.innerHTML = '<div class="h-12 w-12 rounded-full border border-gray-200 bg-red-100 flex items-center justify-center"><svg class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                                          }
+                                        }}
                                       />
                                     ) : (
-                                      <div className="h-10 w-10 rounded-full border border-gray-200 bg-gray-200 flex items-center justify-center">
-                                        <FaBuilding className="h-5 w-5 text-gray-500" />
+                                      <div className="h-12 w-12 rounded-full border border-gray-200 bg-red-100 flex items-center justify-center">
+                                        <FaBuilding className="h-6 w-6 text-red-600" />
                                       </div>
                                     )}
                                   </div>
                                   
                                   <div className="flex-1 min-w-0">
-                                    <h4 className="text-base font-medium text-gray-700 truncate">{job.title}</h4>
-                                    <p className="text-sm text-gray-500">{job.company}</p>
-                                    <p className="text-xs text-red-600 mt-1">
-                                      Expired {new Date(job.expiresAt) < new Date() ? 
-                                        `${Math.ceil((new Date().getTime() - new Date(job.expiresAt).getTime()) / (1000 * 60 * 60 * 24))} days ago` : 
-                                        'recently'
-                                      }
-                                    </p>
+                                    <h3 className="text-lg font-semibold flex items-center">
+                                      <span className="truncate">{job.title}</span>
+                                      <span className="ml-2 text-red-500 text-sm flex-shrink-0" title="Expired Job">EXPIRED</span>
+                                    </h3>
+                                    <div className="text-sm text-gray-600 mb-2 flex items-center">
+                                      <span>{job.company}</span>
+                                      {job.isProjectVerified && (
+                                        <div 
+                                          className="ml-2 w-3 h-3 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
+                                          title="Verified project"
+                                        >
+                                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                          </svg>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
+                                <div className="flex space-x-1 flex-shrink-0">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenReactivateModal(job);
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                                    title="Reactivate job"
+                                  >
+                                    <FaClock className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteJob(job.id);
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                    title="Delete job"
+                                  >
+                                    <FaTrash className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </div>
-
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleReactivateJob(job.id, 30)}
-                                  className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                                >
-                                  Reactivate (30 days)
-                                </button>
-                                <button
-                                  onClick={() => handleReactivateJob(job.id, 60)}
-                                  className="flex-1 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-                                >
-                                  Reactivate (60 days)
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteJob(job.id)}
-                                  className="px-3 py-2 text-xs font-medium text-red-600 hover:text-red-800 transition-colors"
-                                  title="Delete job"
-                                >
-                                  <FaTrash className="h-3 w-3" />
-                                </button>
+                              
+                              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                                {job.description}
+                              </p>
+                              
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs text-red-500">
+                                  Posted {new Date(job.createdAt).toLocaleDateString()} • Expired {new Date(job.expiresAt) < new Date() ? 
+                                    `${Math.ceil((new Date().getTime() - new Date(job.expiresAt).getTime()) / (1000 * 60 * 60 * 24))} days ago` : 
+                                    'recently'
+                                  }
+                                </div>
                               </div>
                             </div>
                           </motion.div>
@@ -1100,6 +1152,73 @@ const MyJobs: React.FC = () => {
               </div>
             </motion.div>
             </>
+          )}
+        </AnimatePresence>
+
+        {/* Reactivation Modal */}
+        <AnimatePresence>
+          {showReactivateModal && jobToReactivate && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={() => setShowReactivateModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center mb-6">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <FaClock className="text-green-600 text-lg" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Reactivate Job</h3>
+                    <p className="text-sm text-gray-600">
+                      Reactivate "{jobToReactivate.title}" for a new duration
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Reactivation Duration
+                    </label>
+                    <CustomMonthPicker
+                      value={reactivationMonths}
+                      onChange={setReactivationMonths}
+                      maxMonths={12}
+                      placeholder="Select reactivation duration"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={() => {
+                        setShowReactivateModal(false);
+                        setJobToReactivate(null);
+                        setReactivationMonths('');
+                      }}
+                      className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleReactivateJob}
+                      disabled={reactivating || !reactivationMonths}
+                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {reactivating ? 'Reactivating...' : 'Reactivate Job'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

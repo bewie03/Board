@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { fundingService } from '../../services/fundingService';
+import CustomMonthPicker from '../../components/CustomMonthPicker';
+import { calculateMonthsFromNow } from '../../utils/fundingPricing';
 
 // Contributors Section Component
 const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
@@ -163,7 +165,7 @@ const MyFunding: React.FC = () => {
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [showExtendModal, setShowExtendModal] = useState(false);
   const [projectToExtend, setProjectToExtend] = useState<FundingProject | null>(null);
-  const [newExpiryDate, setNewExpiryDate] = useState('');
+  const [extensionMonths, setExtensionMonths] = useState('');
   const [extending, setExtending] = useState(false);
 
   useEffect(() => {
@@ -295,10 +297,16 @@ const MyFunding: React.FC = () => {
   };
 
   const handleExtendProject = async () => {
-    if (!projectToExtend || !walletAddress || !newExpiryDate) return;
+    if (!projectToExtend || !walletAddress || !extensionMonths) return;
 
     setExtending(true);
     try {
+      // Calculate new expiry date from selected months
+      const monthsToAdd = calculateMonthsFromNow(extensionMonths);
+      const currentDate = new Date();
+      const newExpiryDate = new Date(currentDate);
+      newExpiryDate.setMonth(newExpiryDate.getMonth() + monthsToAdd);
+
       const response = await fetch('/api/funding/extend', {
         method: 'POST',
         headers: {
@@ -306,7 +314,7 @@ const MyFunding: React.FC = () => {
         },
         body: JSON.stringify({
           projectId: projectToExtend.id,
-          newExpiryDate,
+          newExpiryDate: newExpiryDate.toISOString(),
           walletAddress
         })
       });
@@ -315,7 +323,7 @@ const MyFunding: React.FC = () => {
         toast.success('Project expiry date updated successfully!');
         setShowExtendModal(false);
         setProjectToExtend(null);
-        setNewExpiryDate('');
+        setExtensionMonths('');
         fetchMyFunding(); // Refresh the list
       } else {
         const errorData = await response.json();
@@ -792,58 +800,43 @@ const MyFunding: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Extend Funding Period</h3>
                   <p className="text-sm text-gray-600">
-                    {projectToExtend.title || projectToExtend.project_title}
+                    Extend the funding period for "{projectToExtend.title}"
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Expiry Date
+                    Extension Duration
                   </label>
-                  <input
-                    type="date"
-                    value={newExpiryDate}
-                    onChange={(e) => setNewExpiryDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <CustomMonthPicker
+                    value={extensionMonths}
+                    onChange={setExtensionMonths}
+                    maxMonths={12}
+                    placeholder="Select extension duration"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Select the new expiry date for your funding project
-                  </p>
                 </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowExtendModal(false);
-                    setProjectToExtend(null);
-                    setNewExpiryDate('');
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                  disabled={extending}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleExtendProject}
-                  disabled={extending || !newExpiryDate}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {extending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <FaClock className="mr-2" />
-                      Update Expiry Date
-                    </>
-                  )}
-                </button>
+                
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowExtendModal(false);
+                      setProjectToExtend(null);
+                      setExtensionMonths('');
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleExtendProject}
+                    disabled={extending || !extensionMonths}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {extending ? 'Extending...' : 'Extend Project'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
