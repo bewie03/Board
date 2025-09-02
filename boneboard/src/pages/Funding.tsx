@@ -658,117 +658,174 @@ const Funding: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-lg p-6 w-full max-w-md"
+              className="bg-white rounded-xl shadow-2xl p-0 w-full max-w-lg overflow-hidden"
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Contribute to {selectedProject.title}
-                </h3>
-                <button
-                  onClick={() => setShowContributeModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <FaTimes />
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amount (ADA)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.000001"
-                    min="0"
-                    max="999"
-                    value={contributionAmount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === '' || (parseFloat(value) <= 999 && value.length <= 3)) {
-                        setContributionAmount(value);
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter amount in ADA (max 999)"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Message (Optional)
-                  </label>
-                  <textarea
-                    value={contributionMessage}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const lines = value.split('\n');
-                      
-                      // Prevent pasting or typing that would exceed limits
-                      if (value.length > 150) {
-                        return;
-                      }
-                      
-                      if (lines.length > 4) {
-                        return;
-                      }
-                      
-                      // Check for lines that are too long (approximate 45 chars per line for readability)
-                      const hasLongLine = lines.some(line => line.length > 45);
-                      if (hasLongLine) {
-                        return;
-                      }
-                      
-                      setContributionMessage(value);
-                    }}
-                    onKeyDown={(e) => {
-                      const value = e.currentTarget.value;
-                      const lines = value.split('\n');
-                      
-                      // Prevent Enter key if already at 4 lines
-                      if (e.key === 'Enter' && lines.length >= 4) {
-                        e.preventDefault();
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
-                    maxLength={150}
-                    placeholder="Leave a message for the project team... (max 200 chars, 4 lines, 50 chars per line)"
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {contributionMessage.length}/150 characters, {contributionMessage.split('\n').length}/4 lines
-                    {contributionMessage.split('\n').some(line => line.length > 50) && (
-                      <span className="text-red-500 ml-2">• Line too long (max 45 chars per line)</span>
-                    )}
+              {/* Header with gradient background */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">
+                      Support This Project
+                    </h3>
+                    <p className="text-blue-100 text-sm mt-1">
+                      {selectedProject.title}
+                    </p>
                   </div>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="anonymous"
-                    checked={isContributionAnonymous}
-                    onChange={(e) => setIsContributionAnonymous(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="anonymous" className="ml-2 block text-sm text-gray-700">
-                    Contribute anonymously
-                  </label>
-                </div>
-
-                <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowContributeModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    className="text-blue-100 hover:text-white p-2 hover:bg-blue-600 rounded-lg transition-colors"
+                  >
+                    <FaTimes className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Amount Input with ADA Symbol */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    Contribution Amount
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-blue-600 text-lg font-bold">₳</span>
+                    </div>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      min="0"
+                      max="999"
+                      value={contributionAmount}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '' || (parseFloat(value) <= 999 && value.length <= 3)) {
+                          setContributionAmount(value);
+                        }
+                      }}
+                      className="w-full pl-12 pr-4 py-3 text-lg font-medium border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 focus:bg-white"
+                      placeholder="0.00"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                      <span className="text-gray-400 text-sm font-medium">ADA</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Maximum contribution: 999 ADA</p>
+                </div>
+
+                {/* Message Input */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    Message to Project Team <span className="text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      value={contributionMessage}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const lines = value.split('\n');
+                        
+                        // Prevent pasting or typing that would exceed limits
+                        if (value.length > 150) {
+                          return;
+                        }
+                        
+                        if (lines.length > 4) {
+                          return;
+                        }
+                        
+                        // Check for lines that are too long (approximate 45 chars per line for readability)
+                        const hasLongLine = lines.some(line => line.length > 45);
+                        if (hasLongLine) {
+                          return;
+                        }
+                        
+                        setContributionMessage(value);
+                      }}
+                      onKeyDown={(e) => {
+                        const value = e.currentTarget.value;
+                        const lines = value.split('\n');
+                        
+                        // Prevent Enter key if already at 4 lines
+                        if (e.key === 'Enter' && lines.length >= 4) {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 focus:bg-white resize-none"
+                      rows={3}
+                      maxLength={150}
+                      placeholder="Share your thoughts or encouragement with the team..."
+                    />
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-400 bg-white px-2 py-1 rounded-md">
+                      {contributionMessage.length}/150
+                    </div>
+                  </div>
+                  {contributionMessage.split('\n').some(line => line.length > 45) && (
+                    <p className="text-xs text-red-500 mt-2 flex items-center">
+                      <FaTimes className="w-3 h-3 mr-1" />
+                      Some lines are too long (max 45 characters per line)
+                    </p>
+                  )}
+                </div>
+
+                {/* Anonymous Checkbox with Better Styling */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <label className="flex items-start cursor-pointer">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        id="anonymous"
+                        checked={isContributionAnonymous}
+                        onChange={(e) => setIsContributionAnonymous(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                        isContributionAnonymous 
+                          ? 'bg-blue-600 border-blue-600' 
+                          : 'bg-white border-gray-300 hover:border-blue-400'
+                      }`}>
+                        {isContributionAnonymous && (
+                          <FaCheck className="w-3 h-3 text-white" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="ml-3">
+                      <span className="text-sm font-medium text-gray-900">
+                        Contribute anonymously
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Your wallet address and username will be hidden from public view
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setShowContributeModal(false)}
+                    className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleContribute}
                     disabled={contributing || !contributionAmount}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg"
                   >
-                    {contributing ? 'Processing...' : 'Contribute'}
+                    {contributing ? (
+                      <div className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <span className="text-lg mr-2">₳</span>
+                        Contribute {contributionAmount ? `${contributionAmount} ADA` : ''}
+                      </div>
+                    )}
                   </button>
                 </div>
               </div>

@@ -49,7 +49,7 @@ const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => 
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(contribution.contributor_wallet);
-                        toast.success('Wallet address copied!');
+                        toast.success('Address copied!');
                       }}
                       className="text-xs text-blue-600 hover:text-blue-800 underline text-left mt-1"
                       title="Click to copy full wallet address"

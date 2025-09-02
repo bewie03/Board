@@ -73,7 +73,7 @@ const CreateFunding: React.FC = () => {
       
       const activeFunding = existingFundings.find(funding => funding.is_active);
       if (activeFunding) {
-        toast.error('You already have an active funding campaign. Only one funding campaign per wallet is allowed.');
+        // Silent redirect - don't show toast on page load, only show it when user tries to pay
         navigate('/funding');
         return;
       }
@@ -143,16 +143,12 @@ const CreateFunding: React.FC = () => {
   // Listen for successful funding creation from transaction monitor
   useEffect(() => {
     const handleFundingCreated = (event: any) => {
-      // Funding created successfully
-      setPaymentStatus('success');
-      
-      // Record project ownership for fraud detection if we have the data
       if (event.detail?.projectId && walletAddress) {
         fraudDetection.recordProjectOwnership(event.detail.projectId, walletAddress);
         fraudDetection.recordOwnerFingerprint(event.detail.projectId);
       }
       
-      toast.success('Funding project created successfully!');
+      // Don't show toast here - it's handled by the payment-specific listener
       navigate('/funding');
     };
 
