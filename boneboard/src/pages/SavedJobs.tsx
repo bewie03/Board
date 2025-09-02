@@ -489,7 +489,7 @@ const SavedJobs: React.FC = () => {
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
-                  <div className="p-6">
+                  <div className="px-8 py-6">
                     {/* Header Section */}
                     <div className="flex gap-6 mb-6">
                       {/* Logo */}
