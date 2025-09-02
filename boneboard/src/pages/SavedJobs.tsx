@@ -560,7 +560,7 @@ const SavedJobs: React.FC = () => {
 
                     {/* Job Description */}
                     <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">JOB DESCRIPTION</h3>
+                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
                       <div className="prose prose-sm max-w-none text-gray-700">
                         <p className="leading-relaxed">{selectedJob.description}</p>
                       </div>
@@ -569,7 +569,7 @@ const SavedJobs: React.FC = () => {
                     {/* Required Skills */}
                     {selectedJob.requiredSkills && selectedJob.requiredSkills.length > 0 && (
                       <div className="mb-8">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">REQUIRED SKILLS</h3>
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedJob.requiredSkills.map((skill, index) => (
                             <span 
@@ -579,6 +579,22 @@ const SavedJobs: React.FC = () => {
                               {skill}
                             </span>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Information */}
+                    {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
+                      <div className="mb-8">
+                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                          <p className="whitespace-pre-line leading-relaxed">
+                            {selectedJob.additionalInfo
+                              .filter(info => info && info.trim() !== '')
+                              .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
+                              .join('\n')
+                            }
+                          </p>
                         </div>
                       </div>
                     )}
