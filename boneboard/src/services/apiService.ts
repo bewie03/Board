@@ -265,24 +265,35 @@ export class ApiService {
 
   // Project methods
   static async updateProject(id: string, updates: any): Promise<any> {
+    // Transform Twitter object for API - extract username for database
+    const transformedData = { ...updates };
+    if (updates.twitter && typeof updates.twitter === 'object') {
+      // Extract username for twitter_username field
+      transformedData.twitterUsername = updates.twitter.username;
+      // Keep twitterLink for compatibility
+      transformedData.twitterLink = updates.twitter.url || `https://twitter.com/${updates.twitter.username}`;
+    }
+    
+    if (updates.discord && typeof updates.discord === 'object') {
+      // Extract invite for discord_invite field
+      transformedData.discordInvite = updates.discord.invite || updates.discord.url;
+      // Keep discordLink for compatibility  
+      transformedData.discordLink = updates.discord.invite || updates.discord.url;
+    }
+
     // Transform frontend data structure to match API expectations
     const apiUpdates = {
-      title: updates.name || updates.title,
-      description: updates.description,
-      category: updates.category,
-      logo: updates.logo,
-      website: updates.website,
-      discordLink: typeof updates.discord === 'object' ? updates.discord?.inviteUrl || '' : updates.discord,
-      twitterLink: typeof updates.twitter === 'object' ? 
-        (updates.twitter?.verified ? `https://twitter.com/${updates.twitter.username}` : updates.twitter?.username || '') 
-        : updates.twitter,
-      // Store the full Twitter object for verified connections
-      twitter: typeof updates.twitter === 'object' ? updates.twitter : undefined,
-      discord: typeof updates.discord === 'object' ? updates.discord : undefined,
-      status: updates.status,
-      isVerified: updates.isVerified,
-      verifiedAt: updates.verifiedAt,
-      verifiedBy: updates.verifiedBy
+      title: transformedData.name || transformedData.title,
+      description: transformedData.description,
+      category: transformedData.category,
+      status: transformedData.status,
+      logo: transformedData.logo,
+      website: transformedData.website,
+      fundingAddress: transformedData.fundingAddress,
+      discordLink: transformedData.discordLink,
+      twitterLink: transformedData.twitterLink,
+      twitterUsername: transformedData.twitterUsername,
+      discordInvite: transformedData.discordInvite
     };
 
     // Remove undefined values
