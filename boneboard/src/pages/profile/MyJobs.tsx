@@ -513,21 +513,18 @@ const MyJobs: React.FC = () => {
                           </div>
                         ) : (
                           <div>
-                            <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-3">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-3">
                               {selectedJob.title}
+                            </h2>
+                            
+                            <p className="text-xl text-gray-600 mb-4 flex items-center gap-3">
+                              {selectedJob.company}
                               {selectedJob.isProjectVerified && (
                                 <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                                   <FaCheck className="text-white text-sm" />
                                 </div>
                               )}
-                            </h2>
-                            
-                            <div className="flex items-center gap-3">
-                              <span className="text-xl text-gray-700 font-medium">{selectedJob.company}</span>
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
-                                {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
-                              </span>
-                            </div>
+                            </p>
                           </div>
                         )}
                       </div>
@@ -599,10 +596,8 @@ const MyJobs: React.FC = () => {
                               <div className="w-32">
                                 <CustomSelect
                                   options={[
-                                    { value: 'ADA', label: '₳ ADA' },
-                                    { value: 'FIAT', label: '$ USD' },
-                                    { value: 'EUR', label: '€ EUR' },
-                                    { value: 'GBP', label: '£ GBP' },
+                                    { value: 'ADA', label: 'ADA' },
+                                    { value: 'FIAT', label: 'FIAT' },
                                     { value: 'Other', label: 'Other' }
                                   ]}
                                   value={editFormData.salaryType || 'FIAT'}
@@ -783,7 +778,7 @@ const MyJobs: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex flex-col space-y-4">
                     {/* Links */}
                     <div>

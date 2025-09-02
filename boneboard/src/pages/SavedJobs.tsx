@@ -515,113 +515,84 @@ const SavedJobs: React.FC = () => {
                       
                       {/* Title and Company */}
                       <div className="flex-1">
-                        <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-3">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-3">
                           {selectedJob.title}
+                        </h2>
+                        <p className="text-xl text-gray-600 mb-4 flex items-center gap-3">
+                          {selectedJob.company}
                           {selectedJob.isProjectVerified && (
                             <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                               <FaCheck className="text-white text-sm" />
                             </div>
                           )}
-                        </h2>
-                        
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl text-gray-700 font-medium">{selectedJob.company}</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
-                            {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
-                          </span>
-                        </div>
+                        </p>
                       </div>
                     </div>
                     
                     {/* Job Details Cards */}
-                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                      <div className="grid grid-cols-3 gap-6">
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaMapMarkerAlt className="text-blue-600 text-lg" />
-                          </div>
-                          <p className="text-sm text-gray-500 mb-1">Work Style</p>
-                          <p className="font-semibold text-gray-900">
-                            {selectedJob.workArrangement === 'remote' ? 'Remote' : selectedJob.workArrangement === 'hybrid' ? 'Hybrid' : selectedJob.workArrangement === 'onsite' ? 'On-site' : 'Remote'}
-                          </p>
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                          <FaMapMarkerAlt className="text-blue-600 text-lg" />
                         </div>
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaClock className="text-blue-600 text-lg" />
-                          </div>
-                          <p className="text-sm text-gray-500 mb-1">Job Type</p>
-                          <p className="font-semibold text-gray-900">{selectedJob.type}</p>
+                        <p className="text-sm text-gray-500 mb-1">Work Style</p>
+                        <p className="font-semibold text-gray-900">Remote</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                          <FaClock className="text-blue-600 text-lg" />
                         </div>
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <FaMoneyBillWave className="text-blue-600 text-lg" />
-                          </div>
-                          <p className="text-sm text-gray-500 mb-1">Salary</p>
-                          <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
+                        <p className="text-sm text-gray-500 mb-1">Job Type</p>
+                        <p className="font-semibold text-gray-900">{selectedJob.type}</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                          <FaMoneyBillWave className="text-blue-600 text-lg" />
                         </div>
+                        <p className="text-sm text-gray-500 mb-1">Salary</p>
+                        <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Job Content */}
-                  <div className="px-6 py-6 space-y-8">
-                    {/* Description */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Job Description</h4>
+                    {/* Job Description */}
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">JOB DESCRIPTION</h3>
                       <div className="prose prose-sm max-w-none text-gray-700">
-                        <p className="whitespace-pre-line leading-relaxed">{selectedJob.description}</p>
+                        <p className="leading-relaxed">{selectedJob.description}</p>
                       </div>
                     </div>
 
                     {/* Required Skills */}
-                    {selectedJob?.requiredSkills && selectedJob.requiredSkills.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
+                    {selectedJob.requiredSkills && selectedJob.requiredSkills.length > 0 && (
+                      <div className="mb-8">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">REQUIRED SKILLS</h3>
                         <div className="flex flex-wrap gap-2">
-                          {selectedJob.requiredSkills
-                            .filter(skill => skill && skill.trim() !== '')
-                            .map((skill, index) => (
-                            <span
+                          {selectedJob.requiredSkills.map((skill, index) => (
+                            <span 
                               key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
                             >
-                              {skill.replace(/[{}"\\/\s]+/g, ' ').trim()}
+                              {skill}
                             </span>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Additional Information */}
-                    {selectedJob.additionalInfo && selectedJob.additionalInfo.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
-                        <div className="prose prose-sm max-w-none text-gray-700">
-                          <p className="whitespace-pre-line leading-relaxed">
-                            {selectedJob.additionalInfo
-                              .filter(info => info && info.trim() !== '')
-                              .map(info => info.replace(/[{}"\\/\s]+/g, ' ').trim())
-                              .join('\n')
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
                     {/* How to Apply */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
-                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                    {selectedJob.howToApply && (
+                      <div className="mb-8">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">HOW TO APPLY</h3>
                         <div className="prose prose-sm max-w-none text-gray-700">
                           <p className="leading-relaxed">{selectedJob.howToApply}</p>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex flex-col space-y-4">
                     {/* Links */}
                     {selectedJob.website && (

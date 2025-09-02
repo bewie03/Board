@@ -910,21 +910,18 @@ const JobListings: React.FC = () => {
                       
                       {/* Title and Company */}
                       <div className="flex-1">
-                        <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-3">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-3">
                           {selectedJob.title}
+                        </h2>
+                        
+                        <p className="text-xl text-gray-600 mb-4 flex items-center gap-3">
+                          {selectedJob.company}
                           {selectedJob.isProjectVerified && (
                             <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                               <FaCheck className="text-white text-sm" />
                             </div>
                           )}
-                        </h2>
-                        
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="text-xl text-gray-700 font-medium">{selectedJob.company}</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
-                            {JOB_CATEGORIES.find(cat => cat.id === selectedJob.category)?.name || selectedJob.category}
-                          </span>
-                        </div>
+                        </p>
                         
                       </div>
                     </div>

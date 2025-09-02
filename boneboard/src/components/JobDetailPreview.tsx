@@ -26,31 +26,13 @@ const formatText = (text: string) => {
   return text
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('-');
-};
-
-// Helper function to get category name from ID
-const getCategoryName = (categoryId: string) => {
-  const categories: Record<string, string> = {
-    'development': 'Development',
-    'design': 'Design & Creative',
-    'marketing': 'Marketing',
-    'community': 'Community & Social',
-    'business': 'Business Development',
-    'content': 'Content Creation',
-    'defi': 'DeFi & Finance',
-    'nft': 'NFT & Digital Assets',
-    'security': 'Security & Auditing',
-    'research': 'Research & Analysis',
-  };
-  return categories[categoryId] || formatText(categoryId);
+    .join(' ');
 };
 
 const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
   title,
   company,
   type,
-  category,
   salary,
   logo,
   workArrangement,
@@ -99,12 +81,9 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
               {title || 'Job Title'}
             </h2>
             
-            <div className="flex items-center gap-3">
-              <span className="text-xl text-gray-700 font-medium">{company || 'Company Name'}</span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
-                {getCategoryName(category) || 'Uncategorized'}
-              </span>
-            </div>
+            <p className="text-xl text-gray-600 mb-4">
+              {company || 'Company Name'}
+            </p>
           </div>
         </div>
         
