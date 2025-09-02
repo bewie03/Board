@@ -6,6 +6,7 @@ import { useWallet } from '../../contexts/WalletContext';
 import { ProjectService, Project } from '../../services/projectService';
 import { JobService } from '../../services/jobService';
 import { toast } from 'react-toastify';
+import { initiateTwitterOAuth } from '../../utils/auth';
 import PageTransition from '../../components/PageTransition';
 import CustomSelect from '../../components/CustomSelect';
 import { Link } from 'react-router-dom';
@@ -26,6 +27,9 @@ const MyProjects: React.FC = () => {
     name: string;
     associatedJobsCount: number;
   } | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState<'twitter' | null>(null);
+  const [characterCount, setCharacterCount] = useState(0);
+  const [lineCount, setLineCount] = useState(1);
 
   useEffect(() => {
     const fetchUserProjects = async () => {
@@ -52,16 +56,24 @@ const MyProjects: React.FC = () => {
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
+    const description = project.description || '';
     setEditFormData({
       name: project.title || project.name,
-      description: project.description,
+      description: description,
       website: project.website,
       category: project.category,
       logo: project.logo,
-      twitter: project.twitterLink || (typeof project.twitter === 'string' ? project.twitter : (typeof project.twitter === 'object' && project.twitter?.username ? project.twitter.username : '')),
+      twitter: typeof project.twitter === 'object' ? project.twitter : {
+        username: project.twitterLink || (typeof project.twitter === 'string' ? project.twitter : ''),
+        verified: false,
+        id: '',
+        profileImageUrl: ''
+      },
       discord: project.discordLink || (typeof project.discord === 'string' ? project.discord : (typeof project.discord === 'object' && project.discord?.inviteUrl ? project.discord.inviteUrl : ''))
     });
     setLogoPreview(project.logo || null);
+    setCharacterCount(description.length);
+    setLineCount(description.split('\n').length);
   };
 
   const handleSaveEdit = async () => {
@@ -153,6 +165,62 @@ const MyProjects: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleTwitterAuth = async () => {
+    try {
+      setIsAuthenticating('twitter');
+      
+      const twitterData = await initiateTwitterOAuth();
+      
+      setEditFormData(prev => ({
+        ...prev,
+        twitter: {
+          username: twitterData.username,
+          verified: true,
+          id: twitterData.id,
+          profileImageUrl: twitterData.profileImageUrl || ''
+        }
+      }));
+      
+      toast.success('Twitter account connected successfully!');
+    } catch (err) {
+      console.error('Twitter auth error:', err);
+      toast.error('Failed to authenticate with Twitter. Please try again.');
+    } finally {
+      setIsAuthenticating(null);
+    }
+  };
+
+  const removeTwitterAuth = () => {
+    setEditFormData(prev => ({
+      ...prev,
+      twitter: {
+        username: '',
+        verified: false,
+        id: '',
+        profileImageUrl: ''
+      }
+    }));
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const lines = value.split('\n');
+    
+    // Enforce 500 character limit
+    if (value.length > 500) {
+      return;
+    }
+    
+    // Enforce 8 line limit
+    if (lines.length > 8) {
+      return;
+    }
+    
+    setEditFormData(prev => ({ ...prev, description: value }));
+    setCharacterCount(value.length);
+    setLineCount(lines.length);
   };
 
   if (!isConnected) {
@@ -463,13 +531,19 @@ const MyProjects: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Project Description *
                     </label>
-                    <textarea
-                      value={editFormData.description || ''}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      placeholder="Describe your project in detail..."
-                    />
+                    <div className="relative">
+                      <textarea
+                        value={editFormData.description || ''}
+                        onChange={handleDescriptionChange}
+                        rows={8}
+                        maxLength={500}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Describe your project in detail..."
+                      />
+                      <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                        {characterCount}/500 chars • {lineCount}/8 lines
+                      </div>
+                    </div>
                   </div>
 
                   {/* Website */}
@@ -518,18 +592,49 @@ const MyProjects: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <FaXTwitter className="inline h-4 w-4 mr-2 text-blue-400" />
-                          Twitter Username
+                          Twitter Verification {typeof editFormData.twitter === 'object' && editFormData.twitter?.verified && <span className="text-green-500 ml-1">✓</span>}
                         </label>
-                        <input
-                          type="text"
-                          value={typeof editFormData.twitter === 'object' ? editFormData.twitter?.username || '' : editFormData.twitter || ''}
-                          onChange={(e) => setEditFormData(prev => ({ 
-                            ...prev, 
-                            twitter: e.target.value
-                          }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="username (without @)"
-                        />
+                        {typeof editFormData.twitter === 'object' && editFormData.twitter?.verified ? (
+                          <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="flex items-center">
+                              {editFormData.twitter.profileImageUrl ? (
+                                <img
+                                  src={editFormData.twitter.profileImageUrl}
+                                  alt="Twitter profile"
+                                  className="h-8 w-8 rounded-full mr-3"
+                                />
+                              ) : (
+                                <FaXTwitter className="h-5 w-5 text-blue-500 mr-2" />
+                              )}
+                              <span className="text-sm font-medium text-gray-900">
+                                Connected as @{editFormData.twitter.username}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={removeTwitterAuth}
+                              className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+                              disabled={isAuthenticating === 'twitter'}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleTwitterAuth}
+                              disabled={isAuthenticating === 'twitter'}
+                              className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FaXTwitter className="w-5 h-5 mr-2 text-gray-900" />
+                              {isAuthenticating === 'twitter' ? 'Connecting...' : 'Connect with Twitter'}
+                            </button>
+                            <p className="mt-1 text-xs text-gray-500">
+                              We'll verify your Twitter account ownership
+                            </p>
+                          </>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

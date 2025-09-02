@@ -10,6 +10,7 @@ export interface Project {
     username: string;
     verified: boolean;
     id: string;
+    profileImageUrl?: string;
   };
   discord?: string | {
     serverName: string;
