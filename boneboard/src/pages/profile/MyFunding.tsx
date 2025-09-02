@@ -338,7 +338,11 @@ const MyFunding: React.FC = () => {
                 key={funding.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white shadow-sm rounded-lg overflow-hidden"
+                className={`bg-white shadow-sm rounded-lg overflow-hidden ${
+                  fundingService.isExpired(funding.funding_deadline) 
+                    ? 'border-l-4 border-red-500 opacity-75' 
+                    : ''
+                }`}
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -358,21 +362,34 @@ const MyFunding: React.FC = () => {
                         <h3 className="text-xl font-semibold text-gray-900">
                           {funding.project_title || funding.title}
                         </h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-2">
-                          <span className="flex items-center">
+                        <div className="flex items-center space-x-4 text-sm mt-2">
+                          <span className={`flex items-center ${
+                            fundingService.isExpired(funding.funding_deadline) 
+                              ? 'text-red-600 font-medium' 
+                              : 'text-gray-500'
+                          }`}>
                             <FaCalendarAlt className="w-4 h-4 mr-1" />
-                            {fundingService.formatDeadline(funding.funding_deadline)}
+                            {fundingService.isExpired(funding.funding_deadline) 
+                              ? `Deadline passed: ${fundingService.formatDeadline(funding.funding_deadline)}`
+                              : `Deadline: ${fundingService.formatDeadline(funding.funding_deadline)}`
+                            }
                           </span>
-                          <span className="flex items-center">
+                          <span className="flex items-center text-gray-500">
                             <FaUsers className="w-4 h-4 mr-1" />
                             {funding.contributor_count} backers
                           </span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            funding.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
+                            fundingService.isExpired(funding.funding_deadline)
+                              ? 'bg-red-100 text-red-800'
+                              : funding.is_active 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {funding.is_active ? 'Active' : 'Paused'}
+                            {fundingService.isExpired(funding.funding_deadline) 
+                              ? 'Expired' 
+                              : funding.is_active 
+                                ? 'Active' 
+                                : 'Paused'}
                           </span>
                         </div>
                       </div>

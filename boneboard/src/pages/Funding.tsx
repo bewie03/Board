@@ -425,12 +425,6 @@ const Funding: React.FC = () => {
                               Completed
                             </span>
                           )}
-                          {!project.is_funded && fundingService.isExpired(project.funding_deadline) && (
-                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full flex items-center gap-1">
-                              <FaClock className="w-3 h-3" />
-                              Expired
-                            </span>
-                          )}
                         </div>
                         {project.category && (
                           <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">
