@@ -268,12 +268,12 @@ async function handleUpdateReport(req: any, res: any) {
         projectStatus = 'paused'; // Hide project/job from public view
         break;
       case 'delete':
-        // Remove report only - delete report from database but keep project/job active
+        // Delete both report and project/job entirely (this is what admin expects)
         reportStatus = null; // Will delete the report
-        projectStatus = null; // Don't change job/project status
+        projectStatus = 'deleted'; // Mark project/job for permanent deletion
         break;
       case 'permanent_delete':
-        // Delete both report and project/job entirely
+        // Same as delete - remove both report and project/job
         reportStatus = null; // Will delete the report
         projectStatus = 'deleted'; // Mark project/job for permanent deletion
         break;
@@ -409,14 +409,26 @@ async function handleUpdateReport(req: any, res: any) {
         let actualItemType = 'project';
         let tableName = 'projects';
         
-        // First check projects table
-        const projectExistsQuery = `SELECT id, status FROM projects WHERE id = CAST($1 AS UUID)`;
-        const projectExists = await client.query(projectExistsQuery, [projectId]);
+        // First check projects table - handle UUID validation
+        let projectExists;
+        try {
+          const projectExistsQuery = `SELECT id, status FROM projects WHERE id = $1`;
+          projectExists = await client.query(projectExistsQuery, [projectId]);
+        } catch (error) {
+          console.log(`[API] Error checking projects table:`, error);
+          projectExists = { rows: [] };
+        }
         
         if (projectExists.rows.length === 0) {
           // Not found in projects, check job_listings
-          const jobExistsQuery = `SELECT id, status FROM job_listings WHERE id = CAST($1 AS UUID)`;
-          const jobExists = await client.query(jobExistsQuery, [projectId]);
+          let jobExists;
+          try {
+            const jobExistsQuery = `SELECT id, status FROM job_listings WHERE id = $1`;
+            jobExists = await client.query(jobExistsQuery, [projectId]);
+          } catch (error) {
+            console.log(`[API] Error checking job_listings table:`, error);
+            jobExists = { rows: [] };
+          }
           
           if (jobExists.rows.length > 0) {
             actualItemType = 'job';
@@ -424,8 +436,13 @@ async function handleUpdateReport(req: any, res: any) {
             console.log(`[API] Found in job_listings table:`, jobExists.rows[0]);
           } else {
             console.log(`[API] ERROR: ID ${projectId} not found in either projects or job_listings tables`);
-            console.log(`[API] SKIPPING update since item doesn't exist in any table`);
             
+            // For delete actions, this is an error - item should exist to be deleted
+            if (action === 'delete' || action === 'permanent_delete') {
+              throw new Error(`Cannot delete item with ID ${projectId}. Item not found in database.`);
+            }
+            
+            // For other actions, just process the report
             await client.query('COMMIT');
             return res.status(200).json({
               message: `Report processed successfully. Note: Referenced item no longer exists in database.`,
@@ -458,17 +475,12 @@ async function handleUpdateReport(req: any, res: any) {
             updateValues = [restoredStatus, projectId];
             console.log(`[API] Restoring ${actualItemType} to status: ${restoredStatus}`);
             break;
-          case 'permanent_delete':
-            // Permanent delete: Remove job/project from database completely
-            // Try with UUID casting to handle potential type mismatches
-            updateQuery = `DELETE FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
-            updateValues = [projectId];
-            console.log(`[API] Attempting to delete from ${tableName} with UUID cast`);
-            break;
           case 'delete':
-            // Delete report only: Don't affect project/job status
-            updateQuery = '';
-            updateValues = [];
+          case 'permanent_delete':
+            // Delete: Remove job/project from database completely
+            updateQuery = `DELETE FROM ${tableName} WHERE id = $1`;
+            updateValues = [projectId];
+            console.log(`[API] Attempting to delete from ${tableName} with ID: ${projectId}`);
             break;
           default:
             updateQuery = '';
@@ -486,16 +498,25 @@ async function handleUpdateReport(req: any, res: any) {
           console.log(`[API] Update result: ${updateResult.rowCount} rows affected`);
           
           if (updateResult.rowCount === 0) {
-            console.log(`[API] WARNING: No rows were updated. Item may not exist or query failed.`);
-            // Let's check if the item actually exists with current status
-            const checkQuery = `SELECT id, status FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
+            console.log(`[API] ERROR: No rows were affected. Item may not exist or query failed.`);
+            // Let's check if the item actually exists
+            const checkQuery = `SELECT id, status FROM ${tableName} WHERE id = $1`;
             const checkResult = await client.query(checkQuery, [projectId]);
             console.log(`[API] Item check result:`, checkResult.rows);
+            
+            // If deletion failed, throw an error to rollback transaction
+            if (action === 'delete' || action === 'permanent_delete') {
+              throw new Error(`Failed to delete ${actualItemType} with ID ${projectId}. Item may not exist.`);
+            }
           } else {
-            // Verify the update worked by checking current status
-            const verifyQuery = `SELECT id, status FROM ${tableName} WHERE id = CAST($1 AS UUID)`;
-            const verifyResult = await client.query(verifyQuery, [projectId]);
-            console.log(`[API] Post-update verification:`, verifyResult.rows);
+            console.log(`[API] Successfully ${action}d ${actualItemType} with ID ${projectId}`);
+            
+            // For non-delete actions, verify the update worked
+            if (action !== 'delete' && action !== 'permanent_delete') {
+              const verifyQuery = `SELECT id, status FROM ${tableName} WHERE id = $1`;
+              const verifyResult = await client.query(verifyQuery, [projectId]);
+              console.log(`[API] Post-update verification:`, verifyResult.rows);
+            }
           }
         } else {
           console.log(`[API] No update query to execute for action: ${action}`);
