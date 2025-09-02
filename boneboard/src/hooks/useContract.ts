@@ -97,7 +97,6 @@ export const useContract = (): UseContractReturn => {
         });
         
         // Don't save immediately - let transaction monitor handle all saves to prevent duplicates
-        toast.success(`Payment submitted! Waiting for blockchain confirmation...`);
         return true;
       } else {
         toast.error(result.error || 'Failed to post job');
