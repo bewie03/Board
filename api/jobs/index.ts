@@ -383,7 +383,41 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
 
 async function handlePut(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
-  const updates = req.body;
+  const { action, jobId, duration, ...updates } = req.body;
+
+  // Handle job reactivation
+  if (action === 'reactivate') {
+    if (!jobId) {
+      return res.status(400).json({ error: 'Job ID is required for reactivation' });
+    }
+
+    const reactivationDuration = duration || 30; // Default to 30 days
+    const newExpiresAt = new Date();
+    newExpiresAt.setDate(newExpiresAt.getDate() + reactivationDuration);
+
+    try {
+      const reactivateQuery = `
+        UPDATE job_listings 
+        SET status = 'confirmed', expires_at = $1, updated_at = NOW()
+        WHERE id = $2
+        RETURNING *
+      `;
+      
+      const result = await getPool().query(reactivateQuery, [newExpiresAt.toISOString(), jobId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+
+      return res.status(200).json({ 
+        message: `Job reactivated for ${reactivationDuration} days`,
+        job: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Error reactivating job:', error);
+      return res.status(500).json({ error: 'Failed to reactivate job' });
+    }
+  }
 
   if (!id) {
     return res.status(400).json({ error: 'Job ID is required' });

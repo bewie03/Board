@@ -92,6 +92,7 @@ const Funding: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
   const [selectedProjectForPanel, setSelectedProjectForPanel] = useState<FundingProject | null>(null);
   const [showContributeModal, setShowContributeModal] = useState(false);
@@ -110,6 +111,13 @@ const Funding: React.FC = () => {
     { value: 'deadline_far', label: 'Deadline (Latest First)' },
     { value: 'goal_high', label: 'Goal (High to Low)' },
     { value: 'goal_low', label: 'Goal (Low to High)' }
+  ];
+
+  const statusOptions = [
+    { value: 'all', label: 'All Projects' },
+    { value: 'active', label: 'Active' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'expired', label: 'Expired' }
   ];
 
   useEffect(() => {
@@ -139,7 +147,24 @@ const Funding: React.FC = () => {
         selectedCategories.includes('all') ||
         selectedCategories.includes(project.category);
       const matchesVerified = !showVerifiedOnly || project.is_verified;
-      return matchesSearch && matchesCategory && matchesVerified;
+      
+      // Status filtering
+      const now = new Date();
+      const deadline = new Date(project.funding_deadline);
+      const isExpired = deadline < now;
+      const isCompleted = project.is_funded;
+      const isActive = !isExpired && !isCompleted;
+      
+      let matchesStatus = true;
+      if (statusFilter === 'active') {
+        matchesStatus = isActive;
+      } else if (statusFilter === 'completed') {
+        matchesStatus = isCompleted;
+      } else if (statusFilter === 'expired') {
+        matchesStatus = isExpired && !isCompleted;
+      }
+      
+      return matchesSearch && matchesCategory && matchesVerified && matchesStatus;
     })
     .sort((a: FundingProject, b: FundingProject) => {
       switch (sortBy) {
@@ -305,6 +330,16 @@ const Funding: React.FC = () => {
                   
                   <div className="min-w-[180px]">
                     <CustomSelect
+                      options={statusOptions}
+                      value={statusFilter}
+                      onChange={setStatusFilter}
+                      placeholder="Status"
+                      className=""
+                    />
+                  </div>
+
+                  <div className="min-w-[180px]">
+                    <CustomSelect
                       options={sortOptions}
                       value={sortBy}
                       onChange={setSortBy}
@@ -382,6 +417,19 @@ const Funding: React.FC = () => {
                             <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
                               <FaCheck className="text-white text-xs" />
                             </div>
+                          )}
+                          {/* Status badges */}
+                          {project.is_funded && (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full flex items-center gap-1">
+                              <FaCheckCircle className="w-3 h-3" />
+                              Completed
+                            </span>
+                          )}
+                          {!project.is_funded && fundingService.isExpired(project.funding_deadline) && (
+                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full flex items-center gap-1">
+                              <FaClock className="w-3 h-3" />
+                              Expired
+                            </span>
                           )}
                         </div>
                         {project.category && (

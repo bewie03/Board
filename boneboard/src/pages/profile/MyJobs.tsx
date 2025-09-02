@@ -39,10 +39,12 @@ const getExpiryTimeString = (expiryDate: string): string => {
 const MyJobs: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [expiredJobs, setExpiredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showExpiredJobs, setShowExpiredJobs] = useState(false);
 
 
   const clearSelectedJob = () => {
@@ -57,28 +59,28 @@ const MyJobs: React.FC = () => {
         try {
           const userJobs = await JobService.getUserJobs(walletAddress);
           
-          // TEMPORARILY DISABLED: Show all jobs including duplicates for debugging
-          // const jobIds = new Set();
-          // const uniqueJobs = userJobs.filter(job => {
-          //   if (jobIds.has(job.id)) {
-          //     console.warn('Duplicate job detected, removing from display:', job.id, job.title);
-          //     // Trigger automatic cleanup in background
-          //     JobService.removeDuplicateJobs().catch(console.error);
-          //     return false;
-          //   }
-          //   jobIds.add(job.id);
-          //   return true;
-          // });
+          // Separate active and expired jobs
+          const now = new Date();
+          const activeJobs = userJobs.filter((job: Job) => {
+            const expiresAt = new Date(job.expiresAt);
+            return job.status === 'confirmed' && expiresAt > now;
+          });
           
-          const uniqueJobs = userJobs; // Show all jobs including duplicates
+          const expiredJobsList = userJobs.filter((job: Job) => {
+            const expiresAt = new Date(job.expiresAt);
+            return job.status === 'paused' || (job.status === 'confirmed' && expiresAt <= now);
+          });
           
-          setJobs(uniqueJobs);
+          setJobs(activeJobs);
+          setExpiredJobs(expiredJobsList);
         } catch (error) {
           console.error('Error loading user jobs:', error);
           setJobs([]);
+          setExpiredJobs([]);
         }
       } else {
         setJobs([]);
+        setExpiredJobs([]);
       }
       setLoading(false);
     };
@@ -91,10 +93,6 @@ const MyJobs: React.FC = () => {
     };
 
     window.addEventListener('jobPostedSuccessfully', handleJobPosted);
-    
-    return () => {
-      window.removeEventListener('jobPostedSuccessfully', handleJobPosted);
-    };
   }, [isConnected, walletAddress]);
 
   const handleDeleteJob = async (jobId: string) => {
@@ -103,14 +101,55 @@ const MyJobs: React.FC = () => {
         const success = await JobService.deleteJob(jobId);
         if (success) {
           setJobs(jobs.filter(job => job.id !== jobId));
+          setExpiredJobs(expiredJobs.filter(job => job.id !== jobId));
           toast.success('Job listing deleted successfully!');
         } else {
-          toast.error('Failed to delete job listing.');
+          toast.error('Failed to delete job listing');
         }
       } catch (error) {
         console.error('Error deleting job:', error);
-        toast.error('Failed to delete job listing.');
+        toast.error('Error deleting job listing');
       }
+    }
+  };
+
+  const handleReactivateJob = async (jobId: string, duration: number = 30) => {
+    try {
+      const response = await fetch('/api/jobs', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reactivate',
+          jobId,
+          duration
+        })
+      });
+
+      if (response.ok) {
+        // Move job from expired to active list
+        const reactivatedJob = expiredJobs.find(job => job.id === jobId);
+        if (reactivatedJob) {
+          const newExpiresAt = new Date();
+          newExpiresAt.setDate(newExpiresAt.getDate() + duration);
+          
+          const updatedJob = {
+            ...reactivatedJob,
+            status: 'confirmed' as const,
+            expiresAt: newExpiresAt.toISOString()
+          };
+          
+          setJobs([...jobs, updatedJob]);
+          setExpiredJobs(expiredJobs.filter(job => job.id !== jobId));
+          toast.success(`Job reactivated for ${duration} days!`);
+        }
+      } else {
+        toast.error('Failed to reactivate job');
+      }
+    } catch (error) {
+      console.error('Error reactivating job:', error);
+      toast.error('Error reactivating job');
     }
   };
 
@@ -239,7 +278,7 @@ const MyJobs: React.FC = () => {
                 <h3 className="mt-2 text-lg font-medium text-gray-900">Connect Your Wallet</h3>
                 <p className="mt-1 text-sm text-gray-500">Connect your wallet to view and manage your job listings.</p>
               </motion.div>
-            ) : jobs.length === 0 ? (
+            ) : jobs.length === 0 && expiredJobs.length === 0 ? (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -380,6 +419,98 @@ const MyJobs: React.FC = () => {
                     </motion.div>
                   ))}
                 </div>
+
+                {/* Expired Jobs Section */}
+                {expiredJobs.length > 0 && (
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                        <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Expired Jobs ({expiredJobs.length})
+                      </h3>
+                      <button
+                        onClick={() => setShowExpiredJobs(!showExpiredJobs)}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        {showExpiredJobs ? 'Hide' : 'Show'} Expired Jobs
+                      </button>
+                    </div>
+
+                    {showExpiredJobs && (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {expiredJobs.map((job, index) => (
+                          <motion.div 
+                            key={job.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ 
+                              duration: 0.3, 
+                              delay: index * 0.1,
+                              ease: 'easeOut'
+                            }}
+                            className="bg-gray-50 border border-gray-200 rounded-lg shadow-sm opacity-75"
+                          >
+                            <div className="p-4">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-start space-x-3 flex-1 min-w-0">
+                                  {/* Company Logo */}
+                                  <div className="flex-shrink-0">
+                                    {job.companyLogo ? (
+                                      <img 
+                                        className="h-10 w-10 rounded-full border border-gray-200 object-cover opacity-75" 
+                                        src={job.companyLogo} 
+                                        alt={`${job.company} logo`}
+                                      />
+                                    ) : (
+                                      <div className="h-10 w-10 rounded-full border border-gray-200 bg-gray-200 flex items-center justify-center">
+                                        <FaBuilding className="h-5 w-5 text-gray-500" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-base font-medium text-gray-700 truncate">{job.title}</h4>
+                                    <p className="text-sm text-gray-500">{job.company}</p>
+                                    <p className="text-xs text-red-600 mt-1">
+                                      Expired {new Date(job.expiresAt) < new Date() ? 
+                                        `${Math.ceil((new Date().getTime() - new Date(job.expiresAt).getTime()) / (1000 * 60 * 60 * 24))} days ago` : 
+                                        'recently'
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleReactivateJob(job.id, 30)}
+                                  className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                                >
+                                  Reactivate (30 days)
+                                </button>
+                                <button
+                                  onClick={() => handleReactivateJob(job.id, 60)}
+                                  className="flex-1 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                                >
+                                  Reactivate (60 days)
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteJob(job.id)}
+                                  className="px-3 py-2 text-xs font-medium text-red-600 hover:text-red-800 transition-colors"
+                                  title="Delete job"
+                                >
+                                  <FaTrash className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
