@@ -886,7 +886,7 @@ const JobListings: React.FC = () => {
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                   <div className="p-6">
                     {/* Header Section */}
-                    <div className="flex gap-6 mb-6 ml-2">
+                    <div className="flex gap-6 mb-6">
                       {/* Logo */}
                       <div className="flex-shrink-0">
                         {selectedJob.logo ? (
@@ -927,7 +927,7 @@ const JobListings: React.FC = () => {
                     </div>
                     
                     {/* Job Details Cards */}
-                    <div className="bg-gray-50 rounded-lg p-6 mb-6 ml-2">
+                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
                       <div className="grid grid-cols-3 gap-6">
                         <div className="text-center">
                           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
@@ -1016,68 +1016,68 @@ const JobListings: React.FC = () => {
                         <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
                           <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
                           <div className="flex flex-wrap gap-2">
-                          {selectedJob.website && (
-                            <a 
-                              href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaLink className="h-4 w-4 mr-2" />
-                              <span>Website</span>
-                            </a>
-                          )}
-                          
-                          {selectedJob.twitter && (
-                            <a 
-                              href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`}
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaXTwitter className="h-4 w-4 mr-2" />
-                              <span>Twitter</span>
-                            </a>
-                          )}
-                          
-                          {selectedJob.discord && (
-                            <a 
-                              href={selectedJob.discord.inviteUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaDiscord className="h-4 w-4 mr-2" />
-                              <span>Discord</span>
-                            </a>
-                          )}
-                          
-                          {selectedJob.contactEmail && (
-                            <button 
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                  setEmailCopied(true);
-                                  setTimeout(() => setEmailCopied(false), 2000);
-                                } catch (err) {
-                                  window.location.href = `mailto:${selectedJob.contactEmail}`;
-                                }
-                              }}
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                              {emailCopied ? (
-                                <>
-                                  <FaCheck className="h-4 w-4 mr-2 text-green-600" />
-                                  <span className="text-green-600">Copied!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <FaEnvelope className="h-4 w-4 mr-2" />
-                                  <span>Email</span>
-                                </>
-                              )}
-                            </button>
-                          )}
+                            {selectedJob.website && (
+                              <a 
+                                href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                              >
+                                <FaLink className="h-4 w-4 mr-2" />
+                                <span>Website</span>
+                              </a>
+                            )}
+                            
+                            {selectedJob.twitter && (
+                              <a 
+                                href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                              >
+                                <FaXTwitter className="h-4 w-4 mr-2" />
+                                <span>Twitter</span>
+                              </a>
+                            )}
+                            
+                            {selectedJob.discord && (
+                              <a 
+                                href={selectedJob.discord.inviteUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                              >
+                                <FaDiscord className="h-4 w-4 mr-2" />
+                                <span>Discord</span>
+                              </a>
+                            )}
+                            
+                            {selectedJob.contactEmail && (
+                              <button 
+                                onClick={async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(selectedJob.contactEmail!);
+                                    setEmailCopied(true);
+                                    setTimeout(() => setEmailCopied(false), 2000);
+                                  } catch (err) {
+                                    window.location.href = `mailto:${selectedJob.contactEmail}`;
+                                  }
+                                }}
+                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                              >
+                                {emailCopied ? (
+                                  <>
+                                    <FaCheck className="h-4 w-4 mr-2 text-green-600" />
+                                    <span className="text-green-600">Copied!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaEnvelope className="h-4 w-4 mr-2" />
+                                    <span>Email</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
