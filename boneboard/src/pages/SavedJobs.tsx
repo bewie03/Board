@@ -530,27 +530,31 @@ const SavedJobs: React.FC = () => {
                     </div>
                     
                     {/* Job Details Cards */}
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                          <FaMapMarkerAlt className="text-blue-600 text-lg" />
+                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                      <div className="grid grid-cols-3 gap-6">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMapMarkerAlt className="text-blue-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Work Style</p>
+                          <p className="font-semibold text-gray-900">
+                            {selectedJob.workArrangement === 'remote' ? 'Remote' : selectedJob.workArrangement === 'hybrid' ? 'Hybrid' : 'On-site'}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-500 mb-1">Work Style</p>
-                        <p className="font-semibold text-gray-900">Remote</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                          <FaClock className="text-blue-600 text-lg" />
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaClock className="text-blue-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Job Type</p>
+                          <p className="font-semibold text-gray-900">{selectedJob.type}</p>
                         </div>
-                        <p className="text-sm text-gray-500 mb-1">Job Type</p>
-                        <p className="font-semibold text-gray-900">{selectedJob.type}</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                          <FaMoneyBillWave className="text-blue-600 text-lg" />
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <FaMoneyBillWave className="text-blue-600 text-lg" />
+                          </div>
+                          <p className="text-sm text-gray-500 mb-1">Salary</p>
+                          <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
                         </div>
-                        <p className="text-sm text-gray-500 mb-1">Salary</p>
-                        <p className="font-semibold text-gray-900">{selectedJob.salary}</p>
                       </div>
                     </div>
 
@@ -592,27 +596,23 @@ const SavedJobs: React.FC = () => {
                     {/* Footer */}
                     <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 mt-8">
                       <div className="flex flex-col space-y-4">
-                        {/* Links */}
-                        {selectedJob.website && (
+                        {/* Contact & Links */}
+                        {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
-                            <a 
-                              href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaLink className="h-4 w-4 mr-2" />
-                              <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
-                            </a>
-                          </div>
-                        )}
-                        
-                        {/* Contact */}
-                        {(selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact & Links</h4>
                             <div className="flex flex-wrap gap-2">
+                              {selectedJob.website && (
+                                <a 
+                                  href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaLink className="h-4 w-4 mr-2" />
+                                  <span>Website</span>
+                                </a>
+                              )}
+                              
                               {selectedJob.twitter && (
                                 <a 
                                   href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 

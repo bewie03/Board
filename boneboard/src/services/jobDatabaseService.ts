@@ -347,7 +347,7 @@ export class JobDatabaseService {
       salaryType: apiJob.salaryType,
       customPaymentType: apiJob.customPaymentType,
       workArrangement: apiJob.workArrangement,
-      requiredSkills: apiJob.requiredSkills ? apiJob.requiredSkills.split(', ') : [],
+      requiredSkills: apiJob.requiredSkills ? apiJob.requiredSkills.split(', ').map((skill: string) => skill.replace(/^["']|["']$/g, '').trim()) : [],
       additionalInfo: apiJob.additionalInfo ? apiJob.additionalInfo.split(', ') : [],
       companyLogoUrl: apiJob.companyLogo,
       companyWebsite: apiJob.companyWebsite,

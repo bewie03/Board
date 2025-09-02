@@ -902,40 +902,38 @@ const MyJobs: React.FC = () => {
                     {/* Footer */}
                     <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 mt-8">
                       <div className="flex flex-col space-y-4">
-                        {/* Links */}
-                        {(editingJob ? editFormData.website : selectedJob.website) && (
+                        {/* Contact & Links */}
+                        {((editingJob ? editFormData.website : selectedJob.website) || (editingJob ? editFormData.twitter : selectedJob.twitter) || (editingJob ? editFormData.discord : selectedJob.discord) || (editingJob ? editFormData.contactEmail : selectedJob.contactEmail)) && (
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
-                            {editingJob ? (
-                              <div className="flex items-center space-x-2">
-                                <FaLink className="h-4 w-4 text-gray-500" />
-                                <input
-                                  type="text"
-                                  value={editFormData.website || ''}
-                                  onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
-                                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                  placeholder="https://company.com"
-                                />
-                              </div>
-                            ) : (
-                              <a 
-                                href={selectedJob.website?.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                              >
-                                <FaLink className="h-4 w-4 mr-2" />
-                                <span>{selectedJob.website?.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
-                              </a>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Contact */}
-                        {((editingJob ? editFormData.twitter : selectedJob.twitter) || (editingJob ? editFormData.discord : selectedJob.discord) || (editingJob ? editFormData.contactEmail : selectedJob.contactEmail)) && (
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact & Links</h4>
                             <div className="flex flex-wrap gap-2">
+                              {(editingJob ? editFormData.website : selectedJob.website) && (
+                                <div className="flex items-center">
+                                  {editingJob ? (
+                                    <div className="flex items-center space-x-2">
+                                      <FaLink className="h-4 w-4 text-gray-500" />
+                                      <input
+                                        type="text"
+                                        value={editFormData.website || ''}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        placeholder="https://company.com"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <a 
+                                      href={selectedJob.website?.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                    >
+                                      <FaLink className="h-4 w-4 mr-2" />
+                                      <span>Website</span>
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                              
                               {(editingJob ? editFormData.twitter : selectedJob.twitter) && (
                                 <div className="flex items-center">
                                   {editingJob ? (
