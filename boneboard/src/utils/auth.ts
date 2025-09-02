@@ -150,17 +150,19 @@ export const initiateTwitterOAuth = (): Promise<{ username: string; id: string; 
         window.removeEventListener('message', messageListener);
         twitterOAuthInProgress = false; // Reset flag on success
         (window as any).twitterOAuthPopup = null; // Clear popup reference
-        // Clean up session storage
-        sessionStorage.removeItem('twitter_code_verifier');
-        sessionStorage.removeItem(`oauth_state_twitter`);
         
+        // Verify state BEFORE cleaning up session storage
         if (verifyOAuthState('twitter', event.data.state)) {
+          // Clean up session storage after successful verification
+          sessionStorage.removeItem('twitter_code_verifier');
           resolve({
             username: event.data.username,
             id: event.data.id,
             profileImageUrl: event.data.profileImageUrl
           });
         } else {
+          // Clean up session storage on verification failure
+          sessionStorage.removeItem('twitter_code_verifier');
           reject(new Error('Invalid OAuth state'));
         }
       } else if (event.data.type === 'TWITTER_OAUTH_ERROR') {
