@@ -1011,10 +1011,11 @@ const JobListings: React.FC = () => {
                     </div>
 
                     {/* Contact & Links */}
-                    {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
-                      <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
-                        <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
-                        <div className="flex flex-wrap gap-2">
+                    <div>
+                      {(selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
+                        <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
+                          <div className="flex flex-wrap gap-2">
                           {selectedJob.website && (
                             <a 
                               href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
@@ -1077,9 +1078,10 @@ const JobListings: React.FC = () => {
                               )}
                             </button>
                           )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
