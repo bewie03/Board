@@ -5,7 +5,6 @@ import { useWallet } from '../contexts/WalletContext';
 import { useContract } from '../hooks/useContract';
 import { toast } from 'react-toastify';
 import { calculateFundingCost } from '../utils/fundingPricing';
-import PageTransition from '../components/PageTransition';
 
 interface FundingProject {
   id: string;
@@ -14,7 +13,6 @@ interface FundingProject {
   funding_goal: number;
   current_funding: number;
   funding_deadline: string;
-  project_id: string;
   wallet_address: string;
   is_active: boolean;
   created_at: string;
@@ -26,63 +24,57 @@ const ExtendFunding: React.FC = () => {
   const { isConnected, walletAddress, formatAddress } = useWallet();
   const { extendWithADA, extendWithBONE, isLoading: contractLoading } = useContract();
   
-  const [currentStep, setCurrentStep] = useState(1);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [project, setProject] = useState<FundingProject | null>(null);
   const [loading, setLoading] = useState(true);
-  const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
-  
   const [formData, setFormData] = useState({
     months: 1,
-    paymentMethod: 'ADA' as 'BONE' | 'ADA'
+    paymentMethod: 'ADA' as 'ADA' | 'BONE'
   });
+  const [currentStep, setCurrentStep] = useState(1);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
 
   // Load platform pricing from admin panel
   useEffect(() => {
-    const fetchPlatformPricing = async () => {
+    const loadPlatformPricing = async () => {
       try {
-        const response = await fetch('/api/admin?action=getSettings');
+        const response = await fetch('/api/admin?type=settings');
         if (response.ok) {
-          const settings = await response.json();
+          const data = await response.json();
           setPlatformPricing({
-            fundingListingFee: settings.fundingListingFee || 500,
-            fundingListingFeeAda: settings.fundingListingFeeAda || 10
+            fundingListingFee: data.fundingListingFee || 500,
+            fundingListingFeeAda: data.fundingListingFeeAda || 6
           });
         }
       } catch (error) {
-        console.error('Error fetching platform pricing:', error);
-        // Fallback to default values
+        console.error('Error loading pricing:', error);
+        // Set default pricing if API fails
         setPlatformPricing({
           fundingListingFee: 500,
-          fundingListingFeeAda: 10
+          fundingListingFeeAda: 6
         });
       }
     };
-    fetchPlatformPricing();
+    loadPlatformPricing();
   }, []);
 
-  // Load project details
+  // Load project data
   useEffect(() => {
+    if (!projectId || !walletAddress) {
+      toast.error('Project ID or wallet address missing');
+      navigate('/my-funding');
+      return;
+    }
+
     const fetchProject = async () => {
-      if (!projectId || !walletAddress) return;
-      
       try {
-        const response = await fetch(`/api/funding?owner=${encodeURIComponent(walletAddress)}`, {
-          headers: {
-            'x-wallet-address': walletAddress
-          }
-        });
-        
+        const response = await fetch(`/api/funding/projects/${projectId}?wallet=${encodeURIComponent(walletAddress)}`);
         if (response.ok) {
-          const projects = await response.json();
-          const targetProject = projects.find((p: FundingProject) => p.id === projectId);
-          
-          if (targetProject) {
-            setProject(targetProject);
-          } else {
-            toast.error('Project not found');
-            navigate('/my-funding');
-          }
+          const projectData = await response.json();
+          setProject(projectData);
+        } else {
+          toast.error('Project not found or access denied');
+          navigate('/my-funding');
         }
       } catch (error) {
         console.error('Error fetching project:', error);
@@ -96,51 +88,31 @@ const ExtendFunding: React.FC = () => {
     fetchProject();
   }, [projectId, walletAddress, navigate]);
 
-  // Check for pending transactions on page load
+  // Check for pending extension transactions
   useEffect(() => {
-    if (!walletAddress) return;
+    if (!walletAddress || !projectId) return;
 
-    const checkPendingTransaction = () => {
-      const pendingKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith(`pendingExtensionTx_${walletAddress}`)
-      );
-      
-      if (pendingKeys.length > 0) {
-        const pendingKey = pendingKeys[0];
-        const pendingData = localStorage.getItem(pendingKey);
-        
-        if (pendingData) {
-          try {
-            const data = JSON.parse(pendingData);
-            if (data.projectId === projectId) {
-              setFormData({
-                months: data.months || 1,
-                paymentMethod: data.paymentMethod || 'ADA'
-              });
-              setCurrentStep(2);
-              setPaymentStatus('processing');
-              toast.info('Resuming extension payment...');
-            }
-          } catch (error) {
-            console.error('Error parsing pending transaction data:', error);
-          }
-        }
+    const pendingKey = `pendingExtensionTx_${walletAddress}_${projectId}`;
+    const pendingTxData = localStorage.getItem(pendingKey);
+    
+    if (pendingTxData) {
+      try {
+        const txData = JSON.parse(pendingTxData);
+        // Resume to payment step if there's a pending transaction
+        setFormData(prev => ({
+          ...prev,
+          months: txData.months,
+          paymentMethod: txData.paymentMethod
+        }));
+        setCurrentStep(2);
+        setPaymentStatus('processing');
+        toast.info('Resuming pending extension transaction...');
+      } catch (error) {
+        console.error('Error parsing pending transaction data:', error);
+        localStorage.removeItem(pendingKey);
       }
-    };
-
-    checkPendingTransaction();
+    }
   }, [walletAddress, projectId]);
-
-  // Listen for extension success events
-  useEffect(() => {
-    const handleExtensionSuccess = () => {
-      setPaymentStatus('success');
-      toast.success('Project extended successfully!');
-    };
-
-    window.addEventListener('extensionCompletedSuccessfully', handleExtensionSuccess);
-    return () => window.removeEventListener('extensionCompletedSuccessfully', handleExtensionSuccess);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,52 +124,68 @@ const ExtendFunding: React.FC = () => {
   const handlePayment = async () => {
     if (!project || !walletAddress) return;
 
-    const cost = calculateFundingCost(formData.months);
-    
+    const extensionData = {
+      id: project.id,
+      type: 'project' as const,
+      title: project.title,
+      months: formData.months,
+      paymentAmount: totalCost.amount,
+      paymentCurrency: formData.paymentMethod
+    };
+
     try {
       setPaymentStatus('processing');
       
-      const extensionData = {
-        id: project.id,
-        type: 'project' as const,
-        title: project.title,
-        paymentAmount: cost,
-        paymentCurrency: formData.paymentMethod,
-        months: formData.months
-      };
-
-      // Store pending transaction data
-      const pendingTxKey = `pendingExtensionTx_${walletAddress}_${Date.now()}`;
-      localStorage.setItem(pendingTxKey, JSON.stringify({
+      const txKey = `pendingExtensionTx_${walletAddress}_${project.id}`;
+      localStorage.setItem(txKey, JSON.stringify({
         projectId: project.id,
         months: formData.months,
         paymentMethod: formData.paymentMethod,
         timestamp: Date.now()
       }));
 
-      let result;
+      let success;
       if (formData.paymentMethod === 'ADA') {
-        result = await extendWithADA(extensionData);
+        success = await extendWithADA(extensionData);
       } else {
-        result = await extendWithBONE(extensionData);
+        success = await extendWithBONE(extensionData);
       }
 
-      if (result.success && result.txHash) {
+      if (success) {
         toast.info('Payment submitted! Waiting for blockchain confirmation...');
-        // Transaction monitoring will handle the rest
+        // Payment status will be updated by transaction monitor
       } else {
         setPaymentStatus('error');
-        localStorage.removeItem(pendingTxKey);
-        toast.error(result.error || 'Extension payment failed');
+        localStorage.removeItem(txKey);
       }
-    } catch (error: any) {
-      console.error('Error processing extension payment:', error);
+    } catch (error) {
+      console.error('Payment error:', error);
       setPaymentStatus('error');
-      toast.error(error.message || 'Failed to process extension payment');
     }
   };
 
-  const totalCost = calculateFundingCost(formData.months);
+  const calculateTotal = () => {
+    if (!platformPricing) {
+      return {
+        amount: formData.paymentMethod === 'ADA' ? 6 : 500,
+        currency: formData.paymentMethod,
+        months: formData.months
+      };
+    }
+
+    const baseCost = formData.paymentMethod === 'ADA' 
+      ? platformPricing.fundingListingFeeAda 
+      : platformPricing.fundingListingFee;
+    const dynamicCost = calculateFundingCost(formData.months, baseCost);
+    
+    return {
+      amount: dynamicCost,
+      currency: formData.paymentMethod,
+      months: formData.months
+    };
+  };
+
+  const totalCost = calculateTotal();
 
   if (loading) {
     return (
@@ -227,7 +215,7 @@ const ExtendFunding: React.FC = () => {
   }
 
   return (
-    <PageTransition>
+    <div>
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -415,7 +403,7 @@ const ExtendFunding: React.FC = () => {
                       <hr className="my-3" />
                       <div className="flex justify-between font-medium">
                         <span>Total Cost:</span>
-                        <span>{totalCost} ADA</span>
+                        <span>{totalCost.amount} {totalCost.currency}</span>
                       </div>
                     </div>
                   </div>
@@ -563,7 +551,7 @@ const ExtendFunding: React.FC = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate(`/funding/${project.project_id}`)}
+                      onClick={() => navigate(`/funding/${project.id}`)}
                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50"
                     >
                       View Project
@@ -596,7 +584,7 @@ const ExtendFunding: React.FC = () => {
           </div>
         </div>
       </div>
-    </PageTransition>
+    </div>
   );
 };
 
