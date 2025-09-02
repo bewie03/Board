@@ -115,11 +115,17 @@ const ExtendJob: React.FC = () => {
       setLoading(true);
       
       // Load job data
-      const jobResponse = await fetch(`/api/jobs/${jobId}`);
+      const jobResponse = await fetch(`/api/jobs?id=${jobId}`);
       if (!jobResponse.ok) {
         throw new Error('Failed to load job data');
       }
-      const jobData = await jobResponse.json();
+      const jobsData = await jobResponse.json();
+      const jobs = Array.isArray(jobsData) ? jobsData : (jobsData.jobs || []);
+      const jobData = jobs.find((job: any) => job.id === jobId);
+      
+      if (!jobData) {
+        throw new Error('Job not found');
+      }
       
       // Check if user owns this job
       if (jobData.wallet_address !== walletAddress) {

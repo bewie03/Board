@@ -68,9 +68,16 @@ const ExtendFunding: React.FC = () => {
 
     const fetchProject = async () => {
       try {
-        const response = await fetch(`/api/funding/projects/${projectId}?wallet=${encodeURIComponent(walletAddress)}`);
+        const response = await fetch(`/api/projects?id=${projectId}&wallet=${encodeURIComponent(walletAddress)}`);
         if (response.ok) {
-          const projectData = await response.json();
+          const projectsData = await response.json();
+          const projects = Array.isArray(projectsData) ? projectsData : (projectsData.projects || []);
+          const projectData = projects.find((project: any) => project.id === projectId);
+          
+          if (!projectData) {
+            throw new Error('Project not found');
+          }
+          
           setProject(projectData);
         } else {
           toast.error('Project not found or access denied');
