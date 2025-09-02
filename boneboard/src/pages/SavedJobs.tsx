@@ -588,72 +588,76 @@ const SavedJobs: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Footer */}
-                <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
-                  <div className="flex flex-col space-y-4">
-                    {/* Links */}
-                    {selectedJob.website && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
-                        <a 
-                          href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLink className="h-4 w-4 mr-2" />
-                          <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
-                        </a>
-                      </div>
-                    )}
-                    
-                    {/* Contact */}
-                    {(selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedJob.twitter && (
+                    {/* Footer */}
+                    <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 mt-8">
+                      <div className="flex flex-col space-y-4">
+                        {/* Links */}
+                        {selectedJob.website && (
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Company Website</h4>
                             <a 
-                              href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
-                              target="_blank" 
+                              href={selectedJob.website.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                             >
-                              <FaXTwitter className="h-4 w-4 mr-2" />
-                              <span>Twitter</span>
+                              <FaLink className="h-4 w-4 mr-2" />
+                              <span>{selectedJob.website.replace(/^https?:\/\//, '').replace(/^www\./, '')}</span>
                             </a>
-                          )}
-                          
-                          {selectedJob.discord && (
-                            <a 
-                              href={selectedJob.discord} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaDiscord className="h-4 w-4 mr-2" />
-                              <span>Discord</span>
-                            </a>
-                          )}
-                          
-                          {selectedJob.contactEmail && (
-                            <button 
-                              onClick={() => {
-                                navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                toast.success('Email copied to clipboard!');
-                              }}
-                              className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                            >
-                              <FaEnvelope className="h-4 w-4 mr-2" />
-                              <span>Copy Email</span>
-                            </button>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                        
+                        {/* Contact */}
+                        {(selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail) && (
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-2">Contact</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedJob.twitter && (
+                                <a 
+                                  href={`https://twitter.com/${selectedJob.twitter.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaXTwitter className="h-4 w-4 mr-2" />
+                                  <span>Twitter</span>
+                                </a>
+                              )}
+                              
+                              {selectedJob.discord && (
+                                <a 
+                                  href={selectedJob.discord} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaDiscord className="h-4 w-4 mr-2" />
+                                  <span>Discord</span>
+                                </a>
+                              )}
+                              
+                              {selectedJob.contactEmail && (
+                                <button 
+                                  onClick={() => {
+                                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                                      navigator.clipboard.writeText(selectedJob.contactEmail!);
+                                      toast.success('Email copied to clipboard!');
+                                    } else {
+                                      window.location.href = `mailto:${selectedJob.contactEmail}`;
+                                    }
+                                  }}
+                                  className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                                >
+                                  <FaEnvelope className="h-4 w-4 mr-2" />
+                                  <span>Copy Email</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
