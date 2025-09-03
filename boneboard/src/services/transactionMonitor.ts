@@ -157,9 +157,10 @@ class TransactionMonitor {
       
       try {
         // Calculate new expiry date based on duration (in months)
-        const newExpiryDate = new Date();
-        newExpiryDate.setMonth(newExpiryDate.getMonth() + jobData.duration);
+        const currentDate = new Date();
+        const newExpiryDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + jobData.duration, currentDate.getDate());
         
+        console.log(`Current date: ${currentDate.toISOString()}`);
         console.log(`Reactivating job ${(jobData as any).relistingJobId} for ${jobData.duration} months`);
         console.log(`New expiry date: ${newExpiryDate.toISOString()}`);
         
