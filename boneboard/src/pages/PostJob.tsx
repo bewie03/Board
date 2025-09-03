@@ -8,7 +8,6 @@ import { useContract } from '../hooks/useContract';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { ProjectService, Project } from '../services/projectService';
-import { JobService } from '../services/jobService';
 import PageTransition from '../components/PageTransition';
 import { JOB_CATEGORIES } from '../constants/categories';
 
