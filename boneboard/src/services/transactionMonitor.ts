@@ -177,11 +177,6 @@ class TransactionMonitor {
         if (success) {
           console.log('Job reactivated successfully');
           toast.success('Job reactivated successfully!');
-          
-          // Dispatch custom event for balance refresh
-          window.dispatchEvent(new CustomEvent('jobReactivatedSuccessfully', {
-            detail: { txHash: txHash, jobId: (jobData as any).relistingJobId }
-          }));
         } else {
           throw new Error('Failed to update job in database');
         }

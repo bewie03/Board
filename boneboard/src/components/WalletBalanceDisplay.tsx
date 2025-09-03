@@ -10,18 +10,6 @@ interface WalletBalanceDisplayProps {
 // Global cache that persists across component mounts/unmounts
 const globalBalanceCache: { [address: string]: WalletBalance } = {};
 
-// Function to clear balance cache (called after payments)
-export const clearBalanceCache = (walletAddress?: string) => {
-  if (walletAddress) {
-    delete globalBalanceCache[walletAddress];
-    console.log('Cleared balance cache for wallet:', walletAddress);
-  } else {
-    // Clear all cached balances
-    Object.keys(globalBalanceCache).forEach(key => delete globalBalanceCache[key]);
-    console.log('Cleared all balance cache');
-  }
-};
-
 const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({ 
   walletAddress, 
   className = '' 
@@ -55,37 +43,6 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
       setLoading(false);
     }
   };
-
-  // Listen for payment completion events to refresh balance
-  useEffect(() => {
-    const handlePaymentSuccess = (event: CustomEvent) => {
-      console.log('🔄 Payment event received:', event.type, 'for wallet:', walletAddress);
-      console.log('Event details:', event.detail);
-      if (walletAddress) {
-        clearBalanceCache(walletAddress);
-        fetchBalance();
-      }
-    };
-
-    // Listen for all payment-related events
-    const events = [
-      'jobPostedSuccessfully',
-      'jobReactivatedSuccessfully',
-      'fundingCreatedSuccessfully', 
-      'fundingExtendedSuccessfully',
-      'projectCreatedSuccessfully'
-    ];
-
-    events.forEach(eventName => {
-      window.addEventListener(eventName, handlePaymentSuccess as EventListener);
-    });
-
-    return () => {
-      events.forEach(eventName => {
-        window.removeEventListener(eventName, handlePaymentSuccess as EventListener);
-      });
-    };
-  }, [walletAddress]);
 
   useEffect(() => {
     fetchBalance();
