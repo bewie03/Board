@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaInfoCircle, FaWallet, FaCheck, FaTimes, FaUsers, FaDollarSign, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import Modal from '../components/Modal';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService } from '../services/fundingService';
 import { toast } from 'react-toastify';
@@ -47,15 +48,18 @@ const CreateFunding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   
-  const [formData, setFormData] = useState<CreateFundingData & { paymentMethod: 'BONE' | 'ADA' }>({
+  const [formData, setFormData] = useState<CreateFundingData & { paymentMethod: 'BONE' | 'ADA', agreeToTerms: boolean }>({
     project_id: '',
     funding_goal: 0,
     funding_deadline: '',
     wallet_address: walletAddress || '',
     funding_wallet: '',
     funding_purpose: '',
-    paymentMethod: 'ADA'
+    paymentMethod: 'BONE' as 'BONE' | 'ADA',
+    agreeToTerms: false,
   });
   
   // Separate state for extension months to avoid confusion
@@ -1118,6 +1122,54 @@ const CreateFunding: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Terms and Conditions */}
+                    <div className="flex items-start mb-6">
+                      <div className="flex items-center h-5">
+                        <input
+                          id="terms"
+                          name="terms"
+                          type="checkbox"
+                          checked={formData.agreeToTerms}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            agreeToTerms: e.target.checked
+                          }))}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                          required
+                        />
+                      </div>
+                      <div className="ml-3 text-sm">
+                        <label htmlFor="terms" className="font-medium text-gray-700">
+                          I agree to the{' '}
+                          <button 
+                            type="button" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowTerms(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                          >
+                            Terms of Service
+                          </button>
+                          {' '}and{' '}
+                          <button 
+                            type="button" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowPrivacy(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                          >
+                            Privacy Policy
+                          </button>
+                          {' '}*
+                        </label>
+                        <p className="text-gray-500">
+                          By checking this box, you confirm that the information provided is accurate and you agree to our terms.
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="pt-5">
                       <div className="flex justify-between">
                         <button
@@ -1129,8 +1181,8 @@ const CreateFunding: React.FC = () => {
                         </button>
                         <button
                           type="submit"
-                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          disabled={!isConnected}
+                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={!isConnected || !formData.agreeToTerms}
                         >
                           Submit & Pay
                         </button>
@@ -1193,6 +1245,107 @@ const CreateFunding: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Modal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)}
+        title="Terms of Service"
+      >
+        <div className="space-y-6 text-sm text-gray-700">
+          <section className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">1</span>
+              Acceptance of Terms
+            </h3>
+            <p className="text-gray-700 pl-8">
+              By using BoneBoard, you agree to the following terms:
+            </p>
+            <ul className="list-disc pl-12 space-y-2 text-gray-700">
+              <li>You are responsible for the accuracy of the information you provide</li>
+              <li>You will not post any misleading or fraudulent information</li>
+              <li>You understand that all transactions are final and non-refundable</li>
+              <li>You agree to comply with all applicable laws and regulations</li>
+              <li>You are at least 18 years of age or have parental consent</li>
+            </ul>
+          </section>
+          
+          <section className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">2</span>
+              User Conduct
+            </h3>
+            <p className="text-gray-700 pl-8">
+              Users agree to use BoneBoard in compliance with all applicable laws and regulations. Prohibited activities include but are not limited to:
+            </p>
+            <ul className="list-disc pl-12 space-y-2 text-gray-700">
+              <li>Posting fraudulent, misleading, or deceptive content</li>
+              <li>Attempting to manipulate the platform or circumvent security measures</li>
+              <li>Engaging in any form of harassment or inappropriate behavior</li>
+              <li>Violating intellectual property rights</li>
+              <li>Using the platform for illegal activities</li>
+            </ul>
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">3</span>
+              What BoneBoard Does
+            </h3>
+            <div className="ml-8">
+              <p className="text-gray-700 mb-3">
+                BoneBoard is a decentralized platform that connects Cardano ecosystem projects with funding opportunities and talent. Here's what we do:
+              </p>
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li><span className="font-medium">Project Funding:</span> We facilitate crowdfunding campaigns for Cardano-based projects using blockchain technology</li>
+                <li><span className="font-medium">Job Marketplace:</span> We connect projects with skilled developers, designers, and other professionals</li>
+                <li><span className="font-medium">Transparent Transactions:</span> All funding and payments are processed through Cardano smart contracts for maximum transparency</li>
+                <li><span className="font-medium">Community Building:</span> We help build a stronger Cardano ecosystem by connecting projects, funders, and talent</li>
+                <li><span className="font-medium">Fraud Prevention:</span> We implement security measures to protect users from fraudulent projects and activities</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </Modal>
+
+      <Modal 
+        isOpen={showPrivacy} 
+        onClose={() => setShowPrivacy(false)}
+        title="Privacy Policy"
+      >
+        <div className="space-y-6 text-sm text-gray-700">
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">1</span>
+              Information We Collect
+            </h3>
+            <div className="ml-8">
+              <p className="text-gray-700 mb-3">We collect information to provide and improve our services:</p>
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li>Wallet addresses and transaction data (publicly available on blockchain)</li>
+                <li>Project information and funding details you provide</li>
+                <li>Browser and device information for security purposes</li>
+                <li>Usage data to improve platform functionality</li>
+                <li>Communication preferences and settings</li>
+              </ul>
+            </div>
+          </section>
+          
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">2</span>
+              How We Use Your Information
+            </h3>
+            <div className="ml-8">
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li>Process and monitor blockchain transactions</li>
+                <li>Display project and funding information publicly</li>
+                <li>Detect and prevent fraudulent activities</li>
+                <li>Improve platform security and user experience</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </Modal>
     </div>
   );
 };

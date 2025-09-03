@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PageTransition from '../../components/PageTransition';
-import { FaCoins, FaUsers, FaCalendarAlt, FaEye, FaPause, FaPlay, FaRedo, FaCheck, FaGlobe, FaDiscord, FaEdit, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import { FaEdit, FaEye, FaUsers, FaRedo, FaInfoCircle, FaCheck, FaTimes, FaCoins, FaCalendarAlt, FaPause, FaPlay, FaGlobe, FaDiscord } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
+import Modal from '../../components/Modal';
 import { useWallet } from '../../contexts/WalletContext';
-import { toast } from 'react-toastify';
 import { fundingService } from '../../services/fundingService';
+import { toast } from 'react-toastify';
+import PageTransition from '../../components/PageTransition';
 import { calculateFundingCost } from '../../utils/fundingPricing';
 import { contractService } from '../../services/contractService';
 import CustomSelect from '../../components/CustomSelect';
@@ -168,6 +169,9 @@ const MyFunding: React.FC = () => {
   const [extensionMonths, setExtensionMonths] = useState(1);
   const [extensionPaymentMethod, setExtensionPaymentMethod] = useState<'BONE' | 'ADA'>('ADA');
   const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
+  const [agreeToTermsExtension, setAgreeToTermsExtension] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [showExpiredFunding, setShowExpiredFunding] = useState(false);
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
 
@@ -1004,8 +1008,53 @@ const MyFunding: React.FC = () => {
                     </p>
                   </div>
                 )}
-              </div>
 
+                {/* Terms and Conditions */}
+                <div className="flex items-start mt-6">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="terms-extension"
+                      name="terms-extension"
+                      type="checkbox"
+                      checked={agreeToTermsExtension}
+                      onChange={(e) => setAgreeToTermsExtension(e.target.checked)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      required
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="terms-extension" className="font-medium text-gray-700">
+                      I agree to the{' '}
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowTerms(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                      >
+                        Terms of Service
+                      </button>
+                      {' '}and{' '}
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowPrivacy(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                      >
+                        Privacy Policy
+                      </button>
+                      {' '}*
+                    </label>
+                    <p className="text-gray-500">
+                      By checking this box, you confirm that you agree to extend your funding deadline.
+                    </p>
+                  </div>
+                </div>
+
+              {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => {
@@ -1018,7 +1067,8 @@ const MyFunding: React.FC = () => {
                 </button>
                 <button
                   onClick={handleExtensionPayment}
-                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!agreeToTermsExtension}
                 >
                   Pay & Extend
                 </button>
@@ -1027,6 +1077,90 @@ const MyFunding: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Modal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)}
+        title="Terms of Service"
+      >
+        <div className="space-y-6 text-sm text-gray-700">
+          <section className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">1</span>
+              Acceptance of Terms
+            </h3>
+            <p className="text-gray-700 pl-8">
+              By using BoneBoard, you agree to the following terms:
+            </p>
+            <ul className="list-disc pl-12 space-y-2 text-gray-700">
+              <li>You are responsible for the accuracy of the information you provide</li>
+              <li>You will not post any misleading or fraudulent information</li>
+              <li>You understand that all transactions are final and non-refundable</li>
+              <li>You agree to comply with all applicable laws and regulations</li>
+              <li>You are at least 18 years of age or have parental consent</li>
+            </ul>
+          </section>
+          
+          <section className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">2</span>
+              What BoneBoard Does
+            </h3>
+            <div className="ml-8">
+              <p className="text-gray-700 mb-3">
+                BoneBoard is a decentralized platform that connects Cardano ecosystem projects with funding opportunities and talent. Here's what we do:
+              </p>
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li><span className="font-medium">Project Funding:</span> We facilitate crowdfunding campaigns for Cardano-based projects using blockchain technology</li>
+                <li><span className="font-medium">Job Marketplace:</span> We connect projects with skilled developers, designers, and other professionals</li>
+                <li><span className="font-medium">Transparent Transactions:</span> All funding and payments are processed through Cardano smart contracts for maximum transparency</li>
+                <li><span className="font-medium">Community Building:</span> We help build a stronger Cardano ecosystem by connecting projects, funders, and talent</li>
+                <li><span className="font-medium">Fraud Prevention:</span> We implement security measures to protect users from fraudulent projects and activities</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </Modal>
+
+      <Modal 
+        isOpen={showPrivacy} 
+        onClose={() => setShowPrivacy(false)}
+        title="Privacy Policy"
+      >
+        <div className="space-y-6 text-sm text-gray-700">
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">1</span>
+              Information We Collect
+            </h3>
+            <div className="ml-8">
+              <p className="text-gray-700 mb-3">We collect information to provide and improve our services:</p>
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li>Wallet addresses and transaction data (publicly available on blockchain)</li>
+                <li>Project information and funding details you provide</li>
+                <li>Browser and device information for security purposes</li>
+                <li>Usage data to improve platform functionality</li>
+                <li>Communication preferences and settings</li>
+              </ul>
+            </div>
+          </section>
+          
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">2</span>
+              How We Use Your Information
+            </h3>
+            <div className="ml-8">
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li>Process and monitor blockchain transactions</li>
+                <li>Display project and funding information publicly</li>
+                <li>Detect and prevent fraudulent activities</li>
+                <li>Improve platform security and user experience</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </Modal>
     </PageTransition>
   );
 };

@@ -361,7 +361,7 @@ const PostJob: React.FC = () => {
       return;
     }
     
-    if (!formData.agreeToTerms && !isRelisting) {
+    if (!formData.agreeToTerms) {
       toast.error('Please agree to the terms and conditions');
       return;
     }
