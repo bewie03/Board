@@ -169,6 +169,7 @@ const MyFunding: React.FC = () => {
   const [extensionMonths, setExtensionMonths] = useState(1);
   const [extensionPaymentMethod, setExtensionPaymentMethod] = useState<'BONE' | 'ADA'>('ADA');
   const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
+  const [showExpiredFunding, setShowExpiredFunding] = useState(false);
 
   useEffect(() => {
     if (walletAddress) {
@@ -315,6 +316,14 @@ const MyFunding: React.FC = () => {
   };
 
   const handleExtendDeadline = (funding: FundingProject) => {
+    // Check if user has any active funding campaigns
+    const hasActiveFunding = fundingProjects.some(f => !fundingService.isExpired(f.funding_deadline) && f.is_active);
+    
+    if (hasActiveFunding) {
+      toast.error('You cannot extend expired funding while you have an active funding campaign. Please wait for your current campaign to expire or complete.');
+      return;
+    }
+    
     setProjectToExtend(funding);
     setShowExtendModal(true);
   };
@@ -627,12 +636,21 @@ const MyFunding: React.FC = () => {
             {/* Expired Funding Projects */}
             {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length > 0 && (
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <span className="text-red-600 mr-2">Expired Funding Projects</span>
-                  <span className="text-sm font-normal text-gray-500">({fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length})</span>
-                </h2>
-                <div className="space-y-6">
-                  {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).map((funding) => (
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                    <span className="text-red-600 mr-2">Expired Funding Projects</span>
+                    <span className="text-sm font-normal text-gray-500">({fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length})</span>
+                  </h2>
+                  <button
+                    onClick={() => setShowExpiredFunding(!showExpiredFunding)}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                  >
+                    {showExpiredFunding ? 'Hide Expired' : 'Show Expired'}
+                  </button>
+                </div>
+                {showExpiredFunding && (
+                  <div className="space-y-6">
+                    {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).map((funding) => (
                     <motion.div
                       key={funding.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -666,9 +684,6 @@ const MyFunding: React.FC = () => {
                                   <FaUsers className="w-4 h-4 mr-1" />
                                   {funding.contributor_count} backers
                                 </span>
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                  Expired
-                                </span>
                               </div>
                             </div>
                           </div>
@@ -676,7 +691,7 @@ const MyFunding: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleExtendDeadline(funding)}
-                              className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center transition-all duration-200"
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center transition-all duration-200"
                               title="Extend Deadline"
                             >
                               <FaRedo className="h-3 w-3 mr-1" />
@@ -759,8 +774,9 @@ const MyFunding: React.FC = () => {
                         </div>
                       </div>
                     </motion.div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
