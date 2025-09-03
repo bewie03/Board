@@ -289,6 +289,17 @@ const MyFunding: React.FC = () => {
   };
 
   const handleDeleteFunding = (fundingId: string) => {
+    const funding = fundingProjects.find(f => f.id === fundingId);
+    if (!funding) return;
+
+    // Prevent deletion of active or expired funding campaigns
+    const isExpired = fundingService.isExpired(funding.funding_deadline);
+    if (funding.is_active || isExpired) {
+      const statusMessage = funding.is_active ? 'active' : 'expired';
+      toast.error(`Cannot delete ${statusMessage} funding campaigns. Only draft or cancelled campaigns can be deleted.`);
+      return;
+    }
+
     setProjectToDelete(fundingId);
     setShowDeleteModal(true);
   };
@@ -531,8 +542,17 @@ const MyFunding: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleDeleteFunding(funding.id)}
-                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete"
+                        disabled={funding.is_active || fundingService.isExpired(funding.funding_deadline)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          funding.is_active || fundingService.isExpired(funding.funding_deadline)
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+                        }`}
+                        title={
+                          funding.is_active || fundingService.isExpired(funding.funding_deadline)
+                            ? 'Cannot delete active or expired campaigns'
+                            : 'Delete'
+                        }
                       >
                         <FaTrash className="w-4 h-4" />
                       </button>
@@ -732,8 +752,17 @@ const MyFunding: React.FC = () => {
                                 e.stopPropagation();
                                 handleDeleteFunding(funding.id);
                               }}
-                              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                              title="Delete funding"
+                              disabled={funding.is_active || fundingService.isExpired(funding.funding_deadline)}
+                              className={`p-2 transition-colors ${
+                                funding.is_active || fundingService.isExpired(funding.funding_deadline)
+                                  ? 'text-gray-300 cursor-not-allowed'
+                                  : 'text-gray-400 hover:text-red-600'
+                              }`}
+                              title={
+                                funding.is_active || fundingService.isExpired(funding.funding_deadline)
+                                  ? 'Cannot delete active or expired campaigns'
+                                  : 'Delete funding'
+                              }
                             >
                               <FaTrash className="h-4 w-4" />
                             </button>
