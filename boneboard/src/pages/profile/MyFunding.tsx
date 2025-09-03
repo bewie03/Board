@@ -180,7 +180,7 @@ const MyFunding: React.FC = () => {
 
   const loadPlatformPricing = async () => {
     try {
-      const response = await fetch('/api/admin');
+      const response = await fetch('/api/admin?type=settings');
       if (response.ok) {
         const data = await response.json();
         setPlatformPricing({
