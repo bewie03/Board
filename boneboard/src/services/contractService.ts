@@ -511,16 +511,16 @@ export class ContractService {
     }
 
     try {
-      // Create the funding metadata
+      // Create the funding metadata - safely handle undefined values
       const metadata = {
         674: { // Standard metadata label for funding campaigns
           funding: {
-            project_id: fundingData.project_id.substring(0, 60),
-            goal: fundingData.funding_goal,
-            deadline: fundingData.funding_deadline.substring(0, 30),
-            purpose: fundingData.funding_purpose.substring(0, 60),
-            timestamp: fundingData.timestamp,
-            poster: fundingData.walletAddress.substring(0, 60)
+            project_id: (fundingData.project_id || '').substring(0, 60),
+            goal: fundingData.funding_goal || 0,
+            deadline: (fundingData.funding_deadline || '').substring(0, 30),
+            purpose: (fundingData.funding_purpose || '').substring(0, 60),
+            timestamp: fundingData.timestamp || Date.now(),
+            poster: (fundingData.wallet_address || fundingData.walletAddress || '').substring(0, 60)
           }
         }
       };
@@ -557,16 +557,16 @@ export class ContractService {
     }
 
     try {
-      // Create the funding metadata
+      // Create the funding metadata - safely handle undefined values
       const metadata = {
         674: { // Standard metadata label for funding campaigns
           funding: {
-            project_id: fundingData.project_id.substring(0, 60),
-            goal: fundingData.funding_goal,
-            deadline: fundingData.funding_deadline.substring(0, 30),
-            purpose: fundingData.funding_purpose.substring(0, 60),
-            timestamp: fundingData.timestamp,
-            poster: fundingData.walletAddress.substring(0, 60)
+            project_id: (fundingData.project_id || '').substring(0, 60),
+            goal: fundingData.funding_goal || 0,
+            deadline: (fundingData.funding_deadline || '').substring(0, 30),
+            purpose: (fundingData.funding_purpose || '').substring(0, 60),
+            timestamp: fundingData.timestamp || Date.now(),
+            poster: (fundingData.wallet_address || fundingData.walletAddress || '').substring(0, 60)
           }
         }
       };
