@@ -56,14 +56,12 @@ const MyJobs: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [pausedJobs, setPausedJobs] = useState<Job[]>([]);
+  const [expiredJobs, setExpiredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [expiredJobs, setExpiredJobs] = useState<Job[]>([]);
   const [showExpiredJobs, setShowExpiredJobs] = useState(false);
-  const [showPausedJobs, setShowPausedJobs] = useState(false);
 
   const clearSelectedJob = () => {
     setSelectedJob(null);
@@ -78,7 +76,6 @@ const MyJobs: React.FC = () => {
         if (success) {
           setJobs(jobs.filter(job => job.id !== jobId));
           setExpiredJobs(expiredJobs.filter(job => job.id !== jobId));
-          setPausedJobs(pausedJobs.filter(job => job.id !== jobId));
           toast.success('Job listing deleted successfully!');
           clearSelectedJob();
         } else {
@@ -97,8 +94,8 @@ const MyJobs: React.FC = () => {
       try {
         const success = await JobService.updateJob(jobId, { status: 'paused' as any });
         if (success) {
-          setJobs(jobs.filter(j => j.id !== jobId));
-          setPausedJobs([...pausedJobs, { ...job, status: 'paused' as any }]);
+          // Update the job status in the jobs array instead of moving to separate array
+          setJobs(jobs.map(j => j.id === jobId ? { ...j, status: 'paused' as any } : j));
           toast.success('Job paused successfully!');
         } else {
           toast.error('Failed to pause job.');
@@ -116,11 +113,11 @@ const MyJobs: React.FC = () => {
       if (isConnected && walletAddress) {
         try {
           const userJobs = await JobService.getUserJobs(walletAddress);
-          // Separate active and expired jobs
+          // Separate active/paused and expired jobs
           const now = new Date();
           const activeJobs = userJobs.filter((job: Job) => {
             const expiresAt = new Date(job.expiresAt);
-            return job.status === 'confirmed' && expiresAt > now;
+            return (job.status === 'confirmed' || job.status === 'paused') && expiresAt > now;
           });
           
           const expiredJobsList = userJobs.filter((job: Job) => {
@@ -128,23 +125,16 @@ const MyJobs: React.FC = () => {
             return job.status === 'confirmed' && expiresAt <= now;
           });
           
-          const pausedJobs = userJobs.filter((job: Job) => {
-            return job.status === 'paused';
-          });
-          
           setJobs(activeJobs);
           setExpiredJobs(expiredJobsList);
-          setPausedJobs(pausedJobs);
         } catch (error) {
           console.error('Error loading user jobs:', error);
           setJobs([]);
           setExpiredJobs([]);
-          setPausedJobs([]);
         }
       } else {
         setJobs([]);
         setExpiredJobs([]);
-        setPausedJobs([]);
       }
       setLoading(false);
     };
@@ -157,6 +147,10 @@ const MyJobs: React.FC = () => {
     };
 
     window.addEventListener('jobPostedSuccessfully', handleJobPosted);
+
+    return () => {
+      window.removeEventListener('jobPostedSuccessfully', handleJobPosted);
+    };
   }, [isConnected, walletAddress]);
 
 
@@ -166,9 +160,8 @@ const MyJobs: React.FC = () => {
     try {
       const success = await JobService.unpauseJob(job.id);
       if (success) {
-        // Remove from paused jobs and add to active jobs
-        setPausedJobs(pausedJobs.filter(j => j.id !== job.id));
-        setJobs([...jobs, { ...job, status: 'confirmed' }]);
+        // Update the job status in the jobs array
+        setJobs(jobs.map(j => j.id === job.id ? { ...j, status: 'confirmed' } : j));
         toast.success('Job unpaused successfully!');
       } else {
         toast.error('Failed to unpause job.');
@@ -355,7 +348,11 @@ const MyJobs: React.FC = () => {
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedJob(job)}
-                      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                      className={`bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+                        job.status === 'paused' 
+                          ? 'border-orange-200 opacity-75' 
+                          : 'border-gray-200'
+                      }`}
                     >
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
@@ -386,6 +383,9 @@ const MyJobs: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               <h3 className="text-lg font-semibold flex items-center">
                                 <span className="truncate">{job.title}</span>
+                                {job.status === 'paused' && (
+                                  <span className="ml-2 text-orange-500 text-sm flex-shrink-0" title="Paused Job">PAUSED</span>
+                                )}
                                 {job.featured && <span className="ml-2 text-blue-500 text-xl flex-shrink-0" title="Featured Job">★</span>}
                               </h3>
                               <div className="text-sm text-gray-600 mb-2 flex items-center">
@@ -417,12 +417,20 @@ const MyJobs: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handlePauseJob(job.id);
+                                if (job.status === 'paused') {
+                                  handleUnpauseJob(job);
+                                } else {
+                                  handlePauseJob(job.id);
+                                }
                               }}
-                              className="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
-                              title={job.status === 'confirmed' ? 'Pause job' : 'Resume job'}
+                              className={`p-2 transition-colors ${
+                                job.status === 'paused' 
+                                  ? 'text-gray-400 hover:text-green-600' 
+                                  : 'text-gray-400 hover:text-orange-600'
+                              }`}
+                              title={job.status === 'paused' ? 'Resume job' : 'Pause job'}
                             >
-                              {job.status === 'confirmed' ? <FaPause className="h-4 w-4" /> : <FaPlay className="h-4 w-4" />}
+                              {job.status === 'paused' ? <FaPlay className="h-4 w-4" /> : <FaPause className="h-4 w-4" />}
                             </button>
                             <button
                               onClick={(e) => {
@@ -442,8 +450,9 @@ const MyJobs: React.FC = () => {
                         </p>
                         
                         <div className="flex items-center justify-between">
-                          <div className="text-xs text-gray-500">
-                            Posted {new Date(job.createdAt).toLocaleDateString()} • Expires {getExpiryTimeString(job.expiresAt)}
+                          <div className={`text-xs ${job.status === 'paused' ? 'text-orange-500' : 'text-gray-500'}`}>
+                            Posted {new Date(job.createdAt).toLocaleDateString()} • 
+                            {job.status === 'paused' ? ' Paused' : ` Expires ${getExpiryTimeString(job.expiresAt)}`}
                           </div>
                         </div>
                       </div>
@@ -576,127 +585,6 @@ const MyJobs: React.FC = () => {
                   </div>
                 )}
 
-                {/* Paused Jobs Section */}
-                {pausedJobs.length > 0 && (
-                  <div className="mt-8">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                        <svg className="h-5 w-5 text-orange-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Paused Jobs ({pausedJobs.length})
-                      </h3>
-                      <button
-                        onClick={() => setShowPausedJobs(!showPausedJobs)}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        {showPausedJobs ? 'Hide' : 'Show'} Paused Jobs
-                      </button>
-                    </div>
-
-                    {showPausedJobs && (
-                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {pausedJobs.map((job, index) => (
-                          <motion.div 
-                            key={job.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ 
-                              duration: 0.3, 
-                              delay: index * 0.1,
-                              ease: 'easeOut'
-                            }}
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedJob(job)}
-                            className="bg-white border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer opacity-75"
-                          >
-                            <div className="p-6">
-                              <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-start space-x-4 flex-1 min-w-0">
-                                  {/* Company Logo */}
-                                  <div className="flex-shrink-0">
-                                    {job.companyLogo ? (
-                                      <img 
-                                        className="h-12 w-12 rounded-full border border-gray-200 object-cover" 
-                                        src={job.companyLogo} 
-                                        alt={`${job.company} logo`}
-                                        onError={(e) => {
-                                          const target = e.target as HTMLImageElement;
-                                          target.style.display = 'none';
-                                          const parent = target.parentElement;
-                                          if (parent) {
-                                            parent.innerHTML = '<div class="h-12 w-12 rounded-full border border-gray-200 bg-orange-100 flex items-center justify-center"><svg class="h-6 w-6 text-orange-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
-                                          }
-                                        }}
-                                      />
-                                    ) : (
-                                      <div className="h-12 w-12 rounded-full border border-gray-200 bg-orange-100 flex items-center justify-center">
-                                        <FaBuilding className="h-6 w-6 text-orange-600" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-semibold flex items-center">
-                                      <span className="truncate">{job.title}</span>
-                                      <span className="ml-2 text-orange-500 text-sm flex-shrink-0" title="Paused Job">PAUSED</span>
-                                    </h3>
-                                    <div className="text-sm text-gray-600 mb-2 flex items-center">
-                                      <span>{job.company}</span>
-                                      {job.isProjectVerified && (
-                                        <div 
-                                          className="ml-2 w-3 h-3 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0"
-                                          title="Verified project"
-                                        >
-                                          <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                          </svg>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex space-x-1 flex-shrink-0">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleUnpauseJob(job);
-                                    }}
-                                    className="p-2 text-gray-400 hover:text-green-600 transition-colors"
-                                    title="Unpause job"
-                                  >
-                                    <FaPlay className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteJob(job.id);
-                                    }}
-                                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                                    title="Delete job"
-                                  >
-                                    <FaTrash className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
-                              
-                              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                                {job.description}
-                              </p>
-                              
-                              <div className="flex items-center justify-between">
-                                <div className="text-xs text-orange-500">
-                                  Posted {new Date(job.createdAt).toLocaleDateString()} • Paused
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </div>
