@@ -57,6 +57,9 @@ const CreateFunding: React.FC = () => {
     funding_purpose: '',
     paymentMethod: 'ADA'
   });
+  
+  // Separate state for extension months to avoid confusion
+  const [extensionMonths, setExtensionMonths] = useState<number>(0);
 
   useEffect(() => {
     if (!isConnected) {
@@ -233,9 +236,22 @@ const CreateFunding: React.FC = () => {
 
   const calculateTotal = () => {
     // Calculate dynamic pricing based on duration
-    if (formData.funding_deadline && platformPricing) {
+    if (platformPricing) {
       try {
-        const months = calculateMonthsFromNow(formData.funding_deadline);
+        let months: number;
+        
+        if (isExtending) {
+          // For extensions, use the selected extension months
+          months = extensionMonths > 0 ? extensionMonths : 1;
+        } else {
+          // For new funding, calculate from deadline
+          if (formData.funding_deadline) {
+            months = calculateMonthsFromNow(formData.funding_deadline);
+          } else {
+            months = 1; // Default fallback
+          }
+        }
+        
         const baseCost = formData.paymentMethod === 'ADA' 
           ? platformPricing.fundingListingFeeAda 
           : platformPricing.fundingListingFee;
@@ -698,9 +714,12 @@ const CreateFunding: React.FC = () => {
                       { value: '11', label: '11 Months' },
                       { value: '12', label: '12 Months' }
                     ]}
-                    value={formData.funding_deadline ? calculateMonthsFromNow(formData.funding_deadline).toString() : ''}
+                    value={extensionMonths > 0 ? extensionMonths.toString() : ''}
                     onChange={(value) => {
                       const months = parseInt(value);
+                      setExtensionMonths(months);
+                      
+                      // Calculate new deadline based on current deadline + extension months
                       const currentDeadline = new Date(extendingFunding?.funding_deadline || Date.now());
                       const newDeadline = new Date(currentDeadline);
                       newDeadline.setMonth(newDeadline.getMonth() + months);
@@ -724,11 +743,11 @@ const CreateFunding: React.FC = () => {
                     : `How long your funding campaign will run (1-12 months) • Cost is ${platformPricing ? (formData.paymentMethod === 'ADA' ? platformPricing.fundingListingFeeAda : platformPricing.fundingListingFee) : (formData.paymentMethod === 'ADA' ? '6' : '500')} ${formData.paymentMethod} per month`
                   }
                 </p>
-                {formData.funding_deadline && (
+                {((formData.funding_deadline && !isExtending) || (isExtending && extensionMonths > 0)) && (
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-800">
-                        {isExtending ? 'Extension: ' : 'Duration: '}{calculateMonthsFromNow(formData.funding_deadline)} month{calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}
+                        {isExtending ? 'Extension: ' : 'Duration: '}{isExtending ? extensionMonths : calculateMonthsFromNow(formData.funding_deadline)} month{(isExtending ? extensionMonths : calculateMonthsFromNow(formData.funding_deadline)) !== 1 ? 's' : ''}
                       </span>
                       <span className="text-sm font-bold text-green-900">
                         Cost: {totalCost.amount.toLocaleString()} {totalCost.currency}
