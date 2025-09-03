@@ -354,7 +354,11 @@ class TransactionMonitor {
           
           // Dispatch custom event for UI to handle success state
           window.dispatchEvent(new CustomEvent('fundingCreatedSuccessfully', {
-            detail: { txHash: pendingTx.txHash }
+            detail: { 
+              txHash: pendingTx.txHash,
+              projectId: pendingTx.fundingData.project_id,
+              shouldRedirectToMyFundings: true
+            }
           }));
           
           toast.success(`Funding project created successfully! Transaction confirmed: ${pendingTx.txHash.substring(0, 8)}...`);

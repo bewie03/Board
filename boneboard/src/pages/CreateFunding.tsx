@@ -172,8 +172,13 @@ const CreateFunding: React.FC = () => {
         fraudDetection.recordOwnerFingerprint(event.detail.projectId);
       }
       
-      // Don't show toast here - it's handled by the payment-specific listener
-      navigate('/funding');
+      // Update payment status to success
+      setPaymentStatus('success');
+      
+      // Navigate to My Fundings page
+      setTimeout(() => {
+        navigate('/profile/my-fundings');
+      }, 2000);
     };
 
     window.addEventListener('fundingCreatedSuccessfully', handleFundingCreated);
@@ -413,7 +418,7 @@ const CreateFunding: React.FC = () => {
             setPaymentStatus('success');
             toast.success('Funding project created successfully!');
             setTimeout(() => {
-              navigate('/funding');
+              navigate('/profile/my-fundings');
             }, 2000);
             window.removeEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
           }
@@ -427,7 +432,7 @@ const CreateFunding: React.FC = () => {
           // Check if still processing after 3 minutes
           if (paymentStatus === 'processing') {
             toast.info('Transaction is taking longer than expected. Please check your wallet or try again.');
-            navigate('/funding');
+            navigate('/profile/my-fundings');
           }
         }, 180000); // 3 minutes timeout
         
@@ -675,27 +680,65 @@ const CreateFunding: React.FC = () => {
               {/* Funding Deadline */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Funding Duration *
+                  {isExtending ? 'Extension Duration *' : 'Funding Duration *'}
                 </label>
-                <CustomMonthPicker
-                  value={formData.funding_deadline}
-                  onChange={(monthYear) => setFormData(prev => ({ ...prev, funding_deadline: monthYear }))}
-                  placeholder="Select funding duration"
-                  maxMonths={12}
-                />
+                {isExtending ? (
+                  <CustomSelect
+                    options={[
+                      { value: '1', label: '1 Month' },
+                      { value: '2', label: '2 Months' },
+                      { value: '3', label: '3 Months' },
+                      { value: '4', label: '4 Months' },
+                      { value: '5', label: '5 Months' },
+                      { value: '6', label: '6 Months' },
+                      { value: '7', label: '7 Months' },
+                      { value: '8', label: '8 Months' },
+                      { value: '9', label: '9 Months' },
+                      { value: '10', label: '10 Months' },
+                      { value: '11', label: '11 Months' },
+                      { value: '12', label: '12 Months' }
+                    ]}
+                    value={formData.funding_deadline ? calculateMonthsFromNow(formData.funding_deadline).toString() : ''}
+                    onChange={(value) => {
+                      const months = parseInt(value);
+                      const currentDeadline = new Date(extendingFunding?.funding_deadline || Date.now());
+                      const newDeadline = new Date(currentDeadline);
+                      newDeadline.setMonth(newDeadline.getMonth() + months);
+                      const monthYear = `${newDeadline.getFullYear()}-${String(newDeadline.getMonth() + 1).padStart(2, '0')}`;
+                      setFormData(prev => ({ ...prev, funding_deadline: monthYear }));
+                    }}
+                    placeholder="Select extension duration"
+                    className=""
+                  />
+                ) : (
+                  <CustomMonthPicker
+                    value={formData.funding_deadline}
+                    onChange={(monthYear) => setFormData(prev => ({ ...prev, funding_deadline: monthYear }))}
+                    placeholder="Select funding duration"
+                    maxMonths={12}
+                  />
+                )}
                 <p className="mt-1 text-sm text-gray-500">
-                  How long your funding campaign will run (1-12 months) • Cost is {platformPricing ? (formData.paymentMethod === 'ADA' ? platformPricing.fundingListingFeeAda : platformPricing.fundingListingFee) : (formData.paymentMethod === 'ADA' ? '6' : '500')} {formData.paymentMethod} per month
+                  {isExtending 
+                    ? `Extend your funding campaign deadline by selected months • Cost is ${platformPricing ? (formData.paymentMethod === 'ADA' ? platformPricing.fundingListingFeeAda : platformPricing.fundingListingFee) : (formData.paymentMethod === 'ADA' ? '6' : '500')} ${formData.paymentMethod} per month`
+                    : `How long your funding campaign will run (1-12 months) • Cost is ${platformPricing ? (formData.paymentMethod === 'ADA' ? platformPricing.fundingListingFeeAda : platformPricing.fundingListingFee) : (formData.paymentMethod === 'ADA' ? '6' : '500')} ${formData.paymentMethod} per month`
+                  }
                 </p>
                 {formData.funding_deadline && (
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-green-800">
-                        Duration: {calculateMonthsFromNow(formData.funding_deadline)} month{calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}
+                        {isExtending ? 'Extension: ' : 'Duration: '}{calculateMonthsFromNow(formData.funding_deadline)} month{calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}
                       </span>
                       <span className="text-sm font-bold text-green-900">
                         Cost: {totalCost.amount.toLocaleString()} {totalCost.currency}
                       </span>
                     </div>
+                    {isExtending && extendingFunding && (
+                      <div className="mt-2 text-xs text-green-700">
+                        Current deadline: {new Date(extendingFunding.funding_deadline).toLocaleDateString()} → New deadline: {new Date(formData.funding_deadline + '-01').toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1037,10 +1080,10 @@ const CreateFunding: React.FC = () => {
                     <div className="mt-6">
                       <button
                         type="button"
-                        onClick={() => navigate('/funding')}
+                        onClick={() => navigate('/profile/my-fundings')}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
-                        View Funding Campaign
+                        View My Fundings
                       </button>
                     </div>
                   </div>
