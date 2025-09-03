@@ -87,6 +87,17 @@ export class JobService {
     }
   }
 
+  // Unpause job (change status from 'paused' to 'confirmed')
+  static async unpauseJob(jobId: string): Promise<boolean> {
+    try {
+      await ApiService.updateJob(jobId, { status: 'confirmed' });
+      return true;
+    } catch (error) {
+      console.error('Error unpausing job:', error);
+      return false;
+    }
+  }
+
   // Get job by ID
   static async getJobById(jobId: string): Promise<Job | null> {
     try {
