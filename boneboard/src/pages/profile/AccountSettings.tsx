@@ -193,6 +193,19 @@ const AccountSettings: React.FC = () => {
               <div className="text-center sm:text-left">
                 <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
                 <p className="text-sm text-gray-500 mt-1">JPG, GIF or PNG. Large images will be automatically compressed.</p>
+                {(profileImage || profilePhoto) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileImage(null);
+                      setProfilePhoto(null);
+                      toast.success('Profile picture removed');
+                    }}
+                    className="mt-2 text-sm text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    Remove Picture
+                  </button>
+                )}
               </div>
             </div>
           </div>
