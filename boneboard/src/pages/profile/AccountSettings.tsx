@@ -46,6 +46,12 @@ const AccountSettings: React.FC = () => {
         canvas.width = width;
         canvas.height = height;
         
+        // Fill canvas with white background first
+        if (ctx) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, width, height);
+        }
+        
         // Draw and compress
         ctx?.drawImage(img, 0, 0, width, height);
         
@@ -159,8 +165,12 @@ const AccountSettings: React.FC = () => {
                       <img 
                         src={profileImage || profilePhoto || ''} 
                         alt="Profile" 
-                        className="w-full h-full object-cover rounded-full"
-                        style={{ backgroundColor: 'white', mixBlendMode: 'normal' }}
+                        className="w-full h-full rounded-full"
+                        style={{ 
+                          backgroundColor: 'white', 
+                          objectFit: 'contain',
+                          objectPosition: 'center'
+                        }}
                       />
                     </div>
                   ) : (

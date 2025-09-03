@@ -132,8 +132,12 @@ const Header: React.FC = () => {
                             <img 
                               src={profilePhoto} 
                               alt="Profile" 
-                              className="w-full h-full object-cover rounded-full"
-                              style={{ backgroundColor: 'white', mixBlendMode: 'normal' }}
+                              className="w-full h-full rounded-full"
+                              style={{ 
+                                backgroundColor: 'white', 
+                                objectFit: 'contain',
+                                objectPosition: 'center'
+                              }}
                             />
                           </div>
                         </div>
@@ -180,8 +184,12 @@ const Header: React.FC = () => {
                               <img 
                                 src={profilePhoto} 
                                 alt="Profile" 
-                                className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200"
-                                style={{ backgroundColor: 'white', mixBlendMode: 'normal' }}
+                                className="w-full h-full rounded-full group-hover:scale-105 transition-transform duration-200"
+                                style={{ 
+                                  backgroundColor: 'white', 
+                                  objectFit: 'contain',
+                                  objectPosition: 'center'
+                                }}
                               />
                             </div>
                           ) : (
