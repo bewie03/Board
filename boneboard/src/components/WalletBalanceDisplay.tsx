@@ -70,6 +70,7 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
     // Listen for all payment-related events
     const events = [
       'jobPostedSuccessfully',
+      'jobReactivatedSuccessfully',
       'fundingCreatedSuccessfully', 
       'fundingExtendedSuccessfully',
       'projectCreatedSuccessfully'
