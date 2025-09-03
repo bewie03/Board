@@ -428,23 +428,28 @@ const CreateFunding: React.FC = () => {
         
         toast.success('Payment transaction submitted! Monitoring blockchain for confirmation...');
         
-        // Listen for successful funding creation event
+        // Listen for successful funding creation or extension event
         const handleFundingSuccess = (event: any) => {
           if (event.detail.txHash === result.txHash) {
             setPaymentStatus('success');
-            toast.success('Funding project created successfully!');
+            const successMessage = isExtending ? 'Funding deadline extended successfully!' : 'Funding project created successfully!';
+            toast.success(successMessage);
             setTimeout(() => {
               navigate('/profile/my-fundings');
             }, 2000);
             window.removeEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
+            window.removeEventListener('fundingExtendedSuccessfully', handleFundingSuccess);
           }
         };
         
+        // Listen for both creation and extension success events
         window.addEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
+        window.addEventListener('fundingExtendedSuccessfully', handleFundingSuccess);
         
         // Set a timeout to handle cases where the event doesn't fire
         setTimeout(() => {
           window.removeEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
+          window.removeEventListener('fundingExtendedSuccessfully', handleFundingSuccess);
           // Check if still processing after 3 minutes
           if (paymentStatus === 'processing') {
             toast.info('Transaction is taking longer than expected. Please check your wallet or try again.');
