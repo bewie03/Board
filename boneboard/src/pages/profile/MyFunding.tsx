@@ -316,8 +316,11 @@ const MyFunding: React.FC = () => {
   };
 
   const handleExtendDeadline = (funding: FundingProject) => {
-    // Check if user has any active funding campaigns
-    const hasActiveFunding = fundingProjects.some(f => !fundingService.isExpired(f.funding_deadline) && f.is_active);
+    // Check if user has any truly active funding campaigns (not expired)
+    const hasActiveFunding = fundingProjects.some(f => 
+      f.is_active && 
+      !fundingService.isExpired(f.funding_deadline)
+    );
     
     if (hasActiveFunding) {
       toast.error('You cannot extend expired funding while you have an active funding campaign. Please wait for your current campaign to expire or complete.');
@@ -642,15 +645,17 @@ const MyFunding: React.FC = () => {
             {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                    <span className="text-red-600 mr-2">Expired Funding Projects</span>
-                    <span className="text-sm font-normal text-gray-500">({fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length})</span>
-                  </h2>
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <svg className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Expired Funding Projects ({fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length})
+                  </h3>
                   <button
                     onClick={() => setShowExpiredFunding(!showExpiredFunding)}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    {showExpiredFunding ? 'Hide Expired' : 'Show Expired'}
+                    {showExpiredFunding ? 'Hide' : 'Show'} Expired Funding
                   </button>
                 </div>
                 {showExpiredFunding && (

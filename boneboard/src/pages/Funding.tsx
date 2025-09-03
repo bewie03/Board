@@ -292,7 +292,10 @@ const Funding: React.FC = () => {
                     
                     try {
                       const existingFundings = await fundingService.getFundingByWallet(walletAddress!);
-                      const activeFunding = existingFundings.find(funding => funding.is_active);
+                      const activeFunding = existingFundings.find(funding => 
+                        funding.is_active && 
+                        !fundingService.isExpired(funding.funding_deadline)
+                      );
                       
                       if (activeFunding) {
                         toast.error('You already have an active funding campaign. Please wait for it to complete before creating a new one.');
