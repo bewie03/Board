@@ -842,7 +842,7 @@ const CreateFunding: React.FC = () => {
                                 setFormData(prev => ({ ...prev, funding_deadline: monthYear }));
                               }}
                               placeholder="Select extension duration"
-                              className="!border-gray-300 !rounded-md !shadow-sm focus:!ring-blue-500 focus:!border-blue-500"
+                              className="!border-gray-300 !rounded-md !shadow-sm focus:!ring-blue-600 focus:!border-blue-600 !bg-white hover:!border-gray-400"
                             />
                           </div>
                           {extensionMonths > 0 && extendingFunding && (
