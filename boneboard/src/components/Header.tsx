@@ -221,10 +221,9 @@ const Header: React.FC = () => {
                           </button>
                           
                           {showWalletBalance && (
-                            <div className="ml-11 mt-2 p-3 bg-gray-50 rounded-lg">
+                            <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                               <WalletBalanceDisplay 
                                 walletAddress={walletAddress} 
-                                className="justify-start"
                               />
                             </div>
                           )}
