@@ -225,7 +225,7 @@ const Projects: React.FC = () => {
                             </p>
                             <ul className="text-gray-600 space-y-1 text-xs">
                               <li>• Browse verified and community projects</li>
-                              <li>• View project details, funding status, and job openings</li>
+                              <li>• View project details and job openings</li>
                               <li>• Filter by category and verification status</li>
                               <li>• Connect with project teams through social links</li>
                             </ul>

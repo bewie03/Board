@@ -277,7 +277,6 @@ const SavedJobs: React.FC = () => {
                           <ul className="text-gray-600 space-y-1 text-xs">
                             <li>• Bookmark jobs you're interested in</li>
                             <li>• Remove bookmarks anytime</li>
-                            <li>• Jobs stay saved even after they expire</li>
                           </ul>
                         </div>
                       </div>

@@ -279,7 +279,7 @@ const MyJobs: React.FC = () => {
                           <li>• Pause jobs when interviewing candidates</li>
                           <li>• Unpause if you need to repost the job</li>
                           <li>• Edit job details anytime while active</li>
-                          <li>• Jobs auto-expire after 30 days</li>
+                          <li>• Extend Jobs if needed</li>
                         </ul>
                       </div>
                     </div>
