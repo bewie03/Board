@@ -158,7 +158,7 @@ const AccountSettings: React.FC = () => {
                     <img 
                       src={profileImage || profilePhoto || ''} 
                       alt="Profile" 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover bg-white"
                     />
                   ) : (
                     <svg className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -127,11 +127,11 @@ const Header: React.FC = () => {
                   >
                     <div className="relative">
                       {profilePhoto ? (
-                        <div className="w-10 h-10 rounded-full overflow-hidden">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-white">
                           <img 
                             src={profilePhoto} 
                             alt="Profile" 
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover bg-white"
                           />
                         </div>
                       ) : (
@@ -171,12 +171,12 @@ const Header: React.FC = () => {
                     {/* Profile Header */}
                     <div className="bg-white p-5 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group">
                       <div className="flex items-center space-x-4">
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-shadow duration-200">
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-shadow duration-200 bg-white">
                           {profilePhoto ? (
                             <img 
                               src={profilePhoto} 
                               alt="Profile" 
-                              className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200"
+                              className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200 bg-white"
                             />
                           ) : (
                             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
