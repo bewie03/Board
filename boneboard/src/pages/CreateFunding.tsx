@@ -805,53 +805,6 @@ const CreateFunding: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {paymentStatus === 'idle' && (
                   <>
-                    {/* Extension Duration Selection - Only show for extensions */}
-                    {isExtending && (
-                      <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Extension Duration</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <CustomSelect
-                              options={[
-                                { value: '1', label: '1 Month' },
-                                { value: '2', label: '2 Months' },
-                                { value: '3', label: '3 Months' },
-                                { value: '4', label: '4 Months' },
-                                { value: '5', label: '5 Months' },
-                                { value: '6', label: '6 Months' },
-                                { value: '7', label: '7 Months' },
-                                { value: '8', label: '8 Months' },
-                                { value: '9', label: '9 Months' },
-                                { value: '10', label: '10 Months' },
-                                { value: '11', label: '11 Months' },
-                                { value: '12', label: '12 Months' }
-                              ]}
-                              value={extensionMonths > 0 ? extensionMonths.toString() : ''}
-                              onChange={(value) => {
-                                const months = parseInt(value);
-                                setExtensionMonths(months);
-                                
-                                // Calculate new deadline based on current deadline + extension months
-                                const currentDeadline = new Date(extendingFunding?.funding_deadline || Date.now());
-                                const newDeadline = new Date(currentDeadline);
-                                newDeadline.setMonth(newDeadline.getMonth() + months);
-                                const monthYear = `${newDeadline.getFullYear()}-${String(newDeadline.getMonth() + 1).padStart(2, '0')}`;
-                                setFormData(prev => ({ ...prev, funding_deadline: monthYear }));
-                              }}
-                              placeholder="Select extension duration"
-                              className="!border-gray-300 !rounded-md !shadow-sm focus:!ring-blue-600 focus:!border-blue-600 !bg-white hover:!border-gray-400"
-                            />
-                          </div>
-                          {extensionMonths > 0 && extendingFunding && (
-                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <div className="text-sm text-green-700">
-                                Current deadline: {new Date(extendingFunding.funding_deadline).toLocaleDateString()} → New deadline: {formData.funding_deadline ? new Date(formData.funding_deadline + '-01').toLocaleDateString() : 'Not calculated'}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Funding Summary */}
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -1085,7 +1038,7 @@ const CreateFunding: React.FC = () => {
                             </div>
                             <div className="border-t border-gray-200 pt-2 flex justify-between font-medium text-lg">
                               <span>Total</span>
-                              <span className="text-blue-600">{totalCost.amount.toLocaleString()} {totalCost.currency}</span>
+                              <span>{totalCost.amount.toLocaleString()} {totalCost.currency}</span>
                             </div>
                           </div>
                         </div>
