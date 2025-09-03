@@ -40,23 +40,19 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
   }
 
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
+    <div className={`flex items-center space-x-2 ${className}`}>
       {/* ADA Balance */}
-      <div className="flex items-center space-x-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-blue-200">
-        <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-          <span className="text-white text-xs font-bold">₳</span>
-        </div>
-        <span className="text-sm font-semibold text-blue-700">
+      <div className="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
+        <span className="text-blue-600 text-xs font-bold">₳</span>
+        <span className="text-xs font-medium text-gray-700">
           {loading ? '...' : walletBalanceService.formatBalance(balance.ada, 'ADA')}
         </span>
       </div>
 
       {/* BONE Balance */}
-      <div className="flex items-center space-x-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-blue-200">
-        <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-          <span className="text-white text-xs font-bold">🦴</span>
-        </div>
-        <span className="text-sm font-semibold text-blue-700">
+      <div className="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
+        <span className="text-orange-600 text-xs">🦴</span>
+        <span className="text-xs font-medium text-gray-700">
           {loading ? '...' : walletBalanceService.formatBalance(balance.bone, 'BONE')}
         </span>
       </div>

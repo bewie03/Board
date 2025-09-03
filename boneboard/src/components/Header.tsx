@@ -214,14 +214,19 @@ const Header: React.FC = () => {
                     </div>
                     
                     {/* Wallet Balance Section */}
-                    <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-600">Wallet Balance</span>
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                          <FaWallet className="w-4 h-4 text-green-600" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">Wallet Balance</span>
                       </div>
-                      <WalletBalanceDisplay 
-                        walletAddress={walletAddress} 
-                        className="justify-start"
-                      />
+                      <div className="flex items-center space-x-2 ml-11">
+                        <WalletBalanceDisplay 
+                          walletAddress={walletAddress} 
+                          className="flex-wrap gap-2"
+                        />
+                      </div>
                     </div>
                     
                     {/* Profile Menu Content */}
