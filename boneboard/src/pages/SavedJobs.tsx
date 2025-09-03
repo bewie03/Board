@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaDiscord, FaEnvelope, FaLink, FaCheck, FaFlag } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaTimes, FaBuilding, FaDiscord, FaEnvelope, FaLink, FaCheck, FaFlag, FaInfoCircle } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
@@ -73,6 +73,7 @@ const SavedJobs: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingJob, setReportingJob] = useState<Job | null>(null);
   const [emailCopied, setEmailCopied] = useState(false);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
 
   // Load saved jobs for the connected wallet
   useEffect(() => {
@@ -256,25 +257,34 @@ const SavedJobs: React.FC = () => {
           <div className="p-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  Saved Jobs
-                  <div className="group relative ml-2">
-                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                      <div className="max-w-xs">
-                        <p className="font-semibold mb-1">Saved Jobs:</p>
-                        <p>• Bookmark jobs you're interested in</p>
-                        <p>• Remove bookmarks anytime</p>
-                        <p>• Jobs stay saved even after they expire</p>
-                        <p>• Use to track application progress</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-gray-900">Saved Jobs</h1>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="About Saved Jobs"
+                    >
+                      <FaInfoCircle className="h-5 w-5" />
+                    </button>
+                    {showInfoTooltip && (
+                      <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                        <div className="text-sm">
+                          <h3 className="font-semibold text-gray-900 mb-2">Saved Jobs</h3>
+                          <p className="text-gray-600 mb-2">
+                            Bookmark jobs you're interested in for easy access and review later.
+                          </p>
+                          <ul className="text-gray-600 space-y-1 text-xs">
+                            <li>• Bookmark jobs you're interested in</li>
+                            <li>• Remove bookmarks anytime</li>
+                            <li>• Jobs stay saved even after they expire</li>
+                          </ul>
+                        </div>
                       </div>
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
-                    </div>
+                    )}
                   </div>
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">Manage your bookmarked job opportunities</p>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">Jobs you've bookmarked for later review</p>
               </div>
               <button
                 onClick={() => navigate('/jobs')}

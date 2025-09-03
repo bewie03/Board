@@ -203,40 +203,40 @@ const Projects: React.FC = () => {
           <div className="bg-white shadow rounded-lg mb-6">
             <div className="px-6 py-8 sm:p-10">
               <div className="flex justify-between items-start">
-                <div className="text-left flex-1 flex items-center gap-3">
-                  <div>
+                <div className="text-left flex-1">
+                  <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                       Explore Projects
                     </h1>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Discover exciting projects in the Cardano ecosystem
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowInfoTooltip(!showInfoTooltip)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="About Projects"
-                    >
-                      <FaInfoCircle className="h-5 w-5" />
-                    </button>
-                    {showInfoTooltip && (
-                      <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
-                        <div className="text-sm">
-                          <h3 className="font-semibold text-gray-900 mb-2">About Projects</h3>
-                          <p className="text-gray-600 mb-2">
-                            Explore innovative projects building on the Cardano blockchain. Each project showcases their vision, progress, and available opportunities.
-                          </p>
-                          <ul className="text-gray-600 space-y-1 text-xs">
-                            <li>• Browse verified and community projects</li>
-                            <li>• View project details, funding status, and job openings</li>
-                            <li>• Filter by category and verification status</li>
-                            <li>• Connect with project teams through social links</li>
-                          </ul>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        title="About Projects"
+                      >
+                        <FaInfoCircle className="h-5 w-5" />
+                      </button>
+                      {showInfoTooltip && (
+                        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                          <div className="text-sm">
+                            <h3 className="font-semibold text-gray-900 mb-2">About Projects</h3>
+                            <p className="text-gray-600 mb-2">
+                              Explore innovative projects building on the Cardano blockchain. Each project showcases their vision, progress, and available opportunities.
+                            </p>
+                            <ul className="text-gray-600 space-y-1 text-xs">
+                              <li>• Browse verified and community projects</li>
+                              <li>• View project details, funding status, and job openings</li>
+                              <li>• Filter by category and verification status</li>
+                              <li>• Connect with project teams through social links</li>
+                            </ul>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Discover exciting projects in the Cardano ecosystem
+                  </p>
                 </div>
                 <Link
                   to="/create-project"

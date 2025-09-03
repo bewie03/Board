@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEdit, FaTimes, FaGlobe, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTimes, FaGlobe, FaDiscord, FaBuilding, FaSave, FaMapMarkerAlt, FaClock, FaCoins, FaDollarSign, FaExternalLinkAlt, FaTrash, FaInfoCircle } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../../contexts/WalletContext';
 import { ProjectService, Project } from '../../services/projectService';
@@ -30,6 +30,7 @@ const MyProjects: React.FC = () => {
   const [isAuthenticating, setIsAuthenticating] = useState<'twitter' | null>(null);
   const [characterCount, setCharacterCount] = useState(0);
   const [lineCount, setLineCount] = useState(1);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
 
   // Helper function to get job count for a project
   const getProjectJobCount = (project: Project) => {
@@ -240,24 +241,34 @@ const MyProjects: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-6 border-b border-gray-200">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              My Projects
-              <div className="group relative ml-2">
-                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                  <div className="max-w-xs">
-                    <p className="font-semibold mb-1">Project Management:</p>
-                    <p>• Edit project details anytime</p>
-                    <p>• Create funding campaigns for projects</p>
-                    <p>• Link jobs to verified projects</p>
-                    <p>• Projects stay permanent once created</p>
-                  </div>
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    title="About My Projects"
+                  >
+                    <FaInfoCircle className="h-5 w-5" />
+                  </button>
+                  {showInfoTooltip && (
+                    <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                      <div className="text-sm">
+                        <h3 className="font-semibold text-gray-900 mb-2">Project Management</h3>
+                        <p className="text-gray-600 mb-2">
+                          Manage your project listings with editing capabilities and funding campaign creation.
+                        </p>
+                        <ul className="text-gray-600 space-y-1 text-xs">
+                          <li>• Edit project details anytime</li>
+                          <li>• Create funding campaigns for projects</li>
+                          <li>• Link jobs to verified projects</li>
+                          <li>• Projects stay permanent once created</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </h1>
               <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
             </div>
             

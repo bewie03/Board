@@ -340,38 +340,38 @@ const JobListings: React.FC = () => {
           <div className="bg-white shadow rounded-lg mb-6">
             <div className="px-6 py-8 sm:p-10">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div>
+                <div>
+                  <div className="flex items-center gap-2">
                     <h1 className="text-3xl font-extrabold text-gray-900">Job Opportunities</h1>
-                    <p className="mt-2 text-sm text-gray-600">
-                      Discover exciting career opportunities in the Cardano ecosystem
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowInfoTooltip(!showInfoTooltip)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="About Job Listings"
-                    >
-                      <FaInfoCircle className="h-5 w-5" />
-                    </button>
-                    {showInfoTooltip && (
-                      <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
-                        <div className="text-sm">
-                          <h3 className="font-semibold text-gray-900 mb-2">About Job Listings</h3>
-                          <p className="text-gray-600 mb-2">
-                            Browse verified job opportunities posted by companies and projects in the Cardano ecosystem. 
-                          </p>
-                          <ul className="text-gray-600 space-y-1 text-xs">
-                            <li>• Filter by category, work arrangement, and payment type</li>
-                            <li>• Save jobs to your bookmarks for later review</li>
-                            <li>• Verified companies are marked with a checkmark</li>
-                            <li>• Featured jobs appear at the top of listings</li>
-                          </ul>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        title="About Job Listings"
+                      >
+                        <FaInfoCircle className="h-5 w-5" />
+                      </button>
+                      {showInfoTooltip && (
+                        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                          <div className="text-sm">
+                            <h3 className="font-semibold text-gray-900 mb-2">About Job Listings</h3>
+                            <p className="text-gray-600 mb-2">
+                              Browse verified job opportunities posted by companies and projects in the Cardano ecosystem. 
+                            </p>
+                            <ul className="text-gray-600 space-y-1 text-xs">
+                              <li>• Filter by category, work arrangement, and payment type</li>
+                              <li>• Save jobs to your bookmarks for later review</li>
+                              <li>• Verified companies are marked with a checkmark</li>
+                              <li>• Featured jobs appear at the top of listings</li>
+                            </ul>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Discover exciting career opportunities in the Cardano ecosystem
+                  </p>
                 </div>
                 <button
                   onClick={() => navigate('/post-job')}

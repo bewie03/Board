@@ -4,18 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaEdit, 
   FaTrash, 
-  FaPause, 
   FaPlay, 
-  FaBuilding, 
-  FaClock, 
+  FaPause, 
   FaSave, 
   FaTimes, 
-  FaCheck, 
+  FaBuilding, 
+  FaInfoCircle, 
+  FaClock, 
   FaMapMarkerAlt, 
   FaMoneyBillWave, 
   FaLink, 
   FaEnvelope, 
-  FaPlus 
+  FaPlus,
+  FaCheck
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { SiDiscord } from 'react-icons/si';
@@ -62,6 +63,7 @@ const MyJobs: React.FC = () => {
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showExpiredJobs, setShowExpiredJobs] = useState(false);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
 
   const clearSelectedJob = () => {
     setSelectedJob(null);
@@ -256,24 +258,34 @@ const MyJobs: React.FC = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                My Jobs
-                <div className="group relative ml-2">
-                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                    <div className="max-w-xs">
-                      <p className="font-semibold mb-1">Job Management:</p>
-                      <p>• Pause jobs when interviewing candidates</p>
-                      <p>• Unpause if you need to repost the job</p>
-                      <p>• Edit job details anytime while active</p>
-                      <p>• Jobs auto-expire after 30 days</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    title="About My Jobs"
+                  >
+                    <FaInfoCircle className="h-5 w-5" />
+                  </button>
+                  {showInfoTooltip && (
+                    <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                      <div className="text-sm">
+                        <h3 className="font-semibold text-gray-900 mb-2">Job Management</h3>
+                        <p className="text-gray-600 mb-2">
+                          Manage your job postings with pause/unpause functionality and editing capabilities.
+                        </p>
+                        <ul className="text-gray-600 space-y-1 text-xs">
+                          <li>• Pause jobs when interviewing candidates</li>
+                          <li>• Unpause if you need to repost the job</li>
+                          <li>• Edit job details anytime while active</li>
+                          <li>• Jobs auto-expire after 30 days</li>
+                        </ul>
+                      </div>
                     </div>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
-                  </div>
+                  )}
                 </div>
-              </h1>
+              </div>
               <p className="mt-1 text-sm text-gray-500">Manage your job postings and applications</p>
             </div>
             <Link
