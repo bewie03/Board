@@ -39,6 +39,9 @@ export interface JobPostingData {
   discord?: string;
   featured?: boolean;
   selectedProjectId?: string | null;
+  // Relisting metadata
+  isRelisting?: boolean;
+  relistingJobId?: string;
 }
 
 export interface ProjectPostingData {
