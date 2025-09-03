@@ -77,16 +77,6 @@ const Header: React.FC = () => {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               <NavLink 
-                to="/" 
-                className={({ isActive }) => 
-                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-colors ${
-                    isActive ? 'text-blue-600 bg-blue-50' : ''
-                  }`
-                }
-              >
-                Home
-              </NavLink>
-              <NavLink 
                 to="/jobs" 
                 className={({ isActive }) => 
                   `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-colors ${
@@ -179,17 +169,19 @@ const Header: React.FC = () => {
                 {showProfile && isConnected && walletAddress && (
                   <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl z-[110] border border-gray-100 overflow-hidden">
                     {/* Profile Header */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 border-b border-gray-100">
+                    <div className="bg-white p-5 border-b border-gray-100">
                       <div className="flex items-center space-x-4">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden shadow-md">
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-md">
                           {profilePhoto ? (
                             <img 
                               src={profilePhoto} 
                               alt="Profile" 
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover rounded-full"
                             />
                           ) : (
-                            <FaUserCircle className="text-3xl text-white" />
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                              <FaUserCircle className="text-3xl text-white" />
+                            </div>
                           )}
                         </div>
                         <div className="flex-1">
@@ -221,7 +213,7 @@ const Header: React.FC = () => {
                           <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
                             <FaBookOpen className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
                           </div>
-                          <span className="flex-1">My Job Listings</span>
+                          <span className="flex-1">My Jobs</span>
                         </button>
                         
                         <button
@@ -260,7 +252,7 @@ const Header: React.FC = () => {
                           <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
                             <FaDonate className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
                           </div>
-                          <span className="flex-1">My Project Funding</span>
+                          <span className="flex-1">My Fundings</span>
                         </button>
                         
                         {/* Admin Panel Button - Only show for admin wallet */}

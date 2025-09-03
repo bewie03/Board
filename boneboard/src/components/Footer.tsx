@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaDiscord } from 'react-icons/fa';
+import { FaDiscord, FaFileAlt } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import Modal from './Modal';
 
@@ -9,6 +9,10 @@ const Footer: React.FC = () => {
 
   const openDiscord = () => {
     window.open('https://discord.gg/boneboard', '_blank', 'noopener,noreferrer');
+  };
+
+  const openWhitepaper = () => {
+    window.open('https://www.walletpup.com/boneboard-whitepaper', '_blank', 'noopener,noreferrer');
   };
 
   const termsContent = (
@@ -202,41 +206,64 @@ const Footer: React.FC = () => {
     <>
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex justify-center md:justify-start space-x-6 mb-4 md:mb-0">
-              <a href="https://twitter.com/boneboard" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-500 transition-colors duration-200">
-                <FaXTwitter className="h-6 w-6" />
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Social Links */}
+            <div className="flex justify-center md:justify-start items-center space-x-8">
+              <a 
+                href="https://twitter.com/boneboard" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-500 hover:text-blue-500 transition-colors duration-200 flex items-center space-x-2 group"
+                title="Follow us on X (Twitter)"
+              >
+                <FaXTwitter className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium hidden sm:inline-block">X</span>
               </a>
+              
               <button 
                 onClick={openDiscord}
-                className="text-gray-500 hover:text-indigo-500 transition-colors duration-200 focus:outline-none"
+                className="text-gray-500 hover:text-indigo-500 transition-colors duration-200 focus:outline-none flex items-center space-x-2 group"
                 aria-label="Join our Discord"
+                title="Join our Discord"
               >
-                <FaDiscord className="h-6 w-6" />
+                <FaDiscord className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium hidden sm:inline-block">Discord</span>
+              </button>
+              
+              <button 
+                onClick={openWhitepaper}
+                className="text-gray-500 hover:text-green-500 transition-colors duration-200 focus:outline-none flex items-center space-x-2 group"
+                aria-label="View Whitepaper"
+                title="View Whitepaper"
+              >
+                <FaFileAlt className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-medium hidden sm:inline-block">Whitepaper</span>
               </button>
             </div>
+            
+            {/* Copyright and Links */}
             <div className="text-center md:text-right">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 font-medium mb-2">
                 &copy; {new Date().getFullYear()} BoneBoard. All rights reserved.
               </p>
-              <div className="mt-1 text-xs text-gray-400">
+              <div className="flex items-center justify-center md:justify-end space-x-1 text-xs text-gray-400">
                 <button 
                   onClick={() => setShowTerms(true)}
-                  className="hover:text-gray-500 focus:outline-none"
+                  className="hover:text-gray-600 focus:outline-none transition-colors px-2 py-1 rounded"
                 >
                   Terms
                 </button>
-                <span className="mx-2">•</span>
+                <span className="text-gray-300">•</span>
                 <button 
                   onClick={() => setShowPrivacy(true)}
-                  className="hover:text-gray-500 focus:outline-none"
+                  className="hover:text-gray-600 focus:outline-none transition-colors px-2 py-1 rounded"
                 >
                   Privacy
                 </button>
-                <span className="mx-2">•</span>
+                <span className="text-gray-300">•</span>
                 <button 
                   onClick={openDiscord}
-                  className="hover:text-gray-500 focus:outline-none"
+                  className="hover:text-gray-600 focus:outline-none transition-colors px-2 py-1 rounded"
                 >
                   Contact
                 </button>

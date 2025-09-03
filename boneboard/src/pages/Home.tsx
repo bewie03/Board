@@ -297,23 +297,23 @@ const Home: React.FC = () => {
               </Link>
             </motion.div>
 
-            {/* Post a Job */}
+            {/* Project Funding */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1.0 }}
               className="group"
             >
-              <Link to="/post-job" className="block">
+              <Link to="/funding" className="block">
                 <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 hover:border-blue-300 h-full flex flex-col items-center text-center">
                   <div className="flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl text-white mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
                     <FaUsers className="h-8 w-8" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
-                    Post a Job
+                    Project Funding
                   </h3>
                   <p className="text-gray-700 leading-relaxed text-lg">
-                    Hire talented developers from the Cardano community. Pay with $BONE tokens to reach qualified candidates.
+                    Support innovative Cardano projects and help bring new ideas to life through community funding.
                   </p>
                 </div>
               </Link>

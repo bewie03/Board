@@ -7,7 +7,6 @@ import PageTransition from '../../components/PageTransition';
 const AccountSettings: React.FC = () => {
   const { walletAddress, username, setUsername, profilePhoto, setProfilePhoto } = useWallet();
   const [localUsername, setLocalUsername] = useState(username || '');
-  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(profilePhoto);
   const [isCopied, setIsCopied] = useState(false);
@@ -192,19 +191,6 @@ const AccountSettings: React.FC = () => {
               />
             </div>
 
-            <div className="mb-6">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                placeholder="your.email@example.com"
-              />
-            </div>
 
             <div className="flex justify-end pt-6 border-t border-gray-100">
               <button
