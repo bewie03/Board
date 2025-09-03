@@ -86,6 +86,8 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     global: 'globalThis',
     process: 'process',
+    // Suppress specific console warnings
+    __SUPPRESS_ETERNL_WARNINGS__: true,
   },
   build: {
     target: 'es2020',
