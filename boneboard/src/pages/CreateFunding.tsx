@@ -843,6 +843,54 @@ const CreateFunding: React.FC = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Extension Duration Selection - Only show for extensions */}
+                    {isExtending && (
+                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Extension Duration</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <CustomSelect
+                              options={[
+                                { value: '1', label: '1 Month' },
+                                { value: '2', label: '2 Months' },
+                                { value: '3', label: '3 Months' },
+                                { value: '4', label: '4 Months' },
+                                { value: '5', label: '5 Months' },
+                                { value: '6', label: '6 Months' },
+                                { value: '7', label: '7 Months' },
+                                { value: '8', label: '8 Months' },
+                                { value: '9', label: '9 Months' },
+                                { value: '10', label: '10 Months' },
+                                { value: '11', label: '11 Months' },
+                                { value: '12', label: '12 Months' }
+                              ]}
+                              value={extensionMonths > 0 ? extensionMonths.toString() : ''}
+                              onChange={(value) => {
+                                const months = parseInt(value);
+                                setExtensionMonths(months);
+                                
+                                // Calculate new deadline based on current deadline + extension months
+                                const currentDeadline = new Date(extendingFunding?.funding_deadline || Date.now());
+                                const newDeadline = new Date(currentDeadline);
+                                newDeadline.setMonth(newDeadline.getMonth() + months);
+                                const monthYear = `${newDeadline.getFullYear()}-${String(newDeadline.getMonth() + 1).padStart(2, '0')}`;
+                                setFormData(prev => ({ ...prev, funding_deadline: monthYear }));
+                              }}
+                              placeholder="Select extension duration"
+                              className="w-full"
+                            />
+                          </div>
+                          {extensionMonths > 0 && extendingFunding && (
+                            <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="text-sm text-blue-700 font-medium">
+                                Current deadline: {new Date(extendingFunding.funding_deadline).toLocaleDateString()} → New deadline: {formData.funding_deadline ? new Date(formData.funding_deadline + '-01').toLocaleDateString() : 'Not calculated'}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Preview Section */}
                     {formData.project_id && (
