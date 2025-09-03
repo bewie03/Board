@@ -19,8 +19,7 @@ const Footer: React.FC = () => {
   const termsContent = (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Terms of Service</h2>
-        <p className="text-sm text-gray-500 mt-1">Last Updated: {new Date().toLocaleDateString()}</p>
+        <p className="text-sm text-gray-500">Last Updated: {new Date().toLocaleDateString()}</p>
       </div>
       
       <div className="space-y-6">
@@ -179,8 +178,7 @@ const Footer: React.FC = () => {
   const privacyContent = (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Privacy Policy</h2>
-        <p className="text-sm text-gray-500 mt-1">Last Updated: {new Date().toLocaleDateString()}</p>
+        <p className="text-sm text-gray-500">Last Updated: {new Date().toLocaleDateString()}</p>
       </div>
       
       <div className="space-y-6">
@@ -189,7 +187,7 @@ const Footer: React.FC = () => {
             <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">1</span>
             Information We Collect
           </h3>
-          <div className="bg-gray-50 rounded-lg p-4 mt-2 ml-8 space-y-4">
+          <div className="ml-8 space-y-4">
             <div>
               <h4 className="font-medium text-gray-800 mb-2">Personal Information:</h4>
               <ul className="list-disc pl-5 space-y-1 text-gray-700">
@@ -232,9 +230,9 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             
-            <div className="bg-green-50 border-l-4 border-green-500 p-4">
-              <h4 className="font-medium text-green-800 mb-2">What We <span className="font-bold">Don't</span> Collect:</h4>
-              <ul className="list-disc pl-5 space-y-1 text-green-700">
+            <div className="border-l-4 border-gray-300 pl-4">
+              <h4 className="font-medium text-gray-800 mb-2">What We <span className="font-bold">Don't</span> Collect:</h4>
+              <ul className="list-disc pl-5 space-y-1 text-gray-700">
                 <li>Private keys or seed phrases (never share these!)</li>
                 <li>Wallet funds or financial account information</li>
                 <li>Resumes or CVs (sent directly to employers)</li>
@@ -272,8 +270,8 @@ const Footer: React.FC = () => {
             <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">3</span>
             Fraud Detection & Security Measures
           </h3>
-          <div className="bg-amber-50 rounded-lg p-4 ml-8">
-            <p className="text-amber-800 mb-3">
+          <div className="ml-8">
+            <p className="text-gray-700 mb-3">
               <span className="font-medium">Important:</span> We implement advanced security measures to protect our community:
             </p>
             <ul className="list-disc pl-5 space-y-2 text-gray-700">
@@ -310,10 +308,10 @@ const Footer: React.FC = () => {
             <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">5</span>
             Blockchain Privacy & Transparency
           </h3>
-          <div className="bg-blue-50 rounded-lg p-4 ml-8">
+          <div className="ml-8">
             <div className="space-y-4">
               <div className="flex items-start">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 font-bold">1</span>
                 </div>
                 <div className="ml-3">
@@ -323,7 +321,7 @@ const Footer: React.FC = () => {
               </div>
               
               <div className="flex items-start">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 font-bold">2</span>
                 </div>
                 <div className="ml-3">
@@ -333,7 +331,7 @@ const Footer: React.FC = () => {
               </div>
               
               <div className="flex items-start">
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 font-bold">3</span>
                 </div>
                 <div className="ml-3">
@@ -366,27 +364,27 @@ const Footer: React.FC = () => {
             <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">7</span>
             Your Privacy Rights
           </h3>
-          <div className="bg-green-50 rounded-lg p-4 ml-8">
+          <div className="ml-8">
             <p className="text-gray-700 mb-3">You have the following rights regarding your data:</p>
             <ul className="grid gap-2 text-sm text-gray-700">
               <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
+                <span className="text-blue-600 mr-2">✓</span>
                 <span>Access and view what data we have about you</span>
               </li>
               <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
+                <span className="text-blue-600 mr-2">✓</span>
                 <span>Request correction of inaccurate information</span>
               </li>
               <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
+                <span className="text-blue-600 mr-2">✓</span>
                 <span>Request deletion of your account and associated data</span>
               </li>
               <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
+                <span className="text-blue-600 mr-2">✓</span>
                 <span>Opt-out of non-essential communications</span>
               </li>
               <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
+                <span className="text-blue-600 mr-2">✓</span>
                 <span>Export your data in a portable format</span>
               </li>
             </ul>
@@ -414,8 +412,7 @@ const Footer: React.FC = () => {
   const cookieContent = (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Cookie Policy</h2>
-        <p className="text-sm text-gray-500 mt-1">Last Updated: {new Date().toLocaleDateString()}</p>
+        <p className="text-sm text-gray-500">Last Updated: {new Date().toLocaleDateString()}</p>
       </div>
       
       <div className="space-y-6">
@@ -443,7 +440,7 @@ const Footer: React.FC = () => {
             Types of Cookies We Use
           </h3>
           <div className="ml-8 space-y-4">
-            <div className="bg-blue-50 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-gray-800 mb-2">Essential Cookies (Required)</h4>
               <p className="text-sm text-gray-700 mb-2">These cookies are necessary for the platform to function:</p>
               <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
@@ -454,7 +451,7 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             
-            <div className="bg-amber-50 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-gray-800 mb-2">Security & Fraud Prevention</h4>
               <p className="text-sm text-gray-700 mb-2">These help us protect the platform and users:</p>
               <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
@@ -465,7 +462,7 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             
-            <div className="bg-green-50 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-gray-800 mb-2">Functional Cookies</h4>
               <p className="text-sm text-gray-700 mb-2">These enhance your user experience:</p>
               <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
@@ -483,8 +480,8 @@ const Footer: React.FC = () => {
             <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-2">3</span>
             Browser Fingerprinting for Security
           </h3>
-          <div className="bg-amber-50 rounded-lg p-4 ml-8">
-            <p className="text-amber-800 mb-3">
+          <div className="ml-8">
+            <p className="text-gray-700 mb-3">
               <span className="font-medium">Important Security Feature:</span> We collect browser and device characteristics to create unique fingerprints:
             </p>
             <ul className="list-disc pl-5 space-y-2 text-gray-700">
@@ -525,7 +522,7 @@ const Footer: React.FC = () => {
             Managing Your Cookie Preferences
           </h3>
           <div className="ml-8 space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-gray-800 mb-2">Browser Controls:</h4>
               <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
                 <li>Clear cookies and local storage through browser settings</li>
@@ -535,8 +532,8 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
-              <p className="text-amber-800 text-sm">
+            <div className="border-l-4 border-gray-400 pl-4">
+              <p className="text-gray-700 text-sm">
                 <span className="font-medium">Note:</span> Disabling essential cookies will prevent you from using core platform features like wallet connection, transaction monitoring, and fraud protection systems.
               </p>
             </div>
@@ -637,12 +634,6 @@ const Footer: React.FC = () => {
                   className="hover:text-gray-600 focus:outline-none transition-colors"
                 >
                   Cookies
-                </button>
-                <button 
-                  onClick={openDiscord}
-                  className="hover:text-gray-600 focus:outline-none transition-colors"
-                >
-                  Contact
                 </button>
               </div>
             </div>

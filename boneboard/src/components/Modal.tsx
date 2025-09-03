@@ -43,8 +43,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
           )}
           
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {children}
+          <div className="flex-1 overflow-y-auto p-6" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                .modal-content::-webkit-scrollbar {
+                  display: none;
+                }
+              `
+            }} />
+            <div className="modal-content">
+              {children}
+            </div>
           </div>
           
           {/* Footer */}
