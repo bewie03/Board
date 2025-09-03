@@ -335,7 +335,7 @@ class TransactionMonitor {
             return;
           }
           
-          // Transform the funding data to match API expectations
+          // Transform the funding data to match API expectation
           const createFundingData = {
             project_id: pendingTx.fundingData.project_id,
             funding_goal: pendingTx.fundingData.funding_goal,
