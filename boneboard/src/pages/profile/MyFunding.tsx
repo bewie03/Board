@@ -1053,6 +1053,7 @@ const MyFunding: React.FC = () => {
                     </p>
                   </div>
                 </div>
+              </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
