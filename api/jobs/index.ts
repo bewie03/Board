@@ -448,7 +448,8 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     twitter: 'twitter',
     discord: 'discord',
     featured: 'is_featured',
-    txHash: 'tx_hash'
+    txHash: 'tx_hash',
+    expiresAt: 'expires_at'
   };
 
   Object.entries(updates).forEach(([key, value]) => {

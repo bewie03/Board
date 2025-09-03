@@ -156,9 +156,12 @@ class TransactionMonitor {
       console.log('Processing job reactivation for job ID:', (jobData as any).relistingJobId);
       
       try {
-        // Calculate new expiry date based on duration
+        // Calculate new expiry date based on duration (in months)
         const newExpiryDate = new Date();
         newExpiryDate.setMonth(newExpiryDate.getMonth() + jobData.duration);
+        
+        console.log(`Reactivating job ${(jobData as any).relistingJobId} for ${jobData.duration} months`);
+        console.log(`New expiry date: ${newExpiryDate.toISOString()}`);
         
         // Update the existing job with new expiry and reactivate
         const success = await JobService.updateJob((jobData as any).relistingJobId, {
