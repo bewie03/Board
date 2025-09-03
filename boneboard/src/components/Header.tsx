@@ -216,10 +216,12 @@ const Header: React.FC = () => {
                             setShowProfile(false);
                             navigate('/my-jobs');
                           }}
-                          className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                         >
-                          <FaBookOpen className="w-4 h-4 mr-3 text-blue-500 group-hover:text-blue-600" />
-                          My Job Listings
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                            <FaBookOpen className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                          </div>
+                          <span className="flex-1">My Job Listings</span>
                         </button>
                         
                         <button
@@ -227,10 +229,12 @@ const Header: React.FC = () => {
                             setShowProfile(false);
                             navigate('/saved-jobs');
                           }}
-                          className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                         >
-                          <FaBookmark className="w-4 h-4 mr-3 text-blue-500 group-hover:text-blue-600" />
-                          Saved Jobs
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                            <FaBookmark className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                          </div>
+                          <span className="flex-1">Saved Jobs</span>
                         </button>
                         
                         <button
@@ -238,10 +242,12 @@ const Header: React.FC = () => {
                             setShowProfile(false);
                             navigate('/my-projects');
                           }}
-                          className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                         >
-                          <FaFolderOpen className="w-4 h-4 mr-3 text-blue-500 group-hover:text-blue-600" />
-                          My Projects
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                            <FaFolderOpen className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                          </div>
+                          <span className="flex-1">My Projects</span>
                         </button>
                         
                         <button
@@ -249,10 +255,12 @@ const Header: React.FC = () => {
                             setShowProfile(false);
                             navigate('/my-funding');
                           }}
-                          className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                         >
-                          <FaDonate className="w-4 h-4 mr-3 text-blue-500 group-hover:text-blue-600" />
-                          My Project Funding
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                            <FaDonate className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                          </div>
+                          <span className="flex-1">My Project Funding</span>
                         </button>
                         
                         {/* Admin Panel Button - Only show for admin wallet */}
@@ -262,10 +270,12 @@ const Header: React.FC = () => {
                               navigate('/admin');
                               setShowProfile(false);
                             }}
-                            className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                            className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                           >
-                            <FaShieldAlt className="w-4 h-4 text-blue-500 group-hover:text-blue-600 mr-3" />
-                            Admin Panel
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                              <FaShieldAlt className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                            </div>
+                            <span className="flex-1">Admin Panel</span>
                           </button>
                         )}
                         
@@ -274,10 +284,12 @@ const Header: React.FC = () => {
                             navigate('/profile');
                             setShowProfile(false);
                           }}
-                          className="w-full text-left px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                         >
-                          <FaCog className="w-4 h-4 mr-3 text-blue-500 group-hover:text-blue-600" />
-                          Account Settings
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                            <FaCog className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                          </div>
+                          <span className="flex-1">Account Settings</span>
                         </button>
                       </div>
                       
