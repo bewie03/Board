@@ -324,8 +324,13 @@ const MyFunding: React.FC = () => {
       return;
     }
     
-    setProjectToExtend(funding);
-    setShowExtendModal(true);
+    // Navigate to CreateFunding page with extension data
+    navigate('/funding/create', {
+      state: { 
+        extendingFunding: funding, 
+        isExtending: true 
+      }
+    });
   };
 
   const calculateExtensionCost = () => {

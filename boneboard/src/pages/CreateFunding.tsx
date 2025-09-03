@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaInfoCircle, FaWallet, FaCheck, FaTimes, FaUsers, FaDollarSign, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useWallet } from '../contexts/WalletContext';
@@ -36,7 +36,11 @@ interface Project {
 
 const CreateFunding: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isConnected, walletAddress } = useWallet();
+  
+  // Check if this is a funding extension
+  const { extendingFunding, isExtending } = location.state || {};
   
   const [userProjects, setUserProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,9 +65,26 @@ const CreateFunding: React.FC = () => {
       return;
     }
     fetchUserProjects();
-    checkExistingFunding();
+    if (!isExtending) {
+      checkExistingFunding();
+    }
     loadPlatformPricing();
-  }, [isConnected, walletAddress]);
+  }, [isConnected, walletAddress, isExtending]);
+
+  // Pre-fill form data for funding extension
+  useEffect(() => {
+    if (isExtending && extendingFunding) {
+      setFormData(prev => ({
+        ...prev,
+        project_id: extendingFunding.project_id,
+        funding_goal: extendingFunding.funding_goal,
+        funding_purpose: extendingFunding.funding_purpose,
+        funding_wallet: extendingFunding.funding_wallet || extendingFunding.wallet_address
+      }));
+      // Auto-advance to payment step
+      setCurrentStep(2);
+    }
+  }, [isExtending, extendingFunding]);
 
   const checkExistingFunding = async () => {
     if (!walletAddress) return;
@@ -343,12 +364,15 @@ const CreateFunding: React.FC = () => {
         funding_goal: formData.funding_goal,
         funding_deadline: formData.funding_deadline,
         funding_purpose: formData.funding_purpose,
-        funding_wallet: formData.funding_wallet,
+        wallet_address: walletAddress || '',
+        funding_wallet: formData.funding_wallet || walletAddress || '',
         paymentAmount: totalCost.amount,
-        duration_months: totalCost.months,
-        paymentCurrency: formData.paymentMethod,
-        walletAddress: walletAddress,
-        timestamp: Date.now()
+        paymentCurrency: formData.paymentMethod as 'BONE' | 'ADA',
+        timestamp: Date.now(),
+        // Extension metadata
+        isExtending: isExtending,
+        extendingFundingId: extendingFunding?.id,
+        duration: isExtending ? calculateMonthsFromNow(formData.funding_deadline) : undefined
       };
       
       // Process payment through smart contract
@@ -455,21 +479,26 @@ const CreateFunding: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/funding')}
-            className="inline-flex items-center text-blue-600 hover:text-blue-500 mb-4"
-          >
-            <FaArrowLeft className="mr-2" />
-            Back to Funding
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Create Funding Project</h1>
-          <p className="mt-2 text-gray-600">
-            Set up funding for one of your existing projects
-          </p>
-        </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-8">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4 transition-colors"
+            >
+              <FaArrowLeft className="mr-2" />
+              Back
+            </button>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isExtending ? 'Extend Funding Deadline' : 'Create Funding Campaign'}
+            </h1>
+            <p className="mt-2 text-gray-600">
+              {isExtending 
+                ? `Extend the deadline for ${extendingFunding?.project_title || extendingFunding?.title}`
+                : 'Launch a funding campaign for your project'
+              }
+            </p>
+          </div>
 
         {userProjects.length === 0 ? (
           <div className="bg-white shadow-sm rounded-lg p-8 text-center">
