@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageTransition from '../../components/PageTransition';
-import { FaCoins, FaUsers, FaCalendarAlt, FaEye, FaPause, FaPlay, FaTrash, FaRedo, FaCheck, FaGlobe, FaDiscord, FaEdit, FaTimes } from 'react-icons/fa';
+import { FaCoins, FaUsers, FaCalendarAlt, FaEye, FaPause, FaPlay, FaRedo, FaCheck, FaGlobe, FaDiscord, FaEdit, FaTimes, } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
@@ -163,8 +163,6 @@ const MyFunding: React.FC = () => {
   const [editingPurpose, setEditingPurpose] = useState<string | null>(null);
   const [editPurposeText, setEditPurposeText] = useState('');
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [showExtendModal, setShowExtendModal] = useState(false);
   const [projectToExtend, setProjectToExtend] = useState<FundingProject | null>(null);
   const [extensionMonths, setExtensionMonths] = useState(1);
@@ -289,49 +287,6 @@ const MyFunding: React.FC = () => {
     }
   };
 
-  const handleDeleteFunding = (fundingId: string) => {
-    const funding = fundingProjects.find(f => f.id === fundingId);
-    if (!funding) return;
-
-    // Prevent deletion of active or expired funding campaigns
-    const isExpired = fundingService.isExpired(funding.funding_deadline);
-    if (funding.is_active || isExpired) {
-      const statusMessage = funding.is_active ? 'active' : 'expired';
-      toast.error(`Cannot delete ${statusMessage} funding campaigns. Only draft or cancelled campaigns can be deleted.`);
-      return;
-    }
-
-    setProjectToDelete(fundingId);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDeleteFunding = async () => {
-    if (!projectToDelete) return;
-
-    try {
-      // Deleting funding project
-      const response = await fetch(`/api/funding?id=${projectToDelete}`, {
-        method: 'DELETE',
-        headers: {
-          'x-wallet-address': walletAddress || ''
-        }
-      });
-
-      if (response.ok) {
-        toast.success('Funding project deleted successfully');
-        setShowDeleteModal(false);
-        setProjectToDelete(null);
-        fetchMyFunding(); // Refresh the list
-      } else {
-        const errorData = await response.json();
-        console.error('Delete failed:', errorData);
-        toast.error(`Failed to delete funding project: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error deleting funding project:', error);
-      toast.error('Failed to delete funding project');
-    }
-  };
 
   const handleExtendDeadline = (funding: FundingProject) => {
     // Check if user has any truly active funding campaigns (not expired)
@@ -430,7 +385,24 @@ const MyFunding: React.FC = () => {
           <div className="p-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Project Funding</h1>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                  My Project Funding
+                  <div className="group relative ml-2">
+                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                      <div className="max-w-xs">
+                        <p className="font-semibold mb-1">Funding Rules:</p>
+                        <p>• Only 1 active funding per user to prevent spam</p>
+                        <p>• Fundings are permanent - cannot be deleted</p>
+                        <p>• Shows history of all your funding attempts</p>
+                        <p>• Can pause/resume or extend expired fundings</p>
+                      </div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </h1>
                 <p className="mt-1 text-sm text-gray-500">Manage your active funding campaigns</p>
               </div>
               {!fundingProjects.some(funding => !fundingService.isExpired(funding.funding_deadline)) && (
@@ -548,22 +520,6 @@ const MyFunding: React.FC = () => {
                         title={funding.is_active ? 'Pause' : 'Activate'}
                       >
                         {funding.is_active ? <FaPause className="w-4 h-4" /> : <FaPlay className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFunding(funding.id)}
-                        disabled={funding.is_active || fundingService.isExpired(funding.funding_deadline)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          funding.is_active || fundingService.isExpired(funding.funding_deadline)
-                            ? 'text-gray-300 cursor-not-allowed'
-                            : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
-                        }`}
-                        title={
-                          funding.is_active || fundingService.isExpired(funding.funding_deadline)
-                            ? 'Cannot delete active or expired campaigns'
-                            : 'Delete'
-                        }
-                      >
-                        <FaTrash className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -755,25 +711,6 @@ const MyFunding: React.FC = () => {
                               title="Extend deadline"
                             >
                               <FaRedo className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteFunding(funding.id);
-                              }}
-                              disabled={funding.is_active || fundingService.isExpired(funding.funding_deadline)}
-                              className={`p-2 transition-colors ${
-                                funding.is_active || fundingService.isExpired(funding.funding_deadline)
-                                  ? 'text-gray-300 cursor-not-allowed'
-                                  : 'text-gray-400 hover:text-red-600'
-                              }`}
-                              title={
-                                funding.is_active || fundingService.isExpired(funding.funding_deadline)
-                                  ? 'Cannot delete active or expired campaigns'
-                                  : 'Delete funding'
-                              }
-                            >
-                              <FaTrash className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
@@ -978,58 +915,6 @@ const MyFunding: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-            onClick={() => setShowDeleteModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-lg p-6 w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                  <FaTrash className="text-red-600 text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Delete Funding Project</h3>
-                  <p className="text-sm text-gray-600">This action cannot be undone</p>
-                </div>
-              </div>
-
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete this funding project? All contributions and data will be permanently removed.
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setProjectToDelete(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeleteFunding}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-                >
-                  Delete Project
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Extension Modal */}
       <AnimatePresence>

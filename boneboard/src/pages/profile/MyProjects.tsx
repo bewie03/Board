@@ -240,7 +240,24 @@ const MyProjects: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-6 border-b border-gray-200">
-              <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+              My Projects
+              <div className="group relative ml-2">
+                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  <div className="max-w-xs">
+                    <p className="font-semibold mb-1">Project Management:</p>
+                    <p>• Edit project details anytime</p>
+                    <p>• Create funding campaigns for projects</p>
+                    <p>• Link jobs to verified projects</p>
+                    <p>• Projects stay permanent once created</p>
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
+            </h1>
               <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
             </div>
             
@@ -264,7 +281,24 @@ const MyProjects: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+              My Projects
+              <div className="group relative ml-2">
+                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  <div className="max-w-xs">
+                    <p className="font-semibold mb-1">Project Management:</p>
+                    <p>• Edit project details anytime</p>
+                    <p>• Create funding campaigns for projects</p>
+                    <p>• Link jobs to verified projects</p>
+                    <p>• Projects stay permanent once created</p>
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
+            </h1>
             <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
           </div>
           
@@ -284,7 +318,24 @@ const MyProjects: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+              My Projects
+              <div className="group relative ml-2">
+                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  <div className="max-w-xs">
+                    <p className="font-semibold mb-1">Project Management:</p>
+                    <p>• Edit project details anytime</p>
+                    <p>• Create funding campaigns for projects</p>
+                    <p>• Link jobs to verified projects</p>
+                    <p>• Projects stay permanent once created</p>
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
+            </h1>
             <p className="mt-1 text-sm text-gray-500">Manage your project listings and funding</p>
           </div>
         

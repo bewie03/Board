@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import PageTransition from '../../components/PageTransition';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useWallet } from '../../contexts/WalletContext';
-import { JobService, Job } from '../../services/jobService';
-import { toast } from 'react-toastify';
-import { FaTrash, FaEdit, FaClock, FaMapMarkerAlt, FaPause, FaPlay, FaSave, FaTimes, FaDiscord, FaEnvelope, FaCheck, FaMoneyBillWave, FaBuilding, FaPlus, FaLink } from 'react-icons/fa';
+import { 
+  FaEdit, 
+  FaTrash, 
+  FaPause, 
+  FaPlay, 
+  FaBuilding, 
+  FaClock, 
+  FaSave, 
+  FaTimes, 
+  FaCheck, 
+  FaMapMarkerAlt, 
+  FaMoneyBillWave, 
+  FaLink, 
+  FaEnvelope, 
+  FaPlus 
+} from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
+import { SiDiscord } from 'react-icons/si';
+import { Job, JobService } from '../../services/jobService';
+import { useWallet } from '../../contexts/WalletContext';
+import PageTransition from '../../components/PageTransition';
 import CustomSelect from '../../components/CustomSelect';
 import { JOB_CATEGORIES } from '../../constants/categories';
+import { toast } from 'react-toastify';
 
 // Helper function to get expiry time string
 const getExpiryTimeString = (expiryDate: string): string => {
@@ -40,15 +56,14 @@ const MyJobs: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [expiredJobs, setExpiredJobs] = useState<Job[]>([]);
   const [pausedJobs, setPausedJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [expiredJobs, setExpiredJobs] = useState<Job[]>([]);
   const [showExpiredJobs, setShowExpiredJobs] = useState(false);
   const [showPausedJobs, setShowPausedJobs] = useState(false);
-
 
   const clearSelectedJob = () => {
     setSelectedJob(null);
@@ -56,12 +71,51 @@ const MyJobs: React.FC = () => {
     setEditFormData({});
   };
 
+  const handleDeleteJob = async (jobId: string) => {
+    if (window.confirm('Are you sure you want to delete this job listing?')) {
+      try {
+        const success = await JobService.deleteJob(jobId);
+        if (success) {
+          setJobs(jobs.filter(job => job.id !== jobId));
+          setExpiredJobs(expiredJobs.filter(job => job.id !== jobId));
+          setPausedJobs(pausedJobs.filter(job => job.id !== jobId));
+          toast.success('Job listing deleted successfully!');
+          clearSelectedJob();
+        } else {
+          toast.error('Failed to delete job listing');
+        }
+      } catch (error) {
+        console.error('Error deleting job:', error);
+        toast.error('Error deleting job listing');
+      }
+    }
+  };
+
+  const handlePauseJob = async (jobId: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (job) {
+      try {
+        const success = await JobService.updateJob(jobId, { status: 'paused' as any });
+        if (success) {
+          setJobs(jobs.filter(j => j.id !== jobId));
+          setPausedJobs([...pausedJobs, { ...job, status: 'paused' as any }]);
+          toast.success('Job paused successfully!');
+        } else {
+          toast.error('Failed to pause job.');
+        }
+      } catch (error) {
+        console.error('Error pausing job:', error);
+        toast.error('Error pausing job.');
+      }
+    }
+  };
+
+
   useEffect(() => {
     const loadJobs = async () => {
       if (isConnected && walletAddress) {
         try {
           const userJobs = await JobService.getUserJobs(walletAddress);
-          
           // Separate active and expired jobs
           const now = new Date();
           const activeJobs = userJobs.filter((job: Job) => {
@@ -105,43 +159,8 @@ const MyJobs: React.FC = () => {
     window.addEventListener('jobPostedSuccessfully', handleJobPosted);
   }, [isConnected, walletAddress]);
 
-  const handleDeleteJob = async (jobId: string) => {
-    if (window.confirm('Are you sure you want to delete this job listing?')) {
-      try {
-        const success = await JobService.deleteJob(jobId);
-        if (success) {
-          setJobs(jobs.filter(job => job.id !== jobId));
-          setExpiredJobs(expiredJobs.filter(job => job.id !== jobId));
-          toast.success('Job listing deleted successfully!');
-        } else {
-          toast.error('Failed to delete job listing');
-        }
-      } catch (error) {
-        console.error('Error deleting job:', error);
-        toast.error('Error deleting job listing');
-      }
-    }
-  };
 
 
-  const handlePauseJob = async (jobId: string) => {
-    const job = jobs.find(j => j.id === jobId);
-    if (job) {
-      const newStatus = job.status === 'confirmed' ? 'paused' : 'confirmed';
-      try {
-        const success = await JobService.updateJob(jobId, { status: newStatus as any });
-        if (success) {
-          setJobs(jobs.map(j => j.id === jobId ? { ...j, status: newStatus as any } : j));
-          toast.success(`Job ${newStatus === 'paused' ? 'paused' : 'resumed'} successfully!`);
-        } else {
-          toast.error('Failed to update job status.');
-        }
-      } catch (error) {
-        console.error('Error updating job status:', error);
-        toast.error('Error updating job status.');
-      }
-    }
-  };
 
   const handleUnpauseJob = async (job: Job) => {
     try {
@@ -194,7 +213,6 @@ const MyJobs: React.FC = () => {
         const updatedJob = { ...editingJob, ...editFormData };
         setJobs(jobs.map(j => j.id === editingJob.id ? updatedJob : j));
         
-        // Update selectedJob if it's the same job being edited
         if (selectedJob && selectedJob.id === editingJob.id) {
           setSelectedJob(updatedJob);
         }
@@ -207,7 +225,7 @@ const MyJobs: React.FC = () => {
       }
     } catch (error) {
       console.error('Error updating job:', error);
-      toast.error('Failed to update job.');
+      toast.error('Error updating job.');
     }
   };
 
@@ -217,7 +235,6 @@ const MyJobs: React.FC = () => {
   };
 
   const handleReactivateJob = (job: Job) => {
-    // Navigate to PostJob with job data for reactivation
     navigate('/post-job', { 
       state: { 
         relistingJob: job,
@@ -243,21 +260,38 @@ const MyJobs: React.FC = () => {
     <PageTransition>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Job Listings</h1>
-                <p className="mt-1 text-sm text-gray-500">Manage your job postings and applications</p>
-              </div>
-              <Link
-                to="/post-job"
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Post New Job
-              </Link>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                My Jobs
+                <div className="group relative ml-2">
+                  <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                    <div className="max-w-xs">
+                      <p className="font-semibold mb-1">Job Management:</p>
+                      <p>• Pause jobs when interviewing candidates</p>
+                      <p>• Unpause if you need to repost the job</p>
+                      <p>• Edit job details anytime while active</p>
+                      <p>• Jobs auto-expire after 30 days</p>
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">Manage your job postings and applications</p>
+            </div>
+            <Link
+              to="/post-job"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+              Post New Job
+            </Link>
             </div>
           </div>
           
@@ -1139,7 +1173,7 @@ const MyJobs: React.FC = () => {
                             <div className="flex items-center">
                               {editingJob ? (
                                 <div className="flex items-center space-x-2">
-                                  <FaDiscord className="h-4 w-4 text-gray-500" />
+                                  <SiDiscord className="h-4 w-4 text-gray-500" />
                                   <input
                                     type="text"
                                     value={editFormData.discord || ''}
@@ -1155,7 +1189,7 @@ const MyJobs: React.FC = () => {
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                                 >
-                                  <FaDiscord className="h-4 w-4 mr-2" />
+                                  <SiDiscord className="h-4 w-4 mr-2" />
                                   <span>Discord</span>
                                 </a>
                               )}
