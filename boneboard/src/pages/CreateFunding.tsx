@@ -180,7 +180,7 @@ const CreateFunding: React.FC = () => {
       
       // Navigate to My Fundings page
       setTimeout(() => {
-        navigate('/profile/my-fundings');
+        navigate('/my-funding');
       }, 2000);
     };
 
@@ -435,7 +435,7 @@ const CreateFunding: React.FC = () => {
             const successMessage = isExtending ? 'Funding deadline extended successfully!' : 'Funding project created successfully!';
             toast.success(successMessage);
             setTimeout(() => {
-              navigate('/profile/my-fundings');
+              navigate('/my-funding');
             }, 2000);
             window.removeEventListener('fundingCreatedSuccessfully', handleFundingSuccess);
             window.removeEventListener('fundingExtendedSuccessfully', handleFundingSuccess);
@@ -453,7 +453,7 @@ const CreateFunding: React.FC = () => {
           // Check if still processing after 3 minutes
           if (paymentStatus === 'processing') {
             toast.info('Transaction is taking longer than expected. Please check your wallet or try again.');
-            navigate('/profile/my-fundings');
+            navigate('/my-funding');
           }
         }, 180000); // 3 minutes timeout
         
@@ -842,7 +842,7 @@ const CreateFunding: React.FC = () => {
                                 setFormData(prev => ({ ...prev, funding_deadline: monthYear }));
                               }}
                               placeholder="Select extension duration"
-                              className=""
+                              className="!border-gray-300 !rounded-md !shadow-sm focus:!ring-blue-500 focus:!border-blue-500"
                             />
                           </div>
                           {extensionMonths > 0 && extendingFunding && (
@@ -1160,7 +1160,7 @@ const CreateFunding: React.FC = () => {
                     <div className="mt-6">
                       <button
                         type="button"
-                        onClick={() => navigate('/profile/my-fundings')}
+                        onClick={() => navigate('/my-funding')}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
                         View My Fundings
