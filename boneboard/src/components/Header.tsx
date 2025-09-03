@@ -139,7 +139,7 @@ const Header: React.FC = () => {
                           <FaUserCircle className="text-2xl" />
                         </div>
                       )}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
                     </div>
                     <div className="hidden md:flex items-center">
                       <span className="text-base font-medium">
@@ -169,28 +169,28 @@ const Header: React.FC = () => {
                 {showProfile && isConnected && walletAddress && (
                   <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl z-[110] border border-gray-100 overflow-hidden">
                     {/* Profile Header */}
-                    <div className="bg-white p-5 border-b border-gray-100">
+                    <div className="bg-white p-5 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group">
                       <div className="flex items-center space-x-4">
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-md">
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-shadow duration-200">
                           {profilePhoto ? (
                             <img 
                               src={profilePhoto} 
                               alt="Profile" 
-                              className="w-full h-full object-cover rounded-full"
+                              className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200"
                             />
                           ) : (
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
                               <FaUserCircle className="text-3xl text-white" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900 text-base">
+                          <p className="font-semibold text-gray-900 text-base group-hover:text-blue-600 transition-colors duration-200">
                             {username || (walletAddress ? formatAddress(walletAddress) : 'Anonymous User')}
                           </p>
                           <div className="flex items-center mt-1">
-                            <span className="w-2.5 h-2.5 bg-green-400 rounded-full mr-2 shadow-sm"></span>
-                            <span className="text-sm text-gray-600 font-medium">
+                            <span className="w-2.5 h-2.5 bg-green-400 rounded-full mr-2 shadow-sm animate-pulse"></span>
+                            <span className="text-sm text-gray-600 font-medium group-hover:text-gray-700 transition-colors duration-200">
                               {connectedWallet ? connectedWallet.charAt(0).toUpperCase() + connectedWallet.slice(1) : 'Connected'}
                             </span>
                           </div>

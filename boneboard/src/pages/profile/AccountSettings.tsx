@@ -12,22 +12,73 @@ const AccountSettings: React.FC = () => {
   const [isCopied, setIsCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxSizeKB: number = 1024): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        const maxDimension = 800; // Max width/height for profile pics
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Start with high quality and reduce if needed
+        let quality = 0.9;
+        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        
+        // Reduce quality until under size limit
+        while (compressedDataUrl.length > maxSizeKB * 1024 * 1.37 && quality > 0.1) { // 1.37 accounts for base64 overhead
+          quality -= 0.1;
+          compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        resolve(compressedDataUrl);
+      };
+      
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (1MB max)
-      if (file.size > 1024 * 1024) {
-        toast.error('File size should not exceed 1MB');
-        return;
+      try {
+        // Show loading state for large files
+        if (file.size > 1024 * 1024) {
+          toast.info('Compressing image, please wait...');
+        }
+        
+        const compressedImage = await compressImage(file, 1024);
+        setProfileImage(compressedImage);
+        setProfilePhoto(compressedImage);
+        
+        if (file.size > 1024 * 1024) {
+          toast.success('Image compressed and uploaded successfully!');
+        }
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        toast.error('Failed to process image. Please try again.');
       }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setProfileImage(result);
-        setProfilePhoto(result);
-      };
-      reader.readAsDataURL(file);
     }
   };
   
@@ -127,7 +178,7 @@ const AccountSettings: React.FC = () => {
               </div>
               <div className="text-center sm:text-left">
                 <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
-                <p className="text-sm text-gray-500 mt-1">JPG, GIF or PNG. Max size of 1MB</p>
+                <p className="text-sm text-gray-500 mt-1">JPG, GIF or PNG. Large images will be automatically compressed.</p>
               </div>
             </div>
           </div>
