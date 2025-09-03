@@ -213,8 +213,8 @@ const Header: React.FC = () => {
                             onClick={() => setShowWalletBalance(!showWalletBalance)}
                             className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center mr-3 group-hover:bg-green-200 transition-colors">
-                              <FaWallet className="w-4 h-4 text-green-600 group-hover:text-green-700" />
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                              <FaWallet className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
                             </div>
                             <span className="flex-1">Wallet Balances</span>
                             <FiChevronDown className={`w-4 h-4 transition-transform ${showWalletBalance ? 'transform rotate-180' : ''}`} />
