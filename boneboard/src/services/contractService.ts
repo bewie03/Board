@@ -58,6 +58,10 @@ export interface ProjectPostingData {
   twitter?: string;
   discord?: string;
   additionalInfo?: string[];
+  // Extension metadata
+  isExtending?: boolean;
+  extendingFundingId?: string;
+  duration?: number;
 }
 
 export interface FreelancerProfileData {

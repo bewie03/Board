@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaDiscord } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaPause, FaPlay, FaEye, FaCalendarAlt, FaUsers, FaCoins, FaTimes, FaCheck, FaGlobe, FaDiscord, FaRedo } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { fundingService } from '../../services/fundingService';
+import { calculateFundingCost } from '../../utils/fundingPricing';
+import { contractService } from '../../services/contractService';
+import CustomSelect from '../../components/CustomSelect';
 
 // Contributors Section Component
 const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
@@ -161,12 +164,38 @@ const MyFunding: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [projectToExtend, setProjectToExtend] = useState<FundingProject | null>(null);
+  const [extensionMonths, setExtensionMonths] = useState(1);
+  const [extensionPaymentMethod, setExtensionPaymentMethod] = useState<'BONE' | 'ADA'>('ADA');
+  const [platformPricing, setPlatformPricing] = useState<{fundingListingFee: number, fundingListingFeeAda: number} | null>(null);
 
   useEffect(() => {
     if (walletAddress) {
       fetchMyFunding();
+      loadPlatformPricing();
     }
   }, [walletAddress]);
+
+  const loadPlatformPricing = async () => {
+    try {
+      const response = await fetch('/api/admin');
+      if (response.ok) {
+        const data = await response.json();
+        setPlatformPricing({
+          fundingListingFee: data.fundingListingFee || 6,
+          fundingListingFeeAda: data.fundingListingFeeAda || 6
+        });
+      }
+    } catch (error) {
+      console.error('Error loading platform pricing:', error);
+      // Use default values
+      setPlatformPricing({
+        fundingListingFee: 6,
+        fundingListingFeeAda: 6
+      });
+    }
+  };
 
   const fetchMyFunding = async () => {
     try {
@@ -285,6 +314,68 @@ const MyFunding: React.FC = () => {
     }
   };
 
+  const handleExtendDeadline = (funding: FundingProject) => {
+    setProjectToExtend(funding);
+    setShowExtendModal(true);
+  };
+
+  const calculateExtensionCost = () => {
+    if (!platformPricing) return { amount: 0, currency: extensionPaymentMethod };
+    
+    const baseCost = extensionPaymentMethod === 'ADA' 
+      ? platformPricing.fundingListingFeeAda 
+      : platformPricing.fundingListingFee;
+    
+    const totalCost = calculateFundingCost(extensionMonths, baseCost);
+    
+    return {
+      amount: totalCost,
+      currency: extensionPaymentMethod
+    };
+  };
+
+  const handleExtensionPayment = async () => {
+    if (!projectToExtend || !platformPricing) return;
+
+    try {
+      const cost = calculateExtensionCost();
+      
+      // Create funding extension data
+      const extensionData = {
+        project_id: projectToExtend.project_id,
+        funding_goal: projectToExtend.funding_goal,
+        funding_deadline: '', // Will be calculated on backend
+        wallet_address: walletAddress || '',
+        funding_wallet: projectToExtend.funding_wallet || projectToExtend.wallet_address,
+        funding_purpose: projectToExtend.funding_purpose,
+        duration: extensionMonths,
+        paymentAmount: cost.amount,
+        paymentCurrency: cost.currency,
+        // Extension metadata
+        isExtending: true,
+        extendingFundingId: projectToExtend.id
+      };
+
+      // Use the same payment system as funding creation
+      await contractService.initializeLucid(window.cardano?.nami || window.cardano?.eternl);
+      
+      const result = extensionData.paymentCurrency === 'ADA'
+        ? await contractService.postFundingWithADA(extensionData)
+        : await contractService.postFundingWithBONE(extensionData);
+      
+      if (result.success && result.txHash) {
+        toast.success('Extension payment initiated! Your funding deadline will be extended once payment is confirmed.');
+        setShowExtendModal(false);
+        setProjectToExtend(null);
+      } else {
+        toast.error(`Failed to initiate extension payment: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error extending funding deadline:', error);
+      toast.error('Failed to extend funding deadline');
+    }
+  };
+
 
   if (loading) {
     return (
@@ -332,8 +423,13 @@ const MyFunding: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            {fundingProjects.map((funding) => (
+          <div className="space-y-8">
+            {/* Active Funding Projects */}
+            {fundingProjects.filter(funding => !fundingService.isExpired(funding.funding_deadline)).length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Funding Projects</h2>
+                <div className="space-y-6">
+                  {fundingProjects.filter(funding => !fundingService.isExpired(funding.funding_deadline)).map((funding) => (
               <motion.div
                 key={funding.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -523,7 +619,150 @@ const MyFunding: React.FC = () => {
                   </div>
                 </div>
               </motion.div>
-            ))}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Expired Funding Projects */}
+            {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <span className="text-red-600 mr-2">Expired Funding Projects</span>
+                  <span className="text-sm font-normal text-gray-500">({fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).length})</span>
+                </h2>
+                <div className="space-y-6">
+                  {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).map((funding) => (
+                    <motion.div
+                      key={funding.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white shadow-sm rounded-lg overflow-hidden border-l-4 border-red-500 opacity-75"
+                    >
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-4">
+                            {funding.logo ? (
+                              <img
+                                src={funding.logo}
+                                alt="Project logo"
+                                className="w-12 h-12 rounded-lg object-cover border"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <span className="text-gray-400 text-xs">No Logo</span>
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="text-xl font-semibold text-gray-900">
+                                {funding.project_title || funding.title}
+                              </h3>
+                              <div className="flex items-center space-x-4 text-sm mt-2">
+                                <span className="flex items-center text-red-600 font-medium">
+                                  <FaCalendarAlt className="w-4 h-4 mr-1" />
+                                  Deadline passed: {fundingService.formatDeadline(funding.funding_deadline)}
+                                </span>
+                                <span className="flex items-center text-gray-500">
+                                  <FaUsers className="w-4 h-4 mr-1" />
+                                  {funding.contributor_count} backers
+                                </span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  Expired
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleExtendDeadline(funding)}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center transition-all duration-200"
+                              title="Extend Deadline"
+                            >
+                              <FaRedo className="h-3 w-3 mr-1" />
+                              Extend
+                            </button>
+                            <button
+                              onClick={() => setSelectedProject(funding)}
+                              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <FaEye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFunding(funding.id)}
+                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <FaTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="mb-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              {funding.current_funding} ADA raised
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {funding.progress_percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-red-400 h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${Math.min(funding.progress_percentage, 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between items-center mt-1 text-sm text-gray-500">
+                            <span>Goal: {funding.funding_goal} ADA</span>
+                          </div>
+                        </div>
+
+                        {/* Funding Purpose */}
+                        <div className="mb-4">
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">Funding Purpose</label>
+                          <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-md">
+                            {funding.funding_purpose || 'No purpose specified'}
+                          </p>
+                        </div>
+                        
+                        {/* Payment Address Section */}
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                          <div className="flex items-center mb-4">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                              <FaCoins className="text-blue-600 text-lg" />
+                            </div>
+                            <div>
+                              <h4 className="text-lg font-semibold text-gray-900">Payment Address</h4>
+                              <p className="text-sm text-gray-600">
+                                All contributions are automatically sent to this wallet address
+                              </p>
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <code className="text-sm font-mono text-gray-800 break-all block leading-relaxed">
+                                  {funding.funding_wallet || funding.wallet_address}
+                                </code>
+                              </div>
+                              <div className="flex-shrink-0">
+                                <CopyButton 
+                                  textToCopy={funding.funding_wallet || funding.wallet_address}
+                                  fundingId={funding.id}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -728,6 +967,107 @@ const MyFunding: React.FC = () => {
                   className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
                 >
                   Delete Project
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Extension Modal */}
+      <AnimatePresence>
+        {showExtendModal && projectToExtend && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            onClick={() => setShowExtendModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                  <FaRedo className="text-green-600 text-xl" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Extend Funding Deadline</h3>
+                  <p className="text-sm text-gray-600">{projectToExtend.project_title || projectToExtend.title}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Duration Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Extension Duration *
+                  </label>
+                  <CustomSelect
+                    name="extensionMonths"
+                    options={[
+                      { value: '1', label: '1 Month' },
+                      { value: '2', label: '2 Months' },
+                      { value: '3', label: '3 Months' },
+                      { value: '6', label: '6 Months' },
+                      { value: '12', label: '12 Months' }
+                    ]}
+                    value={extensionMonths.toString()}
+                    onChange={(value) => setExtensionMonths(parseInt(value))}
+                  />
+                </div>
+
+                {/* Payment Method */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Method *
+                  </label>
+                  <CustomSelect
+                    name="extensionPaymentMethod"
+                    options={[
+                      { value: 'ADA', label: 'ADA (Cardano)' },
+                      { value: 'BONE', label: 'BONE Token' }
+                    ]}
+                    value={extensionPaymentMethod}
+                    onChange={(value) => setExtensionPaymentMethod(value as 'BONE' | 'ADA')}
+                  />
+                </div>
+
+                {/* Cost Display */}
+                {platformPricing && (
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Extension Cost:</span>
+                      <span className="text-lg font-semibold text-blue-600">
+                        {calculateExtensionCost().amount} {calculateExtensionCost().currency}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Your funding deadline will be extended by {extensionMonths} {extensionMonths === 1 ? 'month' : 'months'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowExtendModal(false);
+                    setProjectToExtend(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExtensionPayment}
+                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Pay & Extend
                 </button>
               </div>
             </motion.div>

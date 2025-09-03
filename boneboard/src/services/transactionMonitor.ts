@@ -278,6 +278,52 @@ class TransactionMonitor {
         try {
           const { fundingService } = await import('./fundingService');
           
+          // Check if this is a funding extension
+          if ((pendingTx.fundingData as any).isExtending && (pendingTx.fundingData as any).extendingFundingId) {
+            console.log('Processing funding extension for funding ID:', (pendingTx.fundingData as any).extendingFundingId);
+            
+            try {
+              // Calculate new deadline based on duration
+              const currentDate = new Date();
+              const newDeadline = new Date(currentDate.getFullYear(), currentDate.getMonth() + (pendingTx.fundingData as any).duration, currentDate.getDate());
+              
+              console.log(`Current date: ${currentDate.toISOString()}`);
+              console.log(`Extending funding ${(pendingTx.fundingData as any).extendingFundingId} for ${(pendingTx.fundingData as any).duration} months`);
+              console.log(`New deadline: ${newDeadline.toISOString()}`);
+              
+              // Update the existing funding with new deadline
+              const response = await fetch(`/api/funding?id=${(pendingTx.fundingData as any).extendingFundingId}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-wallet-address': pendingTx.walletAddress
+                },
+                body: JSON.stringify({
+                  funding_deadline: newDeadline.toISOString(),
+                  is_active: true // Reactivate if it was paused
+                })
+              });
+              
+              if (response.ok) {
+                console.log('Funding deadline extended successfully');
+                localStorage.removeItem(pendingKey);
+                toast.success('Funding deadline extended successfully!');
+                
+                // Dispatch custom event for UI refresh
+                window.dispatchEvent(new CustomEvent('fundingExtendedSuccessfully', {
+                  detail: { txHash: pendingTx.txHash, fundingId: (pendingTx.fundingData as any).extendingFundingId }
+                }));
+                return;
+              } else {
+                throw new Error('Failed to update funding deadline in database');
+              }
+            } catch (error) {
+              console.error('Error extending funding deadline:', error);
+              toast.error('Failed to extend funding deadline');
+              return;
+            }
+          }
+          
           // Check if funding already exists before creating (prevent duplicates)
           const existingFundings = await fundingService.getFundingByWallet(pendingTx.walletAddress);
           const activeFunding = existingFundings.find(funding => funding.is_active);
