@@ -808,12 +808,9 @@ const CreateFunding: React.FC = () => {
                     {/* Extension Duration Selection - Only show for extensions */}
                     {isExtending && (
                       <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Extension Settings</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Extension Duration</h3>
                         <div className="space-y-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Extension Duration *
-                            </label>
                             <CustomSelect
                               options={[
                                 { value: '1', label: '1 Month' },
