@@ -612,11 +612,11 @@ const Footer: React.FC = () => {
             </div>
             
             {/* Copyright and Links */}
-            <div className="text-center md:text-right space-y-2">
+            <div className="text-center space-y-2">
               <p className="text-sm text-gray-500">
                 © {new Date().getFullYear()} BoneBoard. All rights reserved.
               </p>
-              <div className="flex items-center justify-center md:justify-end space-x-4 text-xs text-gray-400">
+              <div className="flex items-center justify-center space-x-4 text-xs text-gray-400">
                 <button 
                   onClick={() => setShowTerms(true)}
                   className="hover:text-gray-600 focus:outline-none transition-colors"
