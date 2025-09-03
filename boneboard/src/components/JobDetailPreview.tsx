@@ -143,15 +143,22 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         
         {additionalInfo.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-lg font-medium text-gray-900 mb-2">Additional Information</h4>
+            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
             <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
-              {additionalInfo.join('\n')}
+              {additionalInfo
+                .filter(info => info && info.trim() !== '')
+                .map((info, index) => (
+                  <div key={index} className="mb-2">
+                    {info.replace(/[{}"\\\s]+/g, ' ').trim()}
+                  </div>
+                ))
+              }
             </div>
           </div>
         )}
         
         <div className="mb-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-2">How to Apply</h4>
+          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">How to Apply</h4>
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
               {howToApply || 'Application instructions will appear here...'}

@@ -361,7 +361,7 @@ const PostJob: React.FC = () => {
       return;
     }
     
-    if (!formData.agreeToTerms) {
+    if (!formData.agreeToTerms && !isRelisting) {
       toast.error('Please agree to the terms and conditions');
       return;
     }
@@ -1158,6 +1158,33 @@ const PostJob: React.FC = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Duration Selection for Relisting */}
+                    {isRelisting && (
+                      <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Select Extension Duration</h3>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            How long would you like to extend this job listing? *
+                          </label>
+                          <CustomSelect
+                            name="listingDuration"
+                            options={[
+                              { value: '1', label: '1 Month - Base Price' },
+                              { value: '2', label: '2 Months - 5% Discount' },
+                              { value: '3', label: '3 Months - 10% Discount' },
+                              { value: '6', label: '6 Months - 15% Discount' },
+                              { value: '12', label: '12 Months - 20% Discount' }
+                            ]}
+                            value={formData.listingDuration.toString()}
+                            onChange={(value) => setFormData(prev => ({ ...prev, listingDuration: parseInt(value) }))}
+                          />
+                          <p className="text-sm text-gray-600">
+                            Your job will be reactivated and extended for the selected duration.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Payment Method */}
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
