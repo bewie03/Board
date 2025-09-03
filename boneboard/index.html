@@ -2,9 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BoneBoard - Cardano Job & Project Platform</title>
+    <title>Vite + React + TS</title>
+    <script>
+      // Console filter - runs before any other scripts
+      (function() {
+        const original = {
+          log: console.log,
+          warn: console.warn,
+          info: console.info
+        };
+        
+        const suppress = ['initEternlDomAPI', 'Download the React DevTools', 'domId', 'dom.js', 'CrCblbzl'];
+        
+        const filter = (method, args) => {
+          const msg = args.join(' ');
+          if (!suppress.some(s => msg.includes(s))) {
+            original[method].apply(console, args);
+          }
+        };
+        
+        console.log = (...args) => filter('log', args);
+        console.warn = (...args) => filter('warn', args);
+        console.info = (...args) => filter('info', args);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

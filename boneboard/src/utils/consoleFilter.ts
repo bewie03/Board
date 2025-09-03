@@ -1,43 +1,64 @@
 // Console warning suppression utility
-// Filters out known non-critical warnings from external libraries
+// Aggressive filtering for external library warnings
 
-const originalConsoleWarn = console.warn;
-const originalConsoleLog = console.log;
+// Immediately override console methods before any other scripts load
+(function() {
+  const originalMethods = {
+    log: console.log,
+    warn: console.warn,
+    info: console.info,
+    error: console.error
+  };
 
-// Patterns to suppress
-const suppressPatterns = [
-  'initEternlDomAPI',
-  'Download the React DevTools for a better development experience',
-  'domId',
-  'href https://bone-board.vercel.app'
-];
+  const suppressPatterns = [
+    'initEternlDomAPI',
+    'Download the React DevTools',
+    'react-devtools',
+    'domId',
+    'eternl',
+    'dom.js?token',
+    'dom.js',
+    'CrCblbzl'
+  ];
 
-// Override console.warn
-console.warn = (...args: any[]) => {
-  const message = args.join(' ');
-  
-  // Check if message matches any suppress pattern
-  const shouldSuppress = suppressPatterns.some(pattern => 
-    message.includes(pattern)
-  );
-  
-  if (!shouldSuppress) {
-    originalConsoleWarn.apply(console, args);
+  const shouldSuppress = (args: any[]): boolean => {
+    const message = args.map(arg => String(arg)).join(' ').toLowerCase();
+    return suppressPatterns.some(pattern => message.includes(pattern.toLowerCase()));
+  };
+
+  // Override immediately
+  console.log = (...args: any[]) => {
+    if (!shouldSuppress(args)) {
+      originalMethods.log.apply(console, args);
+    }
+  };
+
+  console.warn = (...args: any[]) => {
+    if (!shouldSuppress(args)) {
+      originalMethods.warn.apply(console, args);
+    }
+  };
+
+  console.info = (...args: any[]) => {
+    if (!shouldSuppress(args)) {
+      originalMethods.info.apply(console, args);
+    }
+  };
+
+  console.error = (...args: any[]) => {
+    if (!shouldSuppress(args)) {
+      originalMethods.error.apply(console, args);
+    }
+  };
+
+  // Also override window.console for external scripts
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, 'console', {
+      value: console,
+      writable: false,
+      configurable: false
+    });
   }
-};
-
-// Override console.log for Eternl wallet logs
-console.log = (...args: any[]) => {
-  const message = args.join(' ');
-  
-  // Check if message matches any suppress pattern
-  const shouldSuppress = suppressPatterns.some(pattern => 
-    message.includes(pattern)
-  );
-  
-  if (!shouldSuppress) {
-    originalConsoleLog.apply(console, args);
-  }
-};
+})();
 
 export {};
