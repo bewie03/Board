@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageTransition from '../../components/PageTransition';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../../contexts/WalletContext';
@@ -38,6 +38,7 @@ const getExpiryTimeString = (expiryDate: string): string => {
 
 const MyJobs: React.FC = () => {
   const { isConnected, walletAddress } = useWallet();
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [expiredJobs, setExpiredJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,6 +189,16 @@ const MyJobs: React.FC = () => {
   const handleCancelEdit = () => {
     setEditingJob(null);
     setEditFormData({});
+  };
+
+  const handleReactivateJob = (job: Job) => {
+    // Navigate to PostJob with job data for reactivation
+    navigate('/post-job', { 
+      state: { 
+        relistingJob: job,
+        isRelisting: true 
+      } 
+    });
   };
 
   if (loading) {
@@ -463,6 +474,16 @@ const MyJobs: React.FC = () => {
                                   </div>
                                 </div>
                                 <div className="flex space-x-1 flex-shrink-0">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleReactivateJob(job);
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                                    title="Reactivate job"
+                                  >
+                                    <FaPlay className="h-4 w-4" />
+                                  </button>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();

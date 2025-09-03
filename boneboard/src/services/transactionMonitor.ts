@@ -151,6 +151,39 @@ class TransactionMonitor {
   }
 
   private async saveJobToDatabase(jobData: JobPostingData, txHash: string) {
+    // Check if this is a job reactivation
+    if ((jobData as any).isRelisting && (jobData as any).relistingJobId) {
+      console.log('Processing job reactivation for job ID:', (jobData as any).relistingJobId);
+      
+      try {
+        // Calculate new expiry date based on duration
+        const newExpiryDate = new Date();
+        newExpiryDate.setMonth(newExpiryDate.getMonth() + jobData.duration);
+        
+        // Update the existing job with new expiry and reactivate
+        const success = await JobService.updateJob((jobData as any).relistingJobId, {
+          status: 'confirmed',
+          expiresAt: newExpiryDate.toISOString(),
+          featured: jobData.featured,
+          paymentAmount: jobData.paymentAmount,
+          paymentCurrency: jobData.paymentCurrency,
+          txHash: txHash // Update with new payment transaction hash
+        });
+        
+        if (success) {
+          console.log('Job reactivated successfully');
+          toast.success('Job reactivated successfully!');
+        } else {
+          throw new Error('Failed to update job in database');
+        }
+      } catch (error) {
+        console.error('Error reactivating job:', error);
+        throw error;
+      }
+      return;
+    }
+
+    // Handle new job posting (existing logic)
     // Check if job with this txHash already exists to prevent duplicates
     try {
       const existingJobs = await JobService.getAllJobs();

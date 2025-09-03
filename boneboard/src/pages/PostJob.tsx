@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
@@ -8,14 +8,21 @@ import { useContract } from '../hooks/useContract';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { ProjectService, Project } from '../services/projectService';
+import { JobService } from '../services/jobService';
 import PageTransition from '../components/PageTransition';
 import { JOB_CATEGORIES } from '../constants/categories';
 
 const PostJob: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isConnected, walletAddress, formatAddress } = useWallet();
   const { isLoading: contractLoading, postJob } = useContract();
   const [currentStep, setCurrentStep] = useState(1);
+  
+  // Check if this is a relisting
+  const relistingData = location.state as { relistingJob?: any; isRelisting?: boolean } | null;
+  const isRelisting = relistingData?.isRelisting || false;
+  const relistingJob = relistingData?.relistingJob;
 
   const JOB_TYPES = [
     { id: 'Full-time', name: 'Full-time' },
@@ -77,6 +84,46 @@ const PostJob: React.FC = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [platformPricing, setPlatformPricing] = useState<{jobListingFee: number, jobListingFeeAda: number, jobListingCurrency: string} | null>(null);
+
+  // Pre-fill form data if this is a relisting
+  useEffect(() => {
+    if (isRelisting && relistingJob) {
+      console.log('Pre-filling form for job relisting:', relistingJob);
+      setFormData({
+        title: relistingJob.title || '',
+        company: relistingJob.company || '',
+        type: relistingJob.type || 'Full-time',
+        category: relistingJob.category || 'development',
+        salary: relistingJob.salary || '',
+        salaryType: relistingJob.salaryType || 'ADA',
+        customCurrency: relistingJob.customCurrency || '',
+        description: relistingJob.description || '',
+        requiredSkills: relistingJob.requiredSkills || [],
+        additionalInfo: relistingJob.additionalInfo || [],
+        workArrangement: relistingJob.workArrangement || 'remote',
+        companyWebsite: relistingJob.companyWebsite || relistingJob.website || '',
+        companyLogo: relistingJob.companyLogo || null,
+        contactEmail: relistingJob.contactEmail || '',
+        website: relistingJob.website || '',
+        twitter: relistingJob.twitter || '',
+        discord: relistingJob.discord || '',
+        howToApply: relistingJob.howToApply || '',
+        listingDuration: 1, // Default to 1 month for relisting
+        paymentMethod: 'BONE' as 'BONE' | 'ADA',
+        agreeToTerms: false,
+        featured: false, // Reset featured status for relisting
+      });
+      
+      // Set selected project if job was associated with one
+      if (relistingJob.selectedProjectId) {
+        setSelectedProject(relistingJob.selectedProjectId);
+      }
+      
+      // Go directly to payment step for relisting
+      setCurrentStep(2);
+      toast.info('Reactivating job listing - please select duration and confirm payment');
+    }
+  }, [isRelisting, relistingJob]);
 
   // Load platform pricing on component mount
   useEffect(() => {
@@ -374,7 +421,7 @@ const PostJob: React.FC = () => {
         throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
 
-    // Prepare job data for posting
+    // Prepare job data for posting or reactivation
     const jobData = {
       title: formData.title,
       company: formData.company,
@@ -398,15 +445,21 @@ const PostJob: React.FC = () => {
       featured: formData.featured,
       selectedProjectId: selectedProject,
       paymentAmount: totalCost.amount,
-      paymentCurrency: totalCost.currency as 'BONE' | 'ADA'
+      paymentCurrency: totalCost.currency as 'BONE' | 'ADA',
+      // Add relisting metadata
+      isRelisting: isRelisting,
+      relistingJobId: relistingJob?.id
     };
     
-    // Use smart contract payment
+    // Use smart contract payment (handles both new jobs and reactivation)
     const success = await postJob(jobData);
     
     if (success) {
       setPaymentStatus('processing');
-      toast.info('Payment submitted! Waiting for blockchain confirmation...');
+      const message = isRelisting 
+        ? 'Payment submitted! Reactivating your job listing...'
+        : 'Payment submitted! Waiting for blockchain confirmation...';
+      toast.info(message);
     } else {
       setPaymentStatus('error');
     }
@@ -443,9 +496,14 @@ const PostJob: React.FC = () => {
             <FaArrowLeft className="mr-2" />
             Back to Jobs
           </button>
-          <h1 className="mt-2 text-3xl font-extrabold text-gray-900">Post a Job</h1>
+          <h1 className="mt-2 text-3xl font-extrabold text-gray-900">
+            {isRelisting ? 'Reactivate Job Listing' : 'Post a Job'}
+          </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Reach thousands of qualified candidates in the Cardano ecosystem
+            {isRelisting 
+              ? 'Select duration and confirm payment to reactivate your job listing'
+              : 'Reach thousands of qualified candidates in the Cardano ecosystem'
+            }
           </p>
         </div>
 
