@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { fraudDetection } from '../utils/fraudDetection';
 import CustomSelect from '../components/CustomSelect';
 import CustomMonthPicker from '../components/CustomMonthPicker';
-import { calculateFundingCost, calculateMonthsFromNow, formatAdaAmount } from '../utils/fundingPricing';
+import { calculateFundingCost, calculateMonthsFromNow } from '../utils/fundingPricing';
 import { CreateFundingData } from '../services/fundingService';
 import { contractService } from '../services/contractService';
 
@@ -742,15 +742,17 @@ const CreateFunding: React.FC = () => {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Funding Goal:</span>
-                          <span className="font-medium">{formData.funding_goal} ADA</span>
+                          <span className="font-medium">{formData.funding_goal || 0} ADA</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Duration:</span>
-                          <span className="font-medium">{formData.funding_deadline ? `${calculateMonthsFromNow(formData.funding_deadline)} month${calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}` : 'Not selected'}</span>
+                          <span className="font-medium text-blue-600">
+                            {formData.funding_deadline ? `${calculateMonthsFromNow(formData.funding_deadline)} month${calculateMonthsFromNow(formData.funding_deadline) !== 1 ? 's' : ''}` : 'Not selected'}
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Campaign Cost:</span>
-                          <span className="font-medium text-blue-600">{formatAdaAmount(totalCost.amount)}</span>
+                          <span className="font-medium text-blue-600">{totalCost.amount.toLocaleString()} {totalCost.currency}</span>
                         </div>
                         {formData.funding_wallet && (
                           <div className="flex justify-between text-sm">
