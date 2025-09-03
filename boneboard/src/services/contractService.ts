@@ -501,33 +501,37 @@ export class ContractService {
     try {
       console.log(`Checking transaction status: ${txHash} (timeout: ${timeoutMs/1000}s)`);
       
-      // Use a custom polling approach instead of awaitTx to avoid console spam
-      const startTime = Date.now();
-      const pollInterval = 5000; // Check every 5 seconds
-      
-      while (Date.now() - startTime < timeoutMs) {
-        try {
-          // Try to get transaction details directly from provider
-          const provider = (this.lucid as any).provider;
-          if (provider && provider.request) {
-            const txDetails = await provider.request(`/txs/${txHash}`);
-            if (txDetails) {
-              console.log('Transaction confirmed:', txHash);
-              return 'confirmed';
-            }
+      // Use awaitTx with configurable timeout but suppress 404 console errors
+      const confirmed = await Promise.race([
+        this.lucid.awaitTx(txHash).then(() => true).catch((error: any) => {
+          // Show informative polling message instead of error spam for 404s
+          if (error?.response?.status === 404 || error?.status === 404 || 
+              (error?.message && error.message.includes('404')) ||
+              (error?.toString && error.toString().includes('404'))) {
+            console.log(`Polling transaction ${txHash.substring(0, 8)}... not found yet, still checking...`);
+            return false; // Continue polling
           }
-        } catch (error: any) {
-          // Silently ignore 404s and other errors during polling
-          // This is expected when transaction isn't confirmed yet
-        }
-        
-        // Wait before next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
+          throw error; // Re-throw non-404 errors
+        }),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs))
+      ]);
+      
+      if (confirmed) {
+        console.log('Transaction confirmed:', txHash);
+        return 'confirmed';
+      } else {
+        console.log(`Transaction still pending after ${timeoutMs/1000}s timeout:`, txHash);
+        return 'pending';
+      }
+    } catch (error: any) {
+      // Suppress 404 errors during transaction polling - these are expected when TX isn't found yet
+      if (error?.response?.status === 404 || error?.status === 404 || 
+          (error?.message && error.message.includes('404')) ||
+          (error?.toString && error.toString().includes('404'))) {
+        console.log(`Polling transaction ${txHash.substring(0, 8)}... not found yet, will continue checking`);
+        return 'pending';
       }
       
-      console.log(`Transaction still pending after ${timeoutMs/1000}s timeout:`, txHash);
-      return 'pending';
-    } catch (error: any) {
       // Log other errors that might be important
       console.warn('Transaction status check encountered an error (treating as pending):', error?.message || error);
       return 'pending';
