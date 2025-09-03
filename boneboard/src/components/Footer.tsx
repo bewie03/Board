@@ -206,9 +206,9 @@ const Footer: React.FC = () => {
     <>
       <footer className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex flex-col items-center space-y-4">
             {/* Social Links */}
-            <div className="flex justify-center md:justify-start items-center space-x-6">
+            <div className="flex items-center space-x-6">
               <a 
                 href="https://twitter.com/boneboard" 
                 target="_blank" 
@@ -238,31 +238,33 @@ const Footer: React.FC = () => {
               </button>
             </div>
             
-            {/* Copyright and Links */}
-            <div className="text-center md:text-right space-y-2">
-              <p className="text-sm text-gray-500">
+            {/* Copyright */}
+            <div className="text-center">
+              <p className="text-sm text-gray-500 font-medium">
                 © {new Date().getFullYear()} BoneBoard. All rights reserved.
               </p>
-              <div className="flex items-center justify-center md:justify-end space-x-4 text-xs text-gray-400">
-                <button 
-                  onClick={() => setShowTerms(true)}
-                  className="hover:text-gray-600 focus:outline-none transition-colors"
-                >
-                  Terms
-                </button>
-                <button 
-                  onClick={() => setShowPrivacy(true)}
-                  className="hover:text-gray-600 focus:outline-none transition-colors"
-                >
-                  Privacy
-                </button>
-                <button 
-                  onClick={openDiscord}
-                  className="hover:text-gray-600 focus:outline-none transition-colors"
-                >
-                  Contact
-                </button>
-              </div>
+            </div>
+            
+            {/* Footer Links */}
+            <div className="flex items-center justify-center space-x-6">
+              <button 
+                onClick={() => setShowTerms(true)}
+                className="text-sm text-gray-400 hover:text-gray-600 focus:outline-none transition-colors px-3 py-2 rounded-lg hover:bg-gray-50"
+              >
+                Terms of Service
+              </button>
+              <button 
+                onClick={() => setShowPrivacy(true)}
+                className="text-sm text-gray-400 hover:text-gray-600 focus:outline-none transition-colors px-3 py-2 rounded-lg hover:bg-gray-50"
+              >
+                Privacy Policy
+              </button>
+              <button 
+                onClick={openDiscord}
+                className="text-sm text-gray-400 hover:text-gray-600 focus:outline-none transition-colors px-3 py-2 rounded-lg hover:bg-gray-50"
+              >
+                Contact Support
+              </button>
             </div>
           </div>
         </div>

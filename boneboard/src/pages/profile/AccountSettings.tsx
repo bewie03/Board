@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
@@ -6,7 +6,15 @@ import PageTransition from '../../components/PageTransition';
 
 const AccountSettings: React.FC = () => {
   const { walletAddress, username, setUsername, profilePhoto, setProfilePhoto } = useWallet();
-  const [localUsername, setLocalUsername] = useState(username || '');
+  const [localUsername, setLocalUsername] = useState('');
+
+  // Load username from context when component mounts or username changes
+  useEffect(() => {
+    if (username) {
+      setLocalUsername(username);
+    }
+  }, [username]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(profilePhoto);
   const [isCopied, setIsCopied] = useState(false);
@@ -229,14 +237,13 @@ const AccountSettings: React.FC = () => {
 
             <div className="mb-6">
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username <span className="text-red-500">*</span>
+                Username
               </label>
               <input
                 type="text"
                 id="username"
                 value={localUsername}
                 onChange={(e) => setLocalUsername(e.target.value)}
-                required
                 className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your username"
               />

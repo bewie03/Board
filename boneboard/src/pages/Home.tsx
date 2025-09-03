@@ -56,7 +56,7 @@ const Home: React.FC = () => {
         <div className="absolute inset-0 bg-slate-50"></div>
         
         {/* Animated Morphing Bubbles */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           {/* Morphing Bubbles with Size Changes */}
           <div className="absolute top-16 left-8 w-6 h-6 bg-blue-300 rounded-full opacity-25" style={{
             animation: 'morphBubble1 12s ease-in-out infinite',
