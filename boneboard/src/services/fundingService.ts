@@ -306,6 +306,30 @@ class FundingService {
   isExpired(deadline: string): boolean {
     return new Date(deadline) < new Date();
   }
+
+  formatExpiredTime(deadline: string): string {
+    const date = new Date(deadline);
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Expired today';
+    } else if (diffDays === 1) {
+      return 'Expired 1 day ago';
+    } else if (diffDays <= 7) {
+      return `Expired ${diffDays} days ago`;
+    } else if (diffDays <= 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return weeks === 1 ? 'Expired 1 week ago' : `Expired ${weeks} weeks ago`;
+    } else if (diffDays <= 365) {
+      const months = Math.floor(diffDays / 30);
+      return months === 1 ? 'Expired 1 month ago' : `Expired ${months} months ago`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      return years === 1 ? 'Expired 1 year ago' : `Expired ${years} years ago`;
+    }
+  }
 }
 
 export const fundingService = new FundingService();

@@ -495,7 +495,7 @@ const MyFunding: React.FC = () => {
                           </span>
                           <span className="flex items-center text-gray-500">
                             <FaUsers className="w-4 h-4 mr-1" />
-                            {funding.contributor_count} backers
+                            {funding.contributor_count} contributors
                           </span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             fundingService.isExpired(funding.funding_deadline)
@@ -710,7 +710,6 @@ const MyFunding: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               <h3 className="text-lg font-semibold flex items-center">
                                 <span className="truncate">{funding.project_title || funding.title}</span>
-                                <span className="ml-2 text-red-500 text-sm flex-shrink-0" title="Expired Funding">EXPIRED</span>
                               </h3>
                               <div className="text-sm text-gray-600 mb-2 flex items-center">
                                 <span>Goal: {funding.funding_goal} ADA</span>
@@ -752,12 +751,12 @@ const MyFunding: React.FC = () => {
                             <span className="font-medium">{funding.progress_percentage.toFixed(1)}%</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">Backers:</span>
+                            <span className="text-gray-600">Contributors:</span>
                             <span className="font-medium">{funding.contributor_count}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-600">Expired:</span>
-                            <span className="font-medium text-red-600">{fundingService.formatDeadline(funding.funding_deadline)}</span>
+                            <span className="font-medium text-red-600">{fundingService.formatExpiredTime(funding.funding_deadline)}</span>
                           </div>
                         </div>
                         
