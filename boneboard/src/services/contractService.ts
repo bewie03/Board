@@ -497,10 +497,17 @@ export class ContractService {
         console.log(`Transaction still pending after ${timeoutMs/1000}s timeout:`, txHash);
         return 'pending';
       }
-    } catch (error) {
-      console.error('Error checking transaction status:', error);
-      // Don't immediately mark as failed - could be network issue or still pending
-      console.log('Treating as pending due to error - transaction may still be processing');
+    } catch (error: any) {
+      // Suppress 404 errors during transaction polling - these are expected when TX isn't found yet
+      if (error?.response?.status === 404 || error?.status === 404 || 
+          (error?.message && error.message.includes('404')) ||
+          (error?.toString && error.toString().includes('404'))) {
+        // Silent polling for 404 errors - transaction just isn't confirmed yet
+        return 'pending';
+      }
+      
+      // Log other errors that might be important
+      console.warn('Transaction status check encountered an error (treating as pending):', error?.message || error);
       return 'pending';
     }
   }
