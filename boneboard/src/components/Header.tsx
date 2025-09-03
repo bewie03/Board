@@ -200,9 +200,15 @@ const Header: React.FC = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900 text-base group-hover:text-blue-600 transition-colors duration-200">
-                            {username || (walletAddress ? formatAddress(walletAddress) : 'Anonymous User')}
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-gray-900 text-base group-hover:text-blue-600 transition-colors duration-200">
+                              {username || (walletAddress ? formatAddress(walletAddress) : 'Anonymous User')}
+                            </p>
+                            <WalletBalanceDisplay 
+                              walletAddress={walletAddress} 
+                              className="ml-2"
+                            />
+                          </div>
                           <div className="flex items-center mt-1">
                             <span className="w-2.5 h-2.5 bg-green-400 rounded-full mr-2 shadow-sm animate-pulse"></span>
                             <span className="text-sm text-gray-600 font-medium group-hover:text-gray-700 transition-colors duration-200">
@@ -213,21 +219,6 @@ const Header: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* Wallet Balance Section */}
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                          <FaWallet className="w-4 h-4 text-green-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">Wallet Balance</span>
-                      </div>
-                      <div className="flex items-center space-x-2 ml-11">
-                        <WalletBalanceDisplay 
-                          walletAddress={walletAddress} 
-                          className="flex-wrap gap-2"
-                        />
-                      </div>
-                    </div>
                     
                     {/* Profile Menu Content */}
                     <div className="p-4 space-y-2">

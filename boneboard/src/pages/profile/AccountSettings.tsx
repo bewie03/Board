@@ -256,10 +256,12 @@ const AccountSettings: React.FC = () => {
                 type="text"
                 id="username"
                 value={localUsername}
-                onChange={(e) => setLocalUsername(e.target.value)}
+                onChange={(e) => setLocalUsername(e.target.value.slice(0, 15))}
+                maxLength={15}
                 className="block w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                placeholder="Enter your username"
+                placeholder="Enter your username (max 15 characters)"
               />
+              <p className="text-xs text-gray-500 mt-1">{localUsername.length}/15 characters</p>
             </div>
 
 

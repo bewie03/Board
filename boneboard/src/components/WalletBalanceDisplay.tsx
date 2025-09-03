@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { walletBalanceService, WalletBalance } from '../services/walletBalanceService';
 
 interface WalletBalanceDisplayProps {
@@ -12,6 +12,8 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
 }) => {
   const [balance, setBalance] = useState<WalletBalance>({ ada: 0, bone: 0 });
   const [loading, setLoading] = useState(false);
+  const balanceCache = useRef<{ [address: string]: WalletBalance }>({});
+  const lastFetchTime = useRef<{ [address: string]: number }>({});
 
   const fetchBalance = async () => {
     if (!walletAddress) {
@@ -19,10 +21,23 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
       return;
     }
 
+    // Check if we have cached balance and it's less than 5 minutes old
+    const now = Date.now();
+    const cacheKey = walletAddress;
+    const lastFetch = lastFetchTime.current[cacheKey] || 0;
+    const fiveMinutes = 5 * 60 * 1000;
+
+    if (balanceCache.current[cacheKey] && (now - lastFetch) < fiveMinutes) {
+      setBalance(balanceCache.current[cacheKey]);
+      return;
+    }
+
     setLoading(true);
     try {
       const walletBalance = await walletBalanceService.getWalletBalance(walletAddress);
       setBalance(walletBalance);
+      balanceCache.current[cacheKey] = walletBalance;
+      lastFetchTime.current[cacheKey] = now;
     } catch (error) {
       console.error('Failed to fetch wallet balance:', error);
       setBalance({ ada: 0, bone: 0 });
