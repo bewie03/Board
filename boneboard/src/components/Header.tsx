@@ -67,16 +67,19 @@ const Header: React.FC = () => {
       {/* Main Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40" style={{ height: '80px' }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-20">
-            <NavLink to="/" className="flex items-center space-x-3 group">
-              <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center group-hover:bg-blue-200 group-hover:scale-110 transition-all duration-200">
-                <FaBone className="text-blue-600 text-xl group-hover:text-blue-700" />
-              </div>
-              <span className="text-xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors duration-200">BoneBoard</span>
-            </NavLink>
+          <div className="flex items-center h-20">
+            {/* Left Section - Logo (Fixed Width) */}
+            <div className="flex-shrink-0 w-48">
+              <NavLink to="/" className="flex items-center space-x-3 group">
+                <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center group-hover:bg-blue-200 group-hover:scale-110 transition-all duration-200">
+                  <FaBone className="text-blue-600 text-xl group-hover:text-blue-700" />
+                </div>
+                <span className="text-xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors duration-200">BoneBoard</span>
+              </NavLink>
+            </div>
             
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
+            {/* Center Section - Navigation (Flex Grow) */}
+            <nav className="hidden md:flex flex-1 justify-center space-x-8">
               <NavLink 
                 to="/jobs" 
                 className={({ isActive }) => 
@@ -115,8 +118,15 @@ const Header: React.FC = () => {
               )}
             </nav>
             
-            <div className="flex items-center space-x-4">
-              {/* Notifications - Hidden for now */}
+            {/* Right Section - Balance + User Menu (Fixed Width) */}
+            <div className="flex-shrink-0 w-48 flex items-center justify-end space-x-4">
+              {/* Wallet Balance Display */}
+              {isConnected && walletAddress && (
+                <WalletBalanceDisplay 
+                  walletAddress={walletAddress} 
+                  className=""
+                />
+              )}
               
               <div className="relative" ref={profileRef}>
                 {isConnected && walletAddress && connectedWallet ? (
@@ -200,15 +210,9 @@ const Header: React.FC = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold text-gray-900 text-base group-hover:text-blue-600 transition-colors duration-200">
-                              {username || (walletAddress ? formatAddress(walletAddress) : 'Anonymous User')}
-                            </p>
-                            <WalletBalanceDisplay 
-                              walletAddress={walletAddress} 
-                              className="ml-2"
-                            />
-                          </div>
+                          <p className="font-semibold text-gray-900 text-base group-hover:text-blue-600 transition-colors duration-200">
+                            {username || (walletAddress ? formatAddress(walletAddress) : 'Anonymous User')}
+                          </p>
                           <div className="flex items-center mt-1">
                             <span className="w-2.5 h-2.5 bg-green-400 rounded-full mr-2 shadow-sm animate-pulse"></span>
                             <span className="text-sm text-gray-600 font-medium group-hover:text-gray-700 transition-colors duration-200">
