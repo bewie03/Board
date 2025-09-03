@@ -57,7 +57,7 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
   return (
     <div className={`flex items-center space-x-2 ${className}`}>
       {/* ADA Balance */}
-      <div className="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
+      <div className="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm hover:bg-gray-50 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-default">
         <span className="text-blue-600 text-xs font-bold">₳</span>
         <span className="text-xs font-medium text-gray-700">
           {loading ? '...' : walletBalanceService.formatBalance(balance.ada, 'ADA')}
@@ -65,7 +65,7 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
       </div>
 
       {/* BONE Balance */}
-      <div className="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
+      <div className="flex items-center space-x-1.5 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm hover:bg-gray-50 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-default">
         <span className="text-orange-600 text-xs">🦴</span>
         <span className="text-xs font-medium text-gray-700">
           {loading ? '...' : walletBalanceService.formatBalance(balance.bone, 'BONE')}

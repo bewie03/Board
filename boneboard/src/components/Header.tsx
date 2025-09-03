@@ -139,18 +139,11 @@ const Header: React.FC = () => {
                     <div className="relative">
                       {profilePhoto ? (
                         <div className="w-10 h-10 rounded-full overflow-hidden" style={{ backgroundColor: 'white' }}>
-                          <div className="w-full h-full rounded-full" style={{ backgroundColor: 'white' }}>
-                            <img 
-                              src={profilePhoto} 
-                              alt="Profile" 
-                              className="w-full h-full rounded-full"
-                              style={{ 
-                                backgroundColor: 'white', 
-                                objectFit: 'contain',
-                                objectPosition: 'center'
-                              }}
-                            />
-                          </div>
+                          <img 
+                            src={profilePhoto} 
+                            alt="Profile" 
+                            className="w-full h-full object-cover rounded-full"
+                          />
                         </div>
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
@@ -160,7 +153,7 @@ const Header: React.FC = () => {
                       <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
                     </div>
                     <div className="hidden md:flex items-center">
-                      <span className="text-base font-medium">
+                      <span className="text-base font-medium whitespace-nowrap">
                         {username || (connectedWallet ? connectedWallet.charAt(0).toUpperCase() + connectedWallet.slice(1) : 'Wallet')}
                       </span>
                       <FiChevronDown className={`ml-2 w-5 h-5 transition-transform ${showProfile ? 'transform rotate-180' : ''}`} />
@@ -191,18 +184,11 @@ const Header: React.FC = () => {
                       <div className="flex items-center space-x-4">
                         <div className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-shadow duration-200" style={{ backgroundColor: 'white' }}>
                           {profilePhoto ? (
-                            <div className="w-full h-full rounded-full" style={{ backgroundColor: 'white' }}>
-                              <img 
-                                src={profilePhoto} 
-                                alt="Profile" 
-                                className="w-full h-full rounded-full group-hover:scale-105 transition-transform duration-200"
-                                style={{ 
-                                  backgroundColor: 'white', 
-                                  objectFit: 'contain',
-                                  objectPosition: 'center'
-                                }}
-                              />
-                            </div>
+                            <img 
+                              src={profilePhoto} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200"
+                            />
                           ) : (
                             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
                               <FaUserCircle className="text-3xl text-white" />
