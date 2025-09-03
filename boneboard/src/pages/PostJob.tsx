@@ -1306,6 +1306,32 @@ const PostJob: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Terms and Conditions for Step 2 */}
+                    <div className="flex items-start mb-6">
+                      <div className="flex items-center h-5">
+                        <input
+                          id="terms-step2"
+                          name="terms-step2"
+                          type="checkbox"
+                          checked={formData.agreeToTerms}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            agreeToTerms: e.target.checked
+                          }))}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                          required
+                        />
+                      </div>
+                      <div className="ml-3 text-sm">
+                        <label htmlFor="terms-step2" className="font-medium text-gray-700">
+                          I agree to the <button type="button" onClick={() => setShowTerms(true)} className="text-blue-600 hover:text-blue-500 focus:outline-none">Terms of Service</button> and <button type="button" onClick={() => setShowPrivacy(true)} className="text-blue-600 hover:text-blue-500 focus:outline-none">Privacy Policy</button> *
+                        </label>
+                        <p className="text-gray-500">
+                          By checking this box, you confirm that the information provided is accurate and you agree to our terms.
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="pt-5">
                       <div className="flex justify-between">
                         <button
@@ -1317,8 +1343,8 @@ const PostJob: React.FC = () => {
                         </button>
                         <button
                           type="submit"
-                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          disabled={!isConnected}
+                          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={!isConnected || !formData.agreeToTerms}
                         >
                           Submit & Pay
                         </button>
