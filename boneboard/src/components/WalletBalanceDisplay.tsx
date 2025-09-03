@@ -58,8 +58,9 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
 
   // Listen for payment completion events to refresh balance
   useEffect(() => {
-    const handlePaymentSuccess = (_event: CustomEvent) => {
-      console.log('Payment detected, refreshing balance for wallet:', walletAddress);
+    const handlePaymentSuccess = (event: CustomEvent) => {
+      console.log('🔄 Payment event received:', event.type, 'for wallet:', walletAddress);
+      console.log('Event details:', event.detail);
       if (walletAddress) {
         clearBalanceCache(walletAddress);
         fetchBalance();
