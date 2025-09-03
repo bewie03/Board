@@ -98,13 +98,30 @@ export class ContractService {
       }
       
       // Initialize Lucid with Blockfrost provider
-      const lucid = await Lucid.new(
-        new Blockfrost(
-          `https://cardano-${NETWORK.toLowerCase()}.blockfrost.io/api/v0`,
-          BLOCKFROST_API_KEY
-        ),
-        NETWORK as 'Preview' | 'Mainnet'
+      // Create a custom Blockfrost provider that suppresses 404 errors during transaction polling
+      const blockfrostProvider = new Blockfrost(
+        `https://cardano-${NETWORK.toLowerCase()}.blockfrost.io/api/v0`,
+        BLOCKFROST_API_KEY
       );
+      
+      // Override the provider's request method to handle 404s silently
+      const originalRequest = (blockfrostProvider as any).request;
+      if (originalRequest) {
+        (blockfrostProvider as any).request = async function(endpoint: string, ...args: any[]) {
+          try {
+            return await originalRequest.call(this, endpoint, ...args);
+          } catch (error: any) {
+            // Silently handle 404s for transaction endpoints
+            if ((error?.response?.status === 404 || error?.status === 404) && 
+                endpoint.includes('/txs/')) {
+              throw error; // Re-throw but don't log
+            }
+            throw error;
+          }
+        };
+      }
+      
+      const lucid = await Lucid.new(blockfrostProvider, NETWORK as 'Preview' | 'Mainnet');
       
       // Select wallet if provided
       if (walletApi) {
@@ -484,28 +501,33 @@ export class ContractService {
     try {
       console.log(`Checking transaction status: ${txHash} (timeout: ${timeoutMs/1000}s)`);
       
-      // Use awaitTx with configurable timeout (default 2 minutes)
-      const confirmed = await Promise.race([
-        this.lucid.awaitTx(txHash),
-        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs))
-      ]);
+      // Use a custom polling approach instead of awaitTx to avoid console spam
+      const startTime = Date.now();
+      const pollInterval = 5000; // Check every 5 seconds
       
-      if (confirmed) {
-        console.log('Transaction confirmed:', txHash);
-        return 'confirmed';
-      } else {
-        console.log(`Transaction still pending after ${timeoutMs/1000}s timeout:`, txHash);
-        return 'pending';
+      while (Date.now() - startTime < timeoutMs) {
+        try {
+          // Try to get transaction details directly from provider
+          const provider = (this.lucid as any).provider;
+          if (provider && provider.request) {
+            const txDetails = await provider.request(`/txs/${txHash}`);
+            if (txDetails) {
+              console.log('Transaction confirmed:', txHash);
+              return 'confirmed';
+            }
+          }
+        } catch (error: any) {
+          // Silently ignore 404s and other errors during polling
+          // This is expected when transaction isn't confirmed yet
+        }
+        
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
       }
+      
+      console.log(`Transaction still pending after ${timeoutMs/1000}s timeout:`, txHash);
+      return 'pending';
     } catch (error: any) {
-      // Suppress 404 errors during transaction polling - these are expected when TX isn't found yet
-      if (error?.response?.status === 404 || error?.status === 404 || 
-          (error?.message && error.message.includes('404')) ||
-          (error?.toString && error.toString().includes('404'))) {
-        // Silent polling for 404 errors - transaction just isn't confirmed yet
-        return 'pending';
-      }
-      
       // Log other errors that might be important
       console.warn('Transaction status check encountered an error (treating as pending):', error?.message || error);
       return 'pending';
