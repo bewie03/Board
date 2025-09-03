@@ -184,15 +184,21 @@ const MyFunding: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         setPlatformPricing({
-          fundingListingFee: data.fundingListingFee || 6,
+          fundingListingFee: data.fundingListingFee || 500,
           fundingListingFeeAda: data.fundingListingFeeAda || 6
+        });
+      } else {
+        // API not found or error - use default values
+        setPlatformPricing({
+          fundingListingFee: 500,
+          fundingListingFeeAda: 6
         });
       }
     } catch (error) {
-      console.error('Error loading platform pricing:', error);
+      console.error('Error loading platform pricing (using defaults):', error);
       // Use default values
       setPlatformPricing({
-        fundingListingFee: 6,
+        fundingListingFee: 500,
         fundingListingFeeAda: 6
       });
     }

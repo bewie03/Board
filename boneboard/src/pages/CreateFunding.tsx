@@ -92,7 +92,10 @@ const CreateFunding: React.FC = () => {
     try {
       const existingFundings = await fundingService.getFundingByWallet(walletAddress);
       
-      const activeFunding = existingFundings.find(funding => funding.is_active);
+      const activeFunding = existingFundings.find(funding => 
+        funding.is_active && 
+        !fundingService.isExpired(funding.funding_deadline)
+      );
       if (activeFunding) {
         // Silent redirect - don't show toast on page load, only show it when user tries to pay
         navigate('/funding');
@@ -346,7 +349,10 @@ const CreateFunding: React.FC = () => {
         const { fundingService } = await import('../services/fundingService');
         const existingFundings = await fundingService.getFundingByWallet(walletAddress);
         
-        const activeFunding = existingFundings.find(funding => funding.is_active);
+        const activeFunding = existingFundings.find(funding => 
+          funding.is_active && 
+          !fundingService.isExpired(funding.funding_deadline)
+        );
         if (activeFunding) {
           toast.error('You already have an active funding campaign. Only one funding campaign per wallet is allowed.');
           setPaymentStatus('error');
