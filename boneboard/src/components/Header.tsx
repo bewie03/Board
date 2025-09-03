@@ -28,6 +28,7 @@ const Header: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showWalletBalance, setShowWalletBalance] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const handleConnectWallet = async (walletId: string) => {
@@ -118,16 +119,8 @@ const Header: React.FC = () => {
               )}
             </nav>
             
-            {/* Right Section - Balance + User Menu (Fixed Width) */}
+            {/* Right Section - User Menu (Fixed Width) */}
             <div className="flex-shrink-0 w-48 flex items-center justify-end space-x-4">
-              {/* Wallet Balance Display */}
-              {isConnected && walletAddress && (
-                <WalletBalanceDisplay 
-                  walletAddress={walletAddress} 
-                  className=""
-                />
-              )}
-              
               <div className="relative" ref={profileRef}>
                 {isConnected && walletAddress && connectedWallet ? (
                   <button 
@@ -214,6 +207,29 @@ const Header: React.FC = () => {
                     <div className="p-4 space-y-2">
                       <div className="mb-4">
                         
+                        {/* Wallet Balances Collapsible Section */}
+                        <div className="mb-2">
+                          <button
+                            onClick={() => setShowWalletBalance(!showWalletBalance)}
+                            className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center mr-3 group-hover:bg-green-200 transition-colors">
+                              <FaWallet className="w-4 h-4 text-green-600 group-hover:text-green-700" />
+                            </div>
+                            <span className="flex-1">Wallet Balances</span>
+                            <FiChevronDown className={`w-4 h-4 transition-transform ${showWalletBalance ? 'transform rotate-180' : ''}`} />
+                          </button>
+                          
+                          {showWalletBalance && (
+                            <div className="ml-11 mt-2 p-3 bg-gray-50 rounded-lg">
+                              <WalletBalanceDisplay 
+                                walletAddress={walletAddress} 
+                                className="justify-start"
+                              />
+                            </div>
+                          )}
+                        </div>
+
                         <button
                           onClick={() => {
                             setShowProfile(false);
