@@ -18,13 +18,7 @@
     'eternl',
     'dom.js?token',
     'dom.js',
-    'CrCblbzl',
-    // Blockfrost transaction polling 404s
-    'blockfrost.io/api/v0/txs/',
-    'cardano-mainnet.blockfrost.io',
-    'cardano-preview.blockfrost.io',
-    '404 (Not Found)',
-    'GET https://cardano'
+    'CrCblbzl'
   ];
 
   const shouldSuppress = (args: any[]): boolean => {
