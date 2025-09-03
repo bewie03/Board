@@ -153,14 +153,16 @@ const AccountSettings: React.FC = () => {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
               <div className="relative group">
-                <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center overflow-hidden">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'white' }}>
                   {profileImage || profilePhoto ? (
-                    <img 
-                      src={profileImage || profilePhoto || ''} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                      style={{ backgroundColor: 'white' }}
-                    />
+                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'white' }}>
+                      <img 
+                        src={profileImage || profilePhoto || ''} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-full"
+                        style={{ backgroundColor: 'white', mixBlendMode: 'normal' }}
+                      />
+                    </div>
                   ) : (
                     <svg className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
