@@ -131,7 +131,8 @@ const Header: React.FC = () => {
                           <img 
                             src={profilePhoto} 
                             alt="Profile" 
-                            className="w-full h-full object-cover bg-white"
+                            className="w-full h-full object-cover"
+                            style={{ backgroundColor: 'white' }}
                           />
                         </div>
                       ) : (
@@ -176,7 +177,8 @@ const Header: React.FC = () => {
                             <img 
                               src={profilePhoto} 
                               alt="Profile" 
-                              className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200 bg-white"
+                              className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200"
+                              style={{ backgroundColor: 'white' }}
                             />
                           ) : (
                             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
