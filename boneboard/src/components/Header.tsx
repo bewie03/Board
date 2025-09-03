@@ -67,11 +67,11 @@ const Header: React.FC = () => {
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40" style={{ height: '80px' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-20">
-            <NavLink to="/" className="flex items-center space-x-3">
-              <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center">
-                <FaBone className="text-blue-600 text-xl" />
+            <NavLink to="/" className="flex items-center space-x-3 group">
+              <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center group-hover:bg-blue-200 group-hover:scale-110 transition-all duration-200">
+                <FaBone className="text-blue-600 text-xl group-hover:text-blue-700" />
               </div>
-              <span className="text-xl font-bold text-blue-700">BoneBoard</span>
+              <span className="text-xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors duration-200">BoneBoard</span>
             </NavLink>
             
             {/* Desktop Navigation */}
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
               <NavLink 
                 to="/jobs" 
                 className={({ isActive }) => 
-                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-all duration-200 hover:scale-105 hover:bg-gray-50 ${
                     isActive ? 'text-blue-600 bg-blue-50' : ''
                   }`
                 }
@@ -89,7 +89,7 @@ const Header: React.FC = () => {
               <NavLink 
                 to="/projects" 
                 className={({ isActive }) => 
-                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-all duration-200 hover:scale-105 hover:bg-gray-50 ${
                     isActive ? 'text-blue-600 bg-blue-50' : ''
                   }`
                 }
@@ -99,7 +99,7 @@ const Header: React.FC = () => {
               <NavLink 
                 to="/funding" 
                 className={({ isActive }) => 
-                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                  `text-gray-600 hover:text-gray-900 px-4 py-3 rounded-md text-base font-medium transition-all duration-200 hover:scale-105 hover:bg-gray-50 ${
                     isActive ? 'text-blue-600 bg-blue-50' : ''
                   }`
                 }
@@ -107,7 +107,7 @@ const Header: React.FC = () => {
                 Funding
               </NavLink>
               {isConnected && walletAddress && isAdminWallet(walletAddress) && (
-                <div className="flex items-center px-3 py-1 bg-blue-100 rounded-full">
+                <div className="flex items-center px-3 py-1 bg-blue-100 rounded-full hover:bg-blue-200 hover:scale-105 transition-all duration-200 cursor-default">
                   <FaShieldAlt className="h-4 w-4 text-blue-600 mr-2" />
                   <span className="text-sm font-medium text-blue-800">Admin Mode</span>
                 </div>
@@ -120,7 +120,7 @@ const Header: React.FC = () => {
               <div className="relative" ref={profileRef}>
                 {isConnected && walletAddress && connectedWallet ? (
                   <button 
-                    className="flex items-center space-x-3 text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-white px-3 py-2"
+                    className="flex items-center space-x-3 text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-white px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:scale-105"
                     onClick={() => setShowProfile(!showProfile)}
                     aria-expanded={showProfile}
                     aria-haspopup="true"
@@ -151,7 +151,7 @@ const Header: React.FC = () => {
                 ) : (
                   <button 
                     onClick={() => setShowWalletSelector(true)}
-                    className="flex items-center space-x-2 px-5 py-3 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    className="flex items-center space-x-2 px-5 py-3 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
                     aria-label="Connect wallet"
                   >
                     <FaWallet className="text-lg" />
