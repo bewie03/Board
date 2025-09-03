@@ -654,128 +654,114 @@ const MyFunding: React.FC = () => {
                   </button>
                 </div>
                 {showExpiredFunding && (
-                  <div className="space-y-6">
-                    {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).map((funding) => (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {fundingProjects.filter(funding => fundingService.isExpired(funding.funding_deadline)).map((funding, index) => (
                     <motion.div
                       key={funding.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-white shadow-sm rounded-lg overflow-hidden border-l-4 border-red-500 opacity-75"
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: index * 0.1,
+                        ease: 'easeOut'
+                      }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedProject(funding)}
+                      className="bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer opacity-75"
                     >
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-4">
-                            {funding.logo ? (
-                              <img
-                                src={funding.logo}
-                                alt="Project logo"
-                                className="w-12 h-12 rounded-lg object-cover border"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                <span className="text-gray-400 text-xs">No Logo</span>
-                              </div>
-                            )}
-                            <div>
-                              <h3 className="text-xl font-semibold text-gray-900">
-                                {funding.project_title || funding.title}
+                          <div className="flex items-start space-x-4 flex-1 min-w-0">
+                            {/* Project Logo */}
+                            <div className="flex-shrink-0">
+                              {funding.logo ? (
+                                <img 
+                                  className="h-12 w-12 rounded-full border border-gray-200 object-cover" 
+                                  src={funding.logo} 
+                                  alt={`${funding.project_title || funding.title} logo`}
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = '<div class="h-12 w-12 rounded-full border border-gray-200 bg-red-100 flex items-center justify-center"><svg class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2h8z" clip-rule="evenodd"></path></svg></div>';
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-12 w-12 rounded-full border border-gray-200 bg-red-100 flex items-center justify-center">
+                                  <FaCoins className="h-6 w-6 text-red-600" />
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-semibold flex items-center">
+                                <span className="truncate">{funding.project_title || funding.title}</span>
+                                <span className="ml-2 text-red-500 text-sm flex-shrink-0" title="Expired Funding">EXPIRED</span>
                               </h3>
-                              <div className="flex items-center space-x-4 text-sm mt-2">
-                                <span className="flex items-center text-red-600 font-medium">
-                                  <FaCalendarAlt className="w-4 h-4 mr-1" />
-                                  Deadline passed: {fundingService.formatDeadline(funding.funding_deadline)}
-                                </span>
-                                <span className="flex items-center text-gray-500">
-                                  <FaUsers className="w-4 h-4 mr-1" />
-                                  {funding.contributor_count} backers
-                                </span>
+                              <div className="text-sm text-gray-600 mb-2 flex items-center">
+                                <span>Goal: {funding.funding_goal} ADA</span>
                               </div>
                             </div>
                           </div>
-                          
-                          <div className="flex items-center space-x-2">
+                          <div className="flex space-x-1 flex-shrink-0">
                             <button
-                              onClick={() => handleExtendDeadline(funding)}
-                              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center transition-all duration-200"
-                              title="Extend Deadline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExtendDeadline(funding);
+                              }}
+                              className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                              title="Extend deadline"
                             >
-                              <FaRedo className="h-3 w-3 mr-1" />
-                              Extend
+                              <FaRedo className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => setSelectedProject(funding)}
-                              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="View Details"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteFunding(funding.id);
+                              }}
+                              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Delete funding"
                             >
-                              <FaEye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteFunding(funding.id)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <FaTrash className="w-4 h-4" />
+                              <FaTrash className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="mb-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-gray-700">
-                              {funding.current_funding} ADA raised
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {funding.progress_percentage.toFixed(1)}%
-                            </span>
+                        {/* Funding Stats */}
+                        <div className="space-y-3 mb-4">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Raised:</span>
+                            <span className="font-medium">{funding.current_funding} ADA</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-red-400 h-2 rounded-full transition-all duration-300" 
-                              style={{ width: `${Math.min(funding.progress_percentage, 100)}%` }}
-                            ></div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Progress:</span>
+                            <span className="font-medium">{funding.progress_percentage.toFixed(1)}%</span>
                           </div>
-                          <div className="flex justify-between items-center mt-1 text-sm text-gray-500">
-                            <span>Goal: {funding.funding_goal} ADA</span>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Backers:</span>
+                            <span className="font-medium">{funding.contributor_count}</span>
                           </div>
-                        </div>
-
-                        {/* Funding Purpose */}
-                        <div className="mb-4">
-                          <label className="text-sm font-medium text-gray-700 mb-2 block">Funding Purpose</label>
-                          <p className="text-gray-600 text-sm bg-gray-50 p-3 rounded-md">
-                            {funding.funding_purpose || 'No purpose specified'}
-                          </p>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Expired:</span>
+                            <span className="font-medium text-red-600">{fundingService.formatDeadline(funding.funding_deadline)}</span>
+                          </div>
                         </div>
                         
-                        {/* Payment Address Section */}
-                        <div className="mt-6 pt-6 border-t border-gray-200">
-                          <div className="flex items-center mb-4">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                              <FaCoins className="text-blue-600 text-lg" />
-                            </div>
-                            <div>
-                              <h4 className="text-lg font-semibold text-gray-900">Payment Address</h4>
-                              <p className="text-sm text-gray-600">
-                                All contributions are automatically sent to this wallet address
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <code className="text-sm font-mono text-gray-800 break-all block leading-relaxed">
-                                  {funding.funding_wallet || funding.wallet_address}
-                                </code>
-                              </div>
-                              <div className="flex-shrink-0">
-                                <CopyButton 
-                                  textToCopy={funding.funding_wallet || funding.wallet_address}
-                                  fundingId={funding.id}
-                                />
-                              </div>
-                            </div>
-                          </div>
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                          <div 
+                            className="bg-red-400 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${Math.min(funding.progress_percentage, 100)}%` }}
+                          ></div>
+                        </div>
+                        {/* Funding Purpose */}
+                        <div className="mb-4">
+                          <p className="text-gray-600 text-sm line-clamp-2">
+                            {funding.funding_purpose || 'No purpose specified'}
+                          </p>
                         </div>
                       </div>
                     </motion.div>

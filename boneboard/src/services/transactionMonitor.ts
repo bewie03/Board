@@ -326,7 +326,7 @@ class TransactionMonitor {
           
           // Check if funding already exists before creating (prevent duplicates)
           const existingFundings = await fundingService.getFundingByWallet(pendingTx.walletAddress);
-          const activeFunding = existingFundings.find(funding => funding.is_active);
+          const activeFunding = existingFundings.find(funding => funding.is_active && !fundingService.isExpired(funding.funding_deadline));
           
           if (activeFunding) {
             console.log('Funding project already exists, removing from localStorage');
