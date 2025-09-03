@@ -12,11 +12,13 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
 }) => {
   const [balance, setBalance] = useState<WalletBalance>({ ada: 0, bone: 0 });
   const [loading, setLoading] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const balanceCache = useRef<{ [address: string]: WalletBalance }>({});
 
   const fetchBalance = async () => {
     if (!walletAddress) {
       setBalance({ ada: 0, bone: 0 });
+      setHasInitialized(true);
       return;
     }
 
@@ -25,6 +27,7 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
     
     if (balanceCache.current[cacheKey]) {
       setBalance(balanceCache.current[cacheKey]);
+      setHasInitialized(true);
       return;
     }
 
@@ -33,17 +36,21 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
       const walletBalance = await walletBalanceService.getWalletBalance(walletAddress);
       setBalance(walletBalance);
       balanceCache.current[cacheKey] = walletBalance;
+      setHasInitialized(true);
     } catch (error) {
       console.error('Failed to fetch wallet balance:', error);
       setBalance({ ada: 0, bone: 0 });
+      setHasInitialized(true);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBalance();
-  }, [walletAddress]);
+    if (!hasInitialized) {
+      fetchBalance();
+    }
+  }, [walletAddress, hasInitialized]);
 
   if (!walletAddress) {
     return null;
