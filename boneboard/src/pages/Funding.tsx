@@ -100,6 +100,7 @@ const Funding: React.FC = () => {
   const [contributionMessage, setContributionMessage] = useState('');
   const [isContributionAnonymous, setIsContributionAnonymous] = useState(false);
   const [contributing, setContributing] = useState(false);
+  const [userHasActiveFunding, setUserHasActiveFunding] = useState(false);
 
 
   const sortOptions = [
@@ -122,7 +123,26 @@ const Funding: React.FC = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+    checkUserActiveFunding();
+  }, [isConnected, walletAddress]);
+
+  const checkUserActiveFunding = async () => {
+    if (!isConnected || !walletAddress) {
+      setUserHasActiveFunding(false);
+      return;
+    }
+
+    try {
+      const existingFundings = await fundingService.getFundingByWallet(walletAddress);
+      const hasActiveFunding = existingFundings.some(funding => 
+        funding.is_active && !fundingService.isExpired(funding.funding_deadline)
+      );
+      setUserHasActiveFunding(hasActiveFunding);
+    } catch (error) {
+      console.error('Error checking user active funding:', error);
+      setUserHasActiveFunding(false);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -283,36 +303,15 @@ const Funding: React.FC = () => {
                     Support innovative projects in the Cardano ecosystem
                   </p>
                 </div>
-                <button
-                  onClick={async () => {
-                    if (!isConnected) {
-                      toast.error('Please connect your wallet first');
-                      return;
-                    }
-                    
-                    try {
-                      const existingFundings = await fundingService.getFundingByWallet(walletAddress!);
-                      const activeFunding = existingFundings.find(funding => 
-                        funding.is_active && 
-                        !fundingService.isExpired(funding.funding_deadline)
-                      );
-                      
-                      if (activeFunding) {
-                        toast.error('You already have an active funding campaign. Please wait for it to complete before creating a new one.');
-                        return;
-                      }
-                      
-                      navigate('/funding/create');
-                    } catch (error) {
-                      console.error('Error checking existing funding:', error);
-                      navigate('/funding/create');
-                    }
-                  }}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                >
-                  <FaPlus className="w-5 h-5 mr-2" />
-                  Create Funding
-                </button>
+{!userHasActiveFunding && (
+                  <button
+                    onClick={() => navigate('/funding/create')}
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  >
+                    <FaPlus className="w-5 h-5 mr-2" />
+                    Create Funding
+                  </button>
+                )}
               </div>
             </div>
           </div>
