@@ -433,7 +433,7 @@ const MyFunding: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-900">My Project Funding</h1>
                 <p className="mt-1 text-sm text-gray-500">Manage your active funding campaigns</p>
               </div>
-              {!fundingProjects.some(funding => funding.is_active && !fundingService.isExpired(funding.funding_deadline)) && (
+              {!fundingProjects.some(funding => !fundingService.isExpired(funding.funding_deadline)) && (
                 <button
                   onClick={() => navigate('/funding/create')}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe, FaInfoCircle } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
@@ -101,6 +101,7 @@ const Funding: React.FC = () => {
   const [isContributionAnonymous, setIsContributionAnonymous] = useState(false);
   const [contributing, setContributing] = useState(false);
   const [userHasActiveFunding, setUserHasActiveFunding] = useState(false);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
 
 
   const sortOptions = [
@@ -135,7 +136,7 @@ const Funding: React.FC = () => {
     try {
       const existingFundings = await fundingService.getFundingByWallet(walletAddress);
       const hasActiveFunding = existingFundings.some(funding => 
-        funding.is_active && !fundingService.isExpired(funding.funding_deadline)
+        !fundingService.isExpired(funding.funding_deadline)
       );
       setUserHasActiveFunding(hasActiveFunding);
     } catch (error) {
@@ -297,11 +298,38 @@ const Funding: React.FC = () => {
           <div className="bg-white shadow-sm rounded-lg mb-6">
             <div className="px-6 py-8 sm:p-10">
               <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-gray-900">Project Funding</h1>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Support innovative projects in the Cardano ecosystem
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h1 className="text-3xl font-extrabold text-gray-900">Project Funding</h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                      Support innovative projects in the Cardano ecosystem
+                    </p>
+                  </div>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowInfoTooltip(!showInfoTooltip)}
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="About Project Funding"
+                    >
+                      <FaInfoCircle className="h-5 w-5" />
+                    </button>
+                    {showInfoTooltip && (
+                      <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+                        <div className="text-sm">
+                          <h3 className="font-semibold text-gray-900 mb-2">About Project Funding</h3>
+                          <p className="text-gray-600 mb-2">
+                            Support innovative Cardano projects by contributing ADA to their funding campaigns. Help bring promising ideas to life.
+                          </p>
+                          <ul className="text-gray-600 space-y-1 text-xs">
+                            <li>• Contribute ADA to projects you believe in</li>
+                            <li>• Track funding progress and deadlines</li>
+                            <li>• View project details and team information</li>
+                            <li>• Filter by category, funding status, and verification</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 {!userHasActiveFunding && (
                   <button
