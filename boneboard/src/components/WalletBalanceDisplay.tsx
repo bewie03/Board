@@ -52,11 +52,11 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
       </div>
 
       {/* BONE Balance */}
-      <div className="flex items-center space-x-1.5 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-orange-200">
-        <div className="w-5 h-5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
+      <div className="flex items-center space-x-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-blue-200">
+        <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
           <span className="text-white text-xs font-bold">🦴</span>
         </div>
-        <span className="text-sm font-semibold text-orange-700">
+        <span className="text-sm font-semibold text-blue-700">
           {loading ? '...' : walletBalanceService.formatBalance(balance.bone, 'BONE')}
         </span>
       </div>
