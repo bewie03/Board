@@ -251,52 +251,60 @@ const SavedJobs: React.FC = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-extrabold text-gray-900">Saved Jobs</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Manage your bookmarked job opportunities
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Saved Jobs</h1>
+                <p className="mt-1 text-sm text-gray-500">Manage your bookmarked job opportunities</p>
+              </div>
+              <button
+                onClick={() => navigate('/jobs')}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Browse Jobs
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
 
-        {!isConnected ? (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-12 text-center">
-              <FaRegBookmark className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Connect Your Wallet</h3>
-              <p className="text-gray-500 mb-6">
-                Connect your wallet to view and manage your saved jobs.
-              </p>
-              <button
-                onClick={() => navigate('/jobs')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Browse Jobs
-              </button>
-            </div>
-          </div>
-        ) : savedJobsData.length === 0 ? (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-12 text-center">
-              <FaRegBookmark className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Saved Jobs</h3>
-              <p className="text-gray-500 mb-6">
-                You haven't saved any jobs yet. Browse available positions and bookmark the ones that interest you.
-              </p>
-              <button
-                onClick={() => navigate('/jobs')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Browse Jobs
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Actions Bar */}
-            <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <FaRegBookmark className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Connect Your Wallet</h3>
+                <p className="text-gray-500 mb-6">
+                  Connect your wallet to view and manage your saved jobs.
+                </p>
+                <button
+                  onClick={() => navigate('/jobs')}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Browse Jobs
+                </button>
+              </div>
+            ) : savedJobsData.length === 0 ? (
+              <div className="text-center py-12">
+                <FaRegBookmark className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Saved Jobs</h3>
+                <p className="text-gray-500 mb-6">
+                  You haven't saved any jobs yet. Browse available positions and bookmark the ones that interest you.
+                </p>
+                <button
+                  onClick={() => navigate('/jobs')}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Browse Jobs
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Actions Bar */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -692,20 +700,21 @@ const SavedJobs: React.FC = () => {
           </>
         )}
       </AnimatePresence>
-
-        {/* Report Modal */}
-        <ReportModal
-          isOpen={showReportModal}
-          onClose={() => {
-            setShowReportModal(false);
-            setReportingJob(null);
-          }}
-          projectId={reportingJob?.id.toString() || ''}
-          projectName={reportingJob?.title || ''}
-          onSubmit={handleReportSubmit}
-        />
+          </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportingJob(null);
+        }}
+        projectId={reportingJob?.id.toString() || ''}
+        projectName={reportingJob?.title || ''}
+        onSubmit={handleReportSubmit}
+      />
     </PageTransition>
   );
 };

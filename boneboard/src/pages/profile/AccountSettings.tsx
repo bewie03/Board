@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
 
 const AccountSettings: React.FC = () => {
@@ -9,6 +10,7 @@ const AccountSettings: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(profilePhoto);
+  const [isCopied, setIsCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +34,13 @@ const AccountSettings: React.FC = () => {
   
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    setIsCopied(true);
     toast.success('Copied to clipboard!');
+    
+    // Reset the copied state after 2 seconds
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,16 +146,34 @@ const AccountSettings: React.FC = () => {
                   disabled
                   className="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pr-12 font-mono text-sm"
                 />
-                <button
+                <motion.button
                   type="button"
                   onClick={() => walletAddress && copyToClipboard(walletAddress)}
-                  className="absolute inset-y-0 right-0 px-4 flex items-center text-blue-600 hover:text-blue-800"
+                  className="absolute inset-y-0 right-0 px-4 flex items-center text-blue-600 hover:text-blue-800 transition-colors"
                   title="Copy to clipboard"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={isCopied ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
+                  transition={{ duration: 0.3 }}
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                  </svg>
-                </button>
+                  {isCopied ? (
+                    <motion.svg 
+                      className="h-5 w-5 text-green-600" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </motion.svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                  )}
+                </motion.button>
               </div>
             </div>
 
