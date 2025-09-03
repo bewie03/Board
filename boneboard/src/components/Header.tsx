@@ -8,6 +8,7 @@ import { isAdminWallet } from '../utils/adminAuth';
 import { AdminPanel } from './AdminPanel';
 // Freelancer and messaging services removed
 import WalletSelector from './WalletSelector';
+import WalletBalanceDisplay from './WalletBalanceDisplay';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -119,42 +120,50 @@ const Header: React.FC = () => {
               
               <div className="relative" ref={profileRef}>
                 {isConnected && walletAddress && connectedWallet ? (
-                  <button 
-                    className="flex items-center space-x-3 text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-white px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:scale-105"
-                    onClick={() => setShowProfile(!showProfile)}
-                    aria-expanded={showProfile}
-                    aria-haspopup="true"
-                  >
-                    <div className="relative">
-                      {profilePhoto ? (
-                        <div className="w-10 h-10 rounded-full overflow-hidden" style={{ backgroundColor: 'white' }}>
-                          <div className="w-full h-full rounded-full" style={{ backgroundColor: 'white' }}>
-                            <img 
-                              src={profilePhoto} 
-                              alt="Profile" 
-                              className="w-full h-full rounded-full"
-                              style={{ 
-                                backgroundColor: 'white', 
-                                objectFit: 'contain',
-                                objectPosition: 'center'
-                              }}
-                            />
+                  <div className="flex items-center space-x-4">
+                    {/* Wallet Balance Display */}
+                    <WalletBalanceDisplay 
+                      walletAddress={walletAddress} 
+                      className="hidden lg:flex"
+                    />
+                    
+                    <button 
+                      className="flex items-center space-x-3 text-gray-700 hover:text-blue-700 dark:text-gray-200 dark:hover:text-white px-3 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:scale-105"
+                      onClick={() => setShowProfile(!showProfile)}
+                      aria-expanded={showProfile}
+                      aria-haspopup="true"
+                    >
+                      <div className="relative">
+                        {profilePhoto ? (
+                          <div className="w-10 h-10 rounded-full overflow-hidden" style={{ backgroundColor: 'white' }}>
+                            <div className="w-full h-full rounded-full" style={{ backgroundColor: 'white' }}>
+                              <img 
+                                src={profilePhoto} 
+                                alt="Profile" 
+                                className="w-full h-full rounded-full"
+                                style={{ 
+                                  backgroundColor: 'white', 
+                                  objectFit: 'contain',
+                                  objectPosition: 'center'
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
-                          <FaUserCircle className="text-2xl" />
-                        </div>
-                      )}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
-                    </div>
-                    <div className="hidden md:flex items-center">
-                      <span className="text-base font-medium">
-                        {username || (connectedWallet ? connectedWallet.charAt(0).toUpperCase() + connectedWallet.slice(1) : 'Wallet')}
-                      </span>
-                      <FiChevronDown className={`ml-2 w-5 h-5 transition-transform ${showProfile ? 'transform rotate-180' : ''}`} />
-                    </div>
-                  </button>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                            <FaUserCircle className="text-2xl" />
+                          </div>
+                        )}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
+                      </div>
+                      <div className="hidden md:flex items-center">
+                        <span className="text-base font-medium">
+                          {username || (connectedWallet ? connectedWallet.charAt(0).toUpperCase() + connectedWallet.slice(1) : 'Wallet')}
+                        </span>
+                        <FiChevronDown className={`ml-2 w-5 h-5 transition-transform ${showProfile ? 'transform rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                  </div>
                 ) : (
                   <button 
                     onClick={() => setShowWalletSelector(true)}
