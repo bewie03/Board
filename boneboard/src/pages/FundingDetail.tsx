@@ -55,7 +55,7 @@ const FundingDetail: React.FC = () => {
     try {
       setContributing(true);
 
-      // Verify wallet address matches before sending transaction
+      // Validate wallet address matches current extension wallet for the specific connected wallet type
       const cardano = (window as any).cardano;
       const connectedWallet = localStorage.getItem('connectedWallet');
       
@@ -63,13 +63,8 @@ const FundingDetail: React.FC = () => {
         throw new Error(`${connectedWallet} wallet not available. Please make sure your ${connectedWallet} wallet is enabled.`);
       }
       
-      // Get current wallet address from the connected wallet extension
+      // Only check the specific wallet that was originally connected
       const walletApi = await cardano[connectedWallet].enable();
-      
-      console.log(`[WALLET DEBUG] Validating ${connectedWallet} wallet for contribution`);
-      console.log(`[WALLET DEBUG] Expected wallet address: ${walletAddress}`);
-      
-      // Use getUsedAddresses first (same as other payment validations)
       const currentAddresses = await walletApi.getUsedAddresses();
       
       if (currentAddresses.length === 0) {
@@ -79,15 +74,8 @@ const FundingDetail: React.FC = () => {
       // Get current wallet address from the specific connected wallet extension
       let currentAddress = currentAddresses[0];
       
-      console.log(`[WALLET DEBUG] Raw address from ${connectedWallet}:`, currentAddress);
-
-      if (!currentAddress) {
-        throw new Error('Failed to get address from wallet');
-      }
-      
-      // Convert hex address to bech32 if needed (same logic as WalletContext)
+      // Convert hex address to bech32 using the same logic as WalletContext
       if (currentAddress && (currentAddress.startsWith('0x') || /^[0-9a-fA-F]+$/.test(currentAddress)) && !currentAddress.startsWith('addr')) {
-        console.log(`[WALLET DEBUG] Converting hex address to bech32...`);
         try {
           const CML = await import('@dcspark/cardano-multiplatform-lib-browser');
           const cleanHex = currentAddress.startsWith('0x') ? currentAddress.slice(2) : currentAddress;
@@ -98,27 +86,17 @@ const FundingDetail: React.FC = () => {
           const addr = CML.Address.from_bytes(bytes);
           currentAddress = addr.to_bech32();
           addr.free();
-          console.log(`[WALLET DEBUG] Converted address:`, currentAddress);
-        } catch (conversionError) {
-          console.warn('[WALLET DEBUG] Failed to convert hex address to bech32:', conversionError);
+        } catch (error) {
+          console.warn('Failed to convert hex address to bech32:', error);
         }
       }
       
-      console.log(`[WALLET DEBUG] Final current address: ${currentAddress}`);
-      console.log(`[WALLET DEBUG] Comparing with stored address: ${walletAddress}`);
-      console.log(`[WALLET DEBUG] Addresses match: ${currentAddress === walletAddress}`);
-      
-      // Check for wallet address mismatch
+      // Compare with stored wallet address from the same wallet type
       if (currentAddress !== walletAddress) {
         const currentTruncated = `${currentAddress?.slice(0, 8)}...${currentAddress?.slice(-8)}`;
         const expectedTruncated = `${walletAddress?.slice(0, 8)}...${walletAddress?.slice(-8)}`;
-        console.error(`[WALLET DEBUG] ADDRESS MISMATCH DETECTED!`);
-        console.error(`[WALLET DEBUG] Expected: ${walletAddress}`);
-        console.error(`[WALLET DEBUG] Current: ${currentAddress}`);
         throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
-      
-      console.log(`[WALLET DEBUG] Wallet validation passed - proceeding with transaction`);
 
       // Send ADA transaction using the validated wallet API
       const txHash = await fundingService.sendADAWithWallet(
