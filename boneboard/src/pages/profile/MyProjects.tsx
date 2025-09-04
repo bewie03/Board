@@ -73,7 +73,7 @@ const MyProjects: React.FC = () => {
       logo: project.logo,
       twitter: typeof project.twitter === 'object' ? project.twitter : {
         username: project.twitterLink ? project.twitterLink.replace('https://twitter.com/', '').replace('https://x.com/', '').replace('@', '') : (typeof project.twitter === 'string' ? project.twitter.replace('@', '') : ''),
-        verified: false,
+        verified: !!(project.twitterLink && project.twitterLink.length > 0),
         id: '',
         profileImageUrl: ''
       },
