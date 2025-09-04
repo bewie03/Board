@@ -407,7 +407,7 @@ const FundingDetail: React.FC = () => {
                   </div>
                   <div className="flex justify-between text-sm text-gray-500 mt-2">
                     <span>{(project.progress_percentage || 0).toFixed(1)}% funded</span>
-                    <span>{project.contributor_count} contributors</span>
+                    <span>{project.contributor_count} contributions</span>
                   </div>
                 </div>
 

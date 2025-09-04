@@ -691,7 +691,7 @@ const Funding: React.FC = () => {
                   <div className="flex justify-between text-sm text-gray-600">
                     <span className="flex items-center gap-1">
                       <FaUsers />
-                      {selectedProjectForPanel.contributor_count} contributors
+                      {selectedProjectForPanel.contributor_count} contributions
                     </span>
                     <span>{fundingService.formatDeadline(selectedProjectForPanel.funding_deadline)}</span>
                   </div>
