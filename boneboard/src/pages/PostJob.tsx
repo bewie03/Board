@@ -4,6 +4,7 @@ import { FaArrowLeft, FaCheck, FaTimes, FaWallet, FaUpload } from 'react-icons/f
 import Modal from '../components/Modal';
 import JobDetailPreview from '../components/JobDetailPreview';
 import CustomSelect from '../components/CustomSelect';
+import ImageCropModal from '../components/ImageCropModal';
 import { useContract } from '../hooks/useContract';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-toastify';
@@ -17,6 +18,24 @@ const PostJob: React.FC = () => {
   const { isConnected, walletAddress, formatAddress } = useWallet();
   const { isLoading: contractLoading, postJob } = useContract();
   const [currentStep, setCurrentStep] = useState(1);
+  const [showImageCrop, setShowImageCrop] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+
+  const handleImageCropped = (croppedImageBlob: Blob) => {
+    const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
+    
+    setFormData(prev => ({
+      ...prev,
+      companyLogo: croppedImageUrl
+    }));
+    setShowImageCrop(false);
+    setSelectedImageFile(null);
+  };
+
+  const handleImageCropCancel = () => {
+    setShowImageCrop(false);
+    setSelectedImageFile(null);
+  };
   
   // Check if this is a relisting
   const relistingData = location.state as { relistingJob?: any; isRelisting?: boolean } | null;
@@ -719,7 +738,7 @@ const PostJob: React.FC = () => {
                                 onChange={async (e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
-                                    const { compressImage, validateImageFile } = await import('../utils/imageCompression');
+                                    const { validateImageFile } = await import('../utils/imageCompression');
                                     
                                     const validationError = validateImageFile(file);
                                     if (validationError) {
@@ -727,22 +746,8 @@ const PostJob: React.FC = () => {
                                       return;
                                     }
 
-                                    try {
-                                      const compressedDataUrl = await compressImage(file, {
-                                        maxSizeBytes: 3 * 1024 * 1024, // 3MB
-                                        quality: 0.8,
-                                        maxWidth: 800,
-                                        maxHeight: 800
-                                      });
-                                      
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        companyLogo: compressedDataUrl
-                                      }));
-                                    } catch (error) {
-                                      console.error('Error compressing image:', error);
-                                      alert('Failed to process image. Please try a different file.');
-                                    }
+                                    setSelectedImageFile(file);
+                                    setShowImageCrop(true);
                                   }
                                 }}
                               />
@@ -750,7 +755,7 @@ const PostJob: React.FC = () => {
                             <p className="pl-1">or drag and drop</p>
                           </div>
                           <p className="text-xs text-gray-500">
-                            PNG, JPG, GIF up to 3MB (auto-compressed)
+                            PNG, JPG, GIF up to 3MB (with crop & resize)
                           </p>
                         </div>
                       </div>
@@ -1580,6 +1585,16 @@ const PostJob: React.FC = () => {
           </section>
         </div>
       </Modal>
+
+      {/* Image Crop Modal */}
+      {showImageCrop && selectedImageFile && (
+        <ImageCropModal
+          isOpen={showImageCrop}
+          onClose={handleImageCropCancel}
+          imageFile={selectedImageFile}
+          onCropComplete={handleImageCropped}
+        />
+      )}
       </div>
     </PageTransition>
   );

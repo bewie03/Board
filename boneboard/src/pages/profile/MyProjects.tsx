@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { initiateTwitterOAuth } from '../../utils/auth';
 import PageTransition from '../../components/PageTransition';
 import CustomSelect from '../../components/CustomSelect';
+import ImageCropModal from '../../components/ImageCropModal';
 import { Link } from 'react-router-dom';
 import { PROJECT_CATEGORIES } from '../../constants/categories';
 
@@ -22,6 +23,8 @@ const MyProjects: React.FC = () => {
   const [allJobs, setAllJobs] = useState<any[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showImageCrop, setShowImageCrop] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<{
     id: string;
     name: string;
@@ -157,22 +160,34 @@ const MyProjects: React.FC = () => {
     }
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('File size should not exceed 2MB');
+      const { validateImageFile } = await import('../../utils/imageCompression');
+      
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        alert(validationError);
         return;
       }
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setLogoPreview(result);
-        setEditFormData(prev => ({ ...prev, logo: result }));
-      };
-      reader.readAsDataURL(file);
+
+      setSelectedImageFile(file);
+      setShowImageCrop(true);
     }
+  };
+
+  const handleImageCropped = (croppedImageBlob: Blob) => {
+    const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
+    
+    setLogoPreview(croppedImageUrl);
+    setEditFormData(prev => ({ ...prev, logo: croppedImageUrl }));
+    setShowImageCrop(false);
+    setSelectedImageFile(null);
+  };
+
+  const handleImageCropCancel = () => {
+    setShowImageCrop(false);
+    setSelectedImageFile(null);
   };
 
   const handleTwitterAuth = async () => {
@@ -1092,6 +1107,16 @@ const MyProjects: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Image Crop Modal */}
+      {showImageCrop && selectedImageFile && (
+        <ImageCropModal
+          isOpen={showImageCrop}
+          onClose={handleImageCropCancel}
+          imageFile={selectedImageFile}
+          onCropComplete={handleImageCropped}
+        />
+      )}
     </PageTransition>
   );
 };

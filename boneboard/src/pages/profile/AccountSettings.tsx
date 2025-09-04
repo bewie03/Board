@@ -29,58 +29,6 @@ const AccountSettings: React.FC = () => {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const compressImage = (file: File, maxSizeKB: number = 1024): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      img.onload = () => {
-        // Calculate new dimensions while maintaining aspect ratio
-        const maxDimension = 800; // Max width/height for profile pics
-        let { width, height } = img;
-        
-        if (width > height) {
-          if (width > maxDimension) {
-            height = (height * maxDimension) / width;
-            width = maxDimension;
-          }
-        } else {
-          if (height > maxDimension) {
-            width = (width * maxDimension) / height;
-            height = maxDimension;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        // Fill canvas with white background first
-        if (ctx) {
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, width, height);
-        }
-        
-        // Draw and compress
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        // Start with high quality and reduce if needed
-        let quality = 0.9;
-        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        
-        // Reduce quality until under size limit
-        while (compressedDataUrl.length > maxSizeKB * 1024 * 1.37 && quality > 0.1) { // 1.37 accounts for base64 overhead
-          quality -= 0.1;
-          compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        }
-        
-        resolve(compressedDataUrl);
-      };
-      
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
-    });
-  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

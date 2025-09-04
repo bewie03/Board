@@ -24,6 +24,7 @@ import { Job, JobService } from '../../services/jobService';
 import { useWallet } from '../../contexts/WalletContext';
 import PageTransition from '../../components/PageTransition';
 import CustomSelect from '../../components/CustomSelect';
+import ImageCropModal from '../../components/ImageCropModal';
 import { JOB_CATEGORIES } from '../../constants/categories';
 import { toast } from 'react-toastify';
 
@@ -61,6 +62,8 @@ const MyJobs: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
+  const [showImageCrop, setShowImageCrop] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showExpiredJobs, setShowExpiredJobs] = useState(false);
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
@@ -69,6 +72,22 @@ const MyJobs: React.FC = () => {
     setSelectedJob(null);
     setEditingJob(null);
     setEditFormData({});
+  };
+
+  const handleImageCropped = (croppedImageBlob: Blob) => {
+    const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
+    
+    setEditFormData(prev => ({
+      ...prev,
+      companyLogo: croppedImageUrl
+    }));
+    setShowImageCrop(false);
+    setSelectedImageFile(null);
+  };
+
+  const handleImageCropCancel = () => {
+    setShowImageCrop(false);
+    setSelectedImageFile(null);
   };
 
   const handleDeleteJob = async (jobId: string) => {
@@ -683,17 +702,19 @@ const MyJobs: React.FC = () => {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = (event) => {
-                                    setEditFormData(prev => ({ 
-                                      ...prev, 
-                                      companyLogo: event.target?.result as string 
-                                    }));
-                                  };
-                                  reader.readAsDataURL(file);
+                                  const { validateImageFile } = await import('../../utils/imageCompression');
+                                  
+                                  const validationError = validateImageFile(file);
+                                  if (validationError) {
+                                    alert(validationError);
+                                    return;
+                                  }
+
+                                  setSelectedImageFile(file);
+                                  setShowImageCrop(true);
                                 }
                               }}
                               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -1156,21 +1177,17 @@ const MyJobs: React.FC = () => {
                           } else {
                             setEditingJob(selectedJob);
                             setEditFormData({
-                              title: selectedJob?.title,
-                              company: selectedJob?.company,
-                              description: selectedJob?.description,
-                              salary: selectedJob?.salary,
-                              salaryType: selectedJob?.salaryType,
-                              category: selectedJob?.category,
-                              type: selectedJob?.type,
-                              contactEmail: selectedJob?.contactEmail,
-                              website: selectedJob?.website,
-                              twitter: selectedJob?.twitter,
-                              discord: selectedJob?.discord,
-                              workArrangement: selectedJob?.workArrangement,
-                              requiredSkills: selectedJob?.requiredSkills,
-                              additionalInfo: selectedJob?.additionalInfo,
-                              howToApply: selectedJob?.howToApply,
+                              title: selectedJob.title,
+                              company: selectedJob.company,
+                              description: selectedJob.description,
+                              requiredSkills: selectedJob.requiredSkills || [],
+                              additionalInfo: selectedJob.additionalInfo || [],
+                              howToApply: selectedJob.howToApply || '',
+                              contactEmail: selectedJob.contactEmail || '',
+                              workArrangement: selectedJob.workArrangement || 'remote',
+                              type: selectedJob.type || 'Full-time',
+                              salary: selectedJob.salary || '',
+                              companyLogo: selectedJob.companyLogo || ''
                             });
                           }
                         }}
@@ -1201,6 +1218,16 @@ const MyJobs: React.FC = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Image Crop Modal */}
+        {showImageCrop && selectedImageFile && (
+          <ImageCropModal
+            isOpen={showImageCrop}
+            onClose={handleImageCropCancel}
+            imageFile={selectedImageFile}
+            onCropComplete={handleImageCropped}
+          />
+        )}
 
       </div>
     </PageTransition>
