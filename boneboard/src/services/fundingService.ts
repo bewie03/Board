@@ -168,7 +168,7 @@ class FundingService {
   }
 
   // Wallet integration methods
-  async sendADA(recipientAddress: string, amount: number): Promise<string> {
+  async sendADA(recipientAddress: string, amount: number): Promise<{ txHash: string; paymentAddress: string }> {
     const { contractService } = await import('./contractService');
     
     try {
@@ -191,7 +191,14 @@ class FundingService {
         throw new Error(result.error || 'Transaction failed');
       }
 
-      return result.txHash!;
+      if (!result.paymentAddress) {
+        throw new Error('Failed to get payment address from wallet');
+      }
+
+      return { 
+        txHash: result.txHash!, 
+        paymentAddress: result.paymentAddress 
+      };
     } catch (error) {
       console.error('Error sending ADA:', error);
       throw error;
@@ -234,7 +241,7 @@ class FundingService {
     }
   }
 
-  async sendBONE(recipientAddress: string, amount: number): Promise<string> {
+  async sendBONE(recipientAddress: string, amount: number): Promise<{ txHash: string; paymentAddress: string }> {
     const { contractService } = await import('./contractService');
     
     try {
@@ -257,7 +264,14 @@ class FundingService {
         throw new Error(result.error || 'Transaction failed');
       }
 
-      return result.txHash!;
+      if (!result.paymentAddress) {
+        throw new Error('Failed to get payment address from wallet');
+      }
+
+      return { 
+        txHash: result.txHash!, 
+        paymentAddress: result.paymentAddress 
+      };
     } catch (error) {
       console.error('Error sending BONE:', error);
       throw error;

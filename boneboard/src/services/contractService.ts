@@ -601,7 +601,7 @@ export class ContractService {
     }
   }
 
-  async contributeADA(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  async contributeADA(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string; paymentAddress?: string }> {
     if (!this.lucid) {
       return { success: false, error: 'Lucid not initialized' };
     }
@@ -609,6 +609,10 @@ export class ContractService {
     try {
       console.log(`Creating ADA contribution transaction...`);
       console.log(`Sending ${amount} ADA to ${recipientAddress}`);
+      
+      // Get the payment address from the wallet to validate against connected address
+      const paymentAddress = await this.lucid.wallet.address();
+      console.log('Payment address from wallet:', paymentAddress);
       
       // Convert ADA to lovelace (1 ADA = 1,000,000 lovelace)
       const amountInLovelace = BigInt(Math.floor(amount * 1_000_000));
@@ -641,7 +645,7 @@ export class ContractService {
       const txHash = await signedTx.submit();
       
       console.log('ADA contribution transaction submitted successfully:', txHash);
-      return { success: true, txHash };
+      return { success: true, txHash, paymentAddress };
     } catch (error) {
       console.error('Error contributing ADA:', error);
       const errorMessage = this.parsePaymentError(error, 'ADA', amount);
@@ -649,7 +653,7 @@ export class ContractService {
     }
   }
 
-  async contributeBONE(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string }> {
+  async contributeBONE(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string; paymentAddress?: string }> {
     if (!this.lucid) {
       return { success: false, error: 'Lucid not initialized' };
     }
@@ -657,6 +661,10 @@ export class ContractService {
     try {
       console.log(`Creating BONE contribution transaction...`);
       console.log(`Sending ${amount} BONE to ${recipientAddress}`);
+      
+      // Get the payment address from the wallet to validate against connected address
+      const paymentAddress = await this.lucid.wallet.address();
+      console.log('Payment address from wallet:', paymentAddress);
       
       // Calculate BONE amount (assuming whole tokens)
       const boneAmount = Math.floor(amount);
@@ -692,7 +700,7 @@ export class ContractService {
       const txHash = await signedTx.submit();
       
       console.log('BONE contribution transaction submitted successfully:', txHash);
-      return { success: true, txHash };
+      return { success: true, txHash, paymentAddress };
     } catch (error) {
       console.error('Error contributing BONE:', error);
       const errorMessage = this.parsePaymentError(error, 'BONE', amount);
