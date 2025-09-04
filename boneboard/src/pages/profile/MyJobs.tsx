@@ -734,7 +734,7 @@ const MyJobs: React.FC = () => {
                               </div>
                             )}
                             {selectedJob?.projectId && editingJob && (
-                              <div className="absolute -bottom-2 -right-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                              <div className="absolute -bottom-6 left-0 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
                                 Project Logo
                               </div>
                             )}
@@ -1049,24 +1049,53 @@ const MyJobs: React.FC = () => {
 
                     {/* Contact & Links */}
                     <div>
-                      {((editingJob ? editFormData.website : selectedJob.website) || (editingJob ? editFormData.twitter : selectedJob.twitter) || (editingJob ? editFormData.discord : selectedJob.discord) || (editingJob ? editFormData.contactEmail : selectedJob.contactEmail)) && (
+                      {editingJob ? (
                         <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
                           <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
-                          <div className="flex flex-wrap gap-2">
-                          {(editingJob ? editFormData.website : selectedJob.website) && (
-                            <div className="flex items-center">
-                              {editingJob ? (
-                                <div className="flex items-center space-x-2">
-                                  <FaLink className="h-4 w-4 text-gray-500" />
-                                  <input
-                                    type="text"
-                                    value={editFormData.website || ''}
-                                    onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
-                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="https://company.com"
-                                  />
-                                </div>
-                              ) : (
+                          <div className="space-y-3">
+                            {/* Website */}
+                            <div className="flex items-center space-x-2">
+                              <FaLink className="h-4 w-4 text-gray-500" />
+                              <input
+                                type="text"
+                                value={editFormData.website || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                placeholder="https://company.com"
+                              />
+                            </div>
+                            
+                            {/* Twitter */}
+                            <div className="flex items-center space-x-2">
+                              <FaXTwitter className="h-4 w-4 text-gray-500" />
+                              <input
+                                type="text"
+                                value={editFormData.twitter || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                placeholder="@username or https://twitter.com/username"
+                              />
+                            </div>
+                            
+                            {/* Discord */}
+                            <div className="flex items-center space-x-2">
+                              <SiDiscord className="h-4 w-4 text-gray-500" />
+                              <input
+                                type="text"
+                                value={editFormData.discord || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                placeholder="https://discord.gg/invite-code"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        ((selectedJob.website || selectedJob.twitter || selectedJob.discord || selectedJob.contactEmail)) && (
+                          <div className="bg-gray-50 border border-gray-300 rounded-md p-4">
+                            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Contact & Links</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedJob.website && (
                                 <a 
                                   href={selectedJob.website?.startsWith('http') ? selectedJob.website : `https://${selectedJob.website}`}
                                   target="_blank"
@@ -1077,23 +1106,8 @@ const MyJobs: React.FC = () => {
                                   <span>Website</span>
                                 </a>
                               )}
-                            </div>
-                          )}
-                          
-                          {(editingJob ? editFormData.twitter : selectedJob.twitter) && (
-                            <div className="flex items-center">
-                              {editingJob ? (
-                                <div className="flex items-center space-x-2">
-                                  <FaXTwitter className="h-4 w-4 text-gray-500" />
-                                  <input
-                                    type="text"
-                                    value={editFormData.twitter || ''}
-                                    onChange={(e) => setEditFormData(prev => ({ ...prev, twitter: e.target.value }))}
-                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="@username"
-                                  />
-                                </div>
-                              ) : (
+                              
+                              {selectedJob.twitter && (
                                 <a 
                                   href={`https://twitter.com/${selectedJob.twitter?.startsWith('@') ? selectedJob.twitter.substring(1) : selectedJob.twitter}`} 
                                   target="_blank" 
@@ -1104,23 +1118,8 @@ const MyJobs: React.FC = () => {
                                   <span>Twitter</span>
                                 </a>
                               )}
-                            </div>
-                          )}
-                          
-                          {(editingJob ? editFormData.discord : selectedJob.discord) && (
-                            <div className="flex items-center">
-                              {editingJob ? (
-                                <div className="flex items-center space-x-2">
-                                  <SiDiscord className="h-4 w-4 text-gray-500" />
-                                  <input
-                                    type="text"
-                                    value={editFormData.discord || ''}
-                                    onChange={(e) => setEditFormData(prev => ({ ...prev, discord: e.target.value }))}
-                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="Discord invite link"
-                                  />
-                                </div>
-                              ) : (
+                              
+                              {selectedJob.discord && (
                                 <a 
                                   href={selectedJob.discord} 
                                   target="_blank" 
@@ -1131,28 +1130,10 @@ const MyJobs: React.FC = () => {
                                   <span>Discord</span>
                                 </a>
                               )}
-                            </div>
-                          )}
-                          
-                          {(editingJob ? editFormData.contactEmail : selectedJob.contactEmail) && (
-                            <div className="flex items-center">
-                              {editingJob ? (
-                                <div className="flex items-center space-x-2">
-                                  <FaEnvelope className="h-4 w-4 text-gray-500" />
-                                  <input
-                                    type="email"
-                                    value={editFormData.contactEmail || ''}
-                                    onChange={(e) => setEditFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
-                                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    placeholder="contact@company.com"
-                                  />
-                                </div>
-                              ) : (
+                              
+                              {selectedJob.contactEmail && (
                                 <button 
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(selectedJob.contactEmail!);
-                                    toast.success('Email copied to clipboard!');
-                                  }}
+                                  onClick={() => navigator.clipboard.writeText(selectedJob.contactEmail || '')}
                                   className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-blue-600 transition-colors"
                                 >
                                   <FaEnvelope className="h-4 w-4 mr-2" />
@@ -1160,9 +1141,8 @@ const MyJobs: React.FC = () => {
                                 </button>
                               )}
                             </div>
-                          )}
                           </div>
-                        </div>
+                        )
                       )}
                     </div>
 
