@@ -944,26 +944,15 @@ const MyProjects: React.FC = () => {
                   {/* Related Jobs */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Available Jobs ({(() => {
-                        const projectName = selectedProject!.title || selectedProject!.name;
-                        return allJobs.filter(job => 
-                          job.company && projectName && (
-                            job.company.toLowerCase().includes(projectName.toLowerCase()) ||
-                            projectName.toLowerCase().includes(job.company.toLowerCase())
-                          )
-                        ).length;
-                      })()})
+                      Available Jobs ({allJobs.filter(job => 
+                        job.projectId === selectedProject!.id || job.project_id === selectedProject!.id
+                      ).length})
                     </h3>
                     <div className="space-y-4">
-                      {(() => {
-                        const projectName = selectedProject!.title || selectedProject!.name;
-                        return allJobs.filter(job => 
-                          job.company && projectName && (
-                            job.company.toLowerCase().includes(projectName.toLowerCase()) ||
-                            projectName.toLowerCase().includes(job.company.toLowerCase())
-                          )
-                        );
-                      })()
+                      {allJobs
+                        .filter(job => 
+                          job.projectId === selectedProject!.id || job.project_id === selectedProject!.id
+                        )
                         .map((job) => (
                           <Link
                             key={job.id}
