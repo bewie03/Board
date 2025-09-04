@@ -1446,7 +1446,7 @@ const PostJob: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900">Job Preview</h2>
               
               {/* Full Job Detail Preview */}
-              <div className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+              <div className={`bg-white border rounded-xl shadow-lg overflow-hidden ${formData.featured ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-200'}`}>
                 <JobDetailPreview
                   title={formData.title || 'Job Title'}
                   company={formData.company || 'Company Name'}
