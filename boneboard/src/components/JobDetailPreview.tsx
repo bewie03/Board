@@ -116,7 +116,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
           </div>
         </div>
       </div>
-      <div className="px-6 py-5 w-full max-w-full overflow-hidden">
+      <div className="px-6 py-2 w-full max-w-full overflow-hidden">
         <div className="mb-6 max-w-full overflow-hidden">
           <h4 className="text-lg font-medium text-gray-900 mb-2">Job Description</h4>
           <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-all max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>{description || 'Job description will appear here...'}</div>
@@ -124,7 +124,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         
         {/* Required Skills */}
         {requiredSkills && requiredSkills.length > 0 && (
-          <div>
+          <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Required Skills</h4>
             <div className="flex flex-wrap gap-2">
               {requiredSkills
@@ -142,7 +142,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
         )}
         
         {additionalInfo.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 mt-6">
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Additional Information</h4>
             <div className="text-gray-700 whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full" style={{wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
               {additionalInfo

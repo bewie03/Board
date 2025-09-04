@@ -83,6 +83,7 @@ const PostJob: React.FC = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [platformPricing, setPlatformPricing] = useState<{jobListingFee: number, jobListingFeeAda: number, jobListingCurrency: string} | null>(null);
+  const [skillInput, setSkillInput] = useState('');
 
   // Pre-fill form data if this is a relisting
   useEffect(() => {
@@ -198,6 +199,24 @@ const PostJob: React.FC = () => {
       window.removeEventListener('jobPostedSuccessfully', handleJobPosted);
     };
   }, [currentStep, paymentStatus, navigate]);
+  
+  // Add skill function for the new skills input UI
+  const addSkill = () => {
+    const trimmedSkill = skillInput.trim();
+    if (trimmedSkill && formData.requiredSkills.length < 5 && !formData.requiredSkills.includes(trimmedSkill)) {
+      if (trimmedSkill.length <= 25) {
+        setFormData(prev => ({
+          ...prev,
+          requiredSkills: [...prev.requiredSkills, trimmedSkill]
+        }));
+        setSkillInput('');
+      } else {
+        toast.error('Skill must be 25 characters or less');
+      }
+    } else if (formData.requiredSkills.includes(trimmedSkill)) {
+      toast.error('This skill has already been added');
+    }
+  };
   
   // Calculate total price based on admin settings
   const calculateTotal = () => {
@@ -822,79 +841,71 @@ const PostJob: React.FC = () => {
                   
                   {/* Required Skills */}
                   <div className="space-y-2 sm:col-span-2">
-                    <div className="flex justify-between items-center">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Required Skills *
-                      </label>
-                      <span className="text-xs text-gray-500">
-                        {formData.requiredSkills.length}/5 skills added
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {formData.requiredSkills.map((skill, index) => (
-                        <div key={index} className="flex items-center">
-                          <input
-                            type="text"
-                            value={skill}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Prevent commas to avoid bypassing the 5-skill limit
-                              if (value.includes(',')) {
-                                return;
-                              }
-                              if (value.length <= 25) {
-                                const newSkills = [...formData.requiredSkills];
-                                newSkills[index] = value;
-                                setFormData(prev => ({
-                                  ...prev,
-                                  requiredSkills: newSkills
-                                }));
-                              }
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            placeholder={`Skill ${index + 1} (max 25 chars, no commas)`}
-                            maxLength={25}
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newSkills = formData.requiredSkills.filter((_, i) => i !== index);
-                              setFormData(prev => ({
-                                ...prev,
-                                requiredSkills: newSkills
-                              }));
-                            }}
-                            className="ml-2 text-red-500 hover:text-red-700"
-                            aria-label="Remove skill"
-                          >
-                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Required Skills *
+                    </label>
+                    <div className="space-y-3">
+                      {/* Skills Display */}
+                      {formData.requiredSkills.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {formData.requiredSkills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700 border border-blue-200"
+                            >
+                              {skill || `Skill ${index + 1}`}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newSkills = formData.requiredSkills.filter((_, i) => i !== index);
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    requiredSkills: newSkills
+                                  }));
+                                }}
+                                className="ml-2 text-blue-500 hover:text-blue-700 font-bold"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
                         </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (formData.requiredSkills.length < 5) {
-                            setFormData(prev => ({
-                              ...prev,
-                              requiredSkills: [...prev.requiredSkills, '']
-                            }));
-                          }
-                        }}
-                        disabled={formData.requiredSkills.length >= 5}
-                        className={`mt-2 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md ${
-                          formData.requiredSkills.length >= 5 
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                            : 'text-blue-700 bg-blue-100 hover:bg-blue-200 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                        }`}
-                      >
-                        {formData.requiredSkills.length >= 5 
-                          ? 'Maximum 5 skills reached' 
-                          : '+ Add Skill'}
-                      </button>
+                      )}
+                      
+                      {/* Add Skill Input */}
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={skillInput}
+                          onChange={(e) => setSkillInput(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addSkill();
+                            }
+                          }}
+                          className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Type a skill and press Enter"
+                          disabled={formData.requiredSkills.length >= 5}
+                        />
+                        <button
+                          type="button"
+                          onClick={addSkill}
+                          disabled={formData.requiredSkills.length >= 5 || !skillInput.trim()}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                          + Add Skill
+                        </button>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">
+                          {formData.requiredSkills.length}/5 skills added
+                        </span>
+                        {formData.requiredSkills.length >= 5 && (
+                          <span className="text-amber-600">Maximum skills reached</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

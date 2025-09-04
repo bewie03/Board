@@ -101,7 +101,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       p.is_verified as project_verified,
       p.status as project_status
     FROM job_listings j
-    LEFT JOIN projects p ON j.project_id = p.id
+    LEFT JOIN projects p ON j.selected_project_id = p.id
   `;
   const params: any[] = [];
   const conditions: string[] = [];
@@ -171,7 +171,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     twitter: row.twitter,
     discord: row.discord,
     featured: row.is_featured,
-    projectId: row.project_id,
+    projectId: row.selected_project_id,
     isProjectVerified: row.project_verified || row.project_status === 'verified'
   }));
 
@@ -311,7 +311,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       contact_email, how_to_apply, listing_duration, payment_amount, payment_currency,
       user_id, status, work_arrangement, required_skills_text,
       additional_info_text, company_website, company_logo_url, website, twitter,
-      discord, is_featured, tx_hash, expires_at, project_id
+      discord, is_featured, tx_hash, expires_at, selected_project_id
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
       $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
