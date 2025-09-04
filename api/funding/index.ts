@@ -75,18 +75,45 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       `;
       
       const contributionsQuery = `
+        WITH aggregated_contributions AS (
+          SELECT 
+            fc.contributor_wallet,
+            SUM(fc.ada_amount) as total_ada_amount,
+            STRING_AGG(fc.ada_tx_hash, ',' ORDER BY fc.updated_at DESC, fc.created_at DESC) as tx_hashes,
+            FIRST_VALUE(fc.message) OVER (
+              PARTITION BY fc.contributor_wallet 
+              ORDER BY fc.updated_at DESC, fc.created_at DESC
+            ) as latest_message,
+            FIRST_VALUE(fc.is_anonymous) OVER (
+              PARTITION BY fc.contributor_wallet 
+              ORDER BY fc.updated_at DESC, fc.created_at DESC
+            ) as latest_is_anonymous,
+            MAX(fc.updated_at) as latest_updated_at,
+            MAX(fc.created_at) as latest_created_at,
+            MIN(fc.id) as id
+          FROM funding_contributions fc
+          WHERE fc.project_funding_id = $1
+          GROUP BY fc.contributor_wallet
+        )
         SELECT 
-          fc.*,
+          ac.id,
+          $1 as project_funding_id,
+          ac.contributor_wallet,
+          ac.total_ada_amount as ada_amount,
+          SPLIT_PART(ac.tx_hashes, ',', 1) as ada_tx_hash,
+          ac.latest_message as message,
+          ac.latest_is_anonymous as is_anonymous,
+          ac.latest_created_at as created_at,
+          ac.latest_updated_at as updated_at,
           u.username,
           CASE 
-            WHEN fc.is_anonymous = true THEN 'Anonymous'
+            WHEN ac.latest_is_anonymous = true THEN 'Anonymous'
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
-            ELSE SUBSTRING(fc.contributor_wallet, 1, 8) || '...' || SUBSTRING(fc.contributor_wallet, -6)
+            ELSE SUBSTRING(ac.contributor_wallet, 1, 8) || '...' || SUBSTRING(ac.contributor_wallet, -6)
           END as display_name
-        FROM funding_contributions fc
-        LEFT JOIN users u ON fc.contributor_wallet = u.wallet_address
-        WHERE fc.project_funding_id = $1
-        ORDER BY fc.created_at DESC
+        FROM aggregated_contributions ac
+        LEFT JOIN users u ON ac.contributor_wallet = u.wallet_address
+        ORDER BY ac.latest_updated_at DESC, ac.latest_created_at DESC
       `;
 
       const [fundingResult, contributionsResult] = await Promise.all([
