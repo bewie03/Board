@@ -107,7 +107,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     <div className="relative" ref={selectRef}>
       <div
         id={id}
-        className={`w-full h-[42px] pl-3 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer flex items-center justify-between transition-all duration-200 hover:border-gray-400 hover:shadow-md text-sm ${
+        className={`w-full pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer flex items-center justify-between transition-all duration-200 hover:border-gray-400 hover:shadow-md text-sm ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         } ${isOpen ? 'ring-2 ring-blue-500 border-blue-500' : ''} ${className}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -121,7 +121,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <FaChevronDown 
-          className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${
+          className={`h-3 w-3 text-gray-400 transition-transform duration-200 absolute right-3 ${
             isOpen ? 'transform rotate-180' : ''
           }`} 
         />

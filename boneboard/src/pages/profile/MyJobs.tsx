@@ -746,32 +746,24 @@ const MyJobs: React.FC = () => {
                       <div className="flex-1">
                         {editingJob ? (
                           <div className="space-y-4">
-                            <input
-                              type="text"
-                              value={editFormData.title || ''}
-                              onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-                              className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-200 focus:border-blue-500 outline-none w-full pb-2"
-                              placeholder="Job Title"
-                              disabled={!!selectedJob?.projectId}
-                            />
+                            <div className="text-3xl font-bold text-gray-900 w-full pb-2">
+                              {selectedJob?.title || 'Job Title'}
+                            </div>
                             <div className="flex items-center gap-3">
-                              <input
-                                type="text"
-                                value={editFormData.company || ''}
-                                onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
-                                className="text-xl text-gray-700 font-medium bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none flex-1"
-                                placeholder="Company Name"
-                                disabled={!!selectedJob?.projectId}
-                              />
-                              <CustomSelect
-                                options={JOB_CATEGORIES.map(category => ({
-                                  value: category.id,
-                                  label: category.name
-                                }))}
-                                value={editFormData.category || ''}
-                                onChange={(value) => setEditFormData(prev => ({ ...prev, category: value }))}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 focus:border-blue-500 outline-none"
-                              />
+                              <div className="text-xl text-gray-700 font-medium flex-1">
+                                {selectedJob?.company || 'Company Name'}
+                              </div>
+                              <div className="relative">
+                                <CustomSelect
+                                  options={JOB_CATEGORIES.map(category => ({
+                                    value: category.id,
+                                    label: category.name
+                                  }))}
+                                  value={editFormData.category || ''}
+                                  onChange={(value) => setEditFormData(prev => ({ ...prev, category: value }))}
+                                  className="min-w-[120px] h-8 px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 focus:border-blue-500 outline-none"
+                                />
+                              </div>
                             </div>
                           </div>
                         ) : (
