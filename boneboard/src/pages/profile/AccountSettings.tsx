@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/Modal';
-import ImageCropModal from '../../components/ImageCropModal';
 
 const AccountSettings: React.FC = () => {
   const { walletAddress, username, setUsername, profilePhoto, setProfilePhoto } = useWallet();
@@ -25,46 +24,81 @@ const AccountSettings: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(profilePhoto);
   const [isCopied, setIsCopied] = useState(false);
-  const [showImageCrop, setShowImageCrop] = useState(false);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const compressImage = (file: File, maxSizeKB: number = 1024): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        const maxDimension = 800; // Max width/height for profile pics
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Fill canvas with white background first
+        if (ctx) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, width, height);
+        }
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Start with high quality and reduce if needed
+        let quality = 0.9;
+        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        
+        // Reduce quality until under size limit
+        while (compressedDataUrl.length > maxSizeKB * 1024 * 1.37 && quality > 0.1) { // 1.37 accounts for base64 overhead
+          quality -= 0.1;
+          compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        
+        resolve(compressedDataUrl);
+      };
+      
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
-        return;
+      try {
+        // Show loading state for large files
+        if (file.size > 1024 * 1024) {
+          toast.info('Compressing image, please wait...');
+        }
+        
+        const compressedImage = await compressImage(file, 1024);
+        setProfileImage(compressedImage);
+        setProfilePhoto(compressedImage);
+        
+        if (file.size > 1024 * 1024) {
+          toast.success('Image compressed and uploaded successfully!');
+        }
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        toast.error('Failed to process image. Please try again.');
       }
-      
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('Image file is too large. Please select an image smaller than 10MB.');
-        return;
-      }
-      
-      // Store the file and show crop modal
-      setSelectedImageFile(file);
-      setShowImageCrop(true);
-    }
-  };
-
-  const handleCropComplete = async (croppedBlob: Blob) => {
-    try {
-      // Convert blob to base64 for storage
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        setProfileImage(base64String);
-        setProfilePhoto(base64String);
-        toast.success('Profile picture updated successfully!');
-      };
-      reader.readAsDataURL(croppedBlob);
-    } catch (error) {
-      console.error('Error processing cropped image:', error);
-      toast.error('Failed to process image. Please try again.');
     }
   };
   
@@ -426,14 +460,6 @@ const AccountSettings: React.FC = () => {
               </div>
             </div>
           </Modal>
-
-          {/* Image Crop Modal */}
-          <ImageCropModal
-            isOpen={showImageCrop}
-            onClose={() => setShowImageCrop(false)}
-            imageFile={selectedImageFile}
-            onCropComplete={handleCropComplete}
-          />
         </div>
         </div>
       </div>

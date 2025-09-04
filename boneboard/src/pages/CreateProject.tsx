@@ -4,7 +4,6 @@ import { FaArrowLeft, FaUpload, FaWallet, FaCheck, FaTimes, FaGlobe, FaDiscord }
 import { FaXTwitter } from 'react-icons/fa6';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
-import ImageCropModal from '../components/ImageCropModal';
 import { useWallet } from '../contexts/WalletContext';
 import { initiateTwitterOAuth } from '../utils/auth';
 import { toast } from 'react-toastify';
@@ -25,8 +24,6 @@ const CreateProject: React.FC = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [currentStep, setCurrentStep] = useState(1);
-  const [showImageCrop, setShowImageCrop] = useState(false);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   // Check for pending transactions on load and resume to payment step
   useEffect(() => {
@@ -157,7 +154,7 @@ const CreateProject: React.FC = () => {
 
   const handleLogoUpload = async (file: File) => {
     if (file) {
-      const { validateImageFile } = await import('../utils/imageCompression');
+      const { compressImage, validateImageFile } = await import('../utils/imageCompression');
       
       const validationError = validateImageFile(file);
       if (validationError) {
@@ -165,24 +162,26 @@ const CreateProject: React.FC = () => {
         return;
       }
 
-      setSelectedImageFile(file);
-      setShowImageCrop(true);
+      try {
+        const compressedDataUrl = await compressImage(file, {
+          maxSizeBytes: 3 * 1024 * 1024, // 3MB
+          quality: 0.8,
+          maxWidth: 800,
+          maxHeight: 800
+        });
+        
+        setLogoPreview(compressedDataUrl);
+        
+        // Create a new File object from the compressed data for upload
+        const response = await fetch(compressedDataUrl);
+        const blob = await response.blob();
+        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+        setLogoFile(compressedFile);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        alert('Failed to process image. Please try a different file.');
+      }
     }
-  };
-
-  const handleImageCropped = (croppedImageBlob: Blob) => {
-    const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
-    const croppedFile = new File([croppedImageBlob], selectedImageFile?.name || 'logo.jpg', { type: 'image/jpeg' });
-    
-    setLogoPreview(croppedImageUrl);
-    setLogoFile(croppedFile);
-    setShowImageCrop(false);
-    setSelectedImageFile(null);
-  };
-
-  const handleImageCropCancel = () => {
-    setShowImageCrop(false);
-    setSelectedImageFile(null);
   };
   
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -532,7 +531,7 @@ const CreateProject: React.FC = () => {
                       </div>
                     )}
                     <p className="text-xs text-gray-500 mt-2">
-                      PNG, JPG, GIF up to 3MB (with crop & resize)
+                      PNG, JPG, GIF up to 3MB (auto-compressed)
                     </p>
                     {logoFile && (
                       <p className="text-xs text-gray-500 mt-1">
@@ -1162,16 +1161,6 @@ const CreateProject: React.FC = () => {
             </section>
           </div>
         </Modal>
-      )}
-
-      {/* Image Crop Modal */}
-      {showImageCrop && selectedImageFile && (
-        <ImageCropModal
-          isOpen={showImageCrop}
-          onClose={handleImageCropCancel}
-          imageFile={selectedImageFile}
-          onCropComplete={handleImageCropped}
-        />
       )}
     </div>
   );
