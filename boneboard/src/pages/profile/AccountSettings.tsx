@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../../components/Modal';
 
 const AccountSettings: React.FC = () => {
   const { walletAddress, username, setUsername, profilePhoto, setProfilePhoto } = useWallet();
@@ -343,97 +344,152 @@ const AccountSettings: React.FC = () => {
             </div>
           </form>
 
-          {/* Danger Zone - Delete Account */}
-          <div className="mt-12 pt-8 border-t border-red-200">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-red-800 mb-2 flex items-center">
-                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                Danger Zone
-              </h3>
-              <p className="text-red-700 text-sm mb-4">
-                Permanently delete your account and all associated data. This action cannot be undone.
-              </p>
-              
+          {/* Delete Account Button */}
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+            >
+              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete Account
+            </button>
+          </div>
+
+          {/* Delete Account Modal */}
+          <Modal
+            isOpen={showDeleteConfirm}
+            onClose={() => {
+              setShowDeleteConfirm(false);
+              setDeleteConfirmText('');
+            }}
+            title="Delete Account"
+          >
+            <div className="space-y-6">
+              {/* Warning */}
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-red-900">
+                    Permanently delete your account and all associated data
+                  </h3>
+                  <p className="mt-2 text-sm text-red-700">
+                    This action cannot be undone. All of your data will be permanently removed from our servers.
+                  </p>
+                </div>
+              </div>
+
+              {/* What will be deleted */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-red-800 mb-3">
+                  This will permanently delete:
+                </h4>
+                <ul className="text-sm text-red-700 space-y-2">
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Your user profile and settings
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    All job postings you've created
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    All projects you've posted
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Your freelancer profile (if any)
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    All saved jobs and bookmarks
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Transaction history and payments
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Messages and conversations
+                  </li>
+                  <li className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    All other account data
+                  </li>
+                </ul>
+              </div>
+
+              {/* Confirmation */}
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-red-800 mb-2">
-                    This will permanently delete:
-                  </p>
-                  <ul className="text-sm text-red-700 space-y-1 ml-4">
-                    <li>• Your user profile and settings</li>
-                    <li>• All job postings you've created</li>
-                    <li>• All projects you've posted</li>
-                    <li>• Your freelancer profile (if any)</li>
-                    <li>• All saved jobs and bookmarks</li>
-                    <li>• Transaction history and payments</li>
-                    <li>• Messages and conversations</li>
-                    <li>• All other account data</li>
-                  </ul>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Please type <span className="font-mono font-semibold text-red-600">DELETE</span> to confirm:
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-red-500 focus:border-red-500"
+                    placeholder="Type DELETE to confirm"
+                  />
                 </div>
 
-                {!showDeleteConfirm ? (
+                <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting || deleteConfirmText !== 'DELETE'}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete Account
+                    {isDeleting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Deleting Account...
+                      </>
+                    ) : (
+                      'Delete Account Permanently'
+                    )}
                   </button>
-                ) : (
-                  <div className="space-y-4 p-4 bg-white border border-red-300 rounded-md">
-                    <p className="text-sm font-medium text-red-800">
-                      Are you absolutely sure? This action cannot be undone.
-                    </p>
-                    <p className="text-sm text-red-700">
-                      Please type <span className="font-mono font-semibold">DELETE</span> to confirm:
-                    </p>
-                    <input
-                      type="text"
-                      value={deleteConfirmText}
-                      onChange={(e) => setDeleteConfirmText(e.target.value)}
-                      className="block w-full px-3 py-2 border border-red-300 rounded-md text-sm focus:ring-red-500 focus:border-red-500"
-                      placeholder="Type DELETE to confirm"
-                    />
-                    <div className="flex space-x-3">
-                      <button
-                        type="button"
-                        onClick={handleDeleteAccount}
-                        disabled={isDeleting || deleteConfirmText !== 'DELETE'}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {isDeleting ? (
-                          <>
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Deleting...
-                          </>
-                        ) : (
-                          'Delete Account Permanently'
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowDeleteConfirm(false);
-                          setDeleteConfirmText('');
-                        }}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteConfirmText('');
+                    }}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </Modal>
         </div>
         </div>
       </div>
