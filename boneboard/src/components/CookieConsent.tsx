@@ -35,9 +35,9 @@ const CookieConsent: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="fixed bottom-4 left-4 right-4 md:left-6 md:right-6 lg:left-8 lg:right-8 z-50"
+          className="fixed bottom-4 right-4 z-50"
         >
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 w-96 max-w-sm">
             <div className="flex items-start gap-4">
               {/* Cookie Icon */}
               <div className="flex-shrink-0">
