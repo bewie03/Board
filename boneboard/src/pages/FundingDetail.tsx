@@ -246,7 +246,11 @@ const FundingDetail: React.FC = () => {
                   Top Contributors
                 </h2>
                 
-                {project.contributions.length === 0 ? (
+                {(() => {
+                  console.log('DEBUG FRONTEND: project.contributions:', project.contributions);
+                  console.log('DEBUG FRONTEND: contributions length:', project.contributions.length);
+                  return project.contributions.length === 0;
+                })() ? (
                   <div className="text-center py-8">
                     <div className="text-gray-400 text-4xl mb-2">🏆</div>
                     <p className="text-gray-500">No contributions yet. Be the first to support this project!</p>
