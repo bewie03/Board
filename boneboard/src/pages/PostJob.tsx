@@ -481,7 +481,7 @@ const PostJob: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Main Form */}
-            <div className="lg:w-2/3">
+            <div className="lg:w-[50%]">
         <div className="mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -1081,23 +1081,15 @@ const PostJob: React.FC = () => {
                   
                   {/* Featured Job Option */}
                   <div className="flex items-start">
-                    <div className="flex items-center h-5 relative">
+                    <div className="flex items-center h-5">
                       <input
                         id="featured"
                         name="featured"
                         type="checkbox"
                         checked={formData.featured}
                         onChange={handleChange}
-                        className="sr-only"
+                        className="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded"
                       />
-                      <label 
-                        htmlFor="featured" 
-                        className="flex items-center justify-center w-4 h-4 border border-gray-300 rounded cursor-pointer hover:border-blue-500 transition-colors"
-                      >
-                        {formData.featured && (
-                          <span className="text-blue-600 text-xs">★</span>
-                        )}
-                      </label>
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="featured" className="font-medium text-gray-700 flex items-center cursor-pointer">
@@ -1123,7 +1115,7 @@ const PostJob: React.FC = () => {
                           ...prev,
                           agreeToTerms: e.target.checked
                         }))}
-                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                        className="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded"
                         required
                       />
                     </div>
@@ -1450,7 +1442,7 @@ const PostJob: React.FC = () => {
           </div>
           
           {/* Preview Section */}
-          <div className="lg:w-1/2">
+          <div className="lg:w-[50%]">
             <div className="sticky top-8 space-y-6">
               <h2 className="text-2xl font-bold text-gray-900">Job Preview</h2>
               
