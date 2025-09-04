@@ -22,8 +22,7 @@ const Header: React.FC = () => {
     balanceLoading,
     connect, 
     disconnect,
-    formatAddress,
-    refreshBalance 
+    formatAddress 
   } = useWallet();
   
   const [showWalletSelector, setShowWalletSelector] = useState(false);
@@ -242,17 +241,6 @@ const Header: React.FC = () => {
                                 </div>
                               </div>
                               
-                              <button
-                                onClick={refreshBalance}
-                                disabled={balanceLoading}
-                                className="mt-2 w-full px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded transition-colors disabled:opacity-50 flex items-center justify-center"
-                                title="Refresh balances"
-                              >
-                                <svg className={`w-3 h-3 mr-1 ${balanceLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Refresh
-                              </button>
                             </div>
                           )}
                         </div>

@@ -353,8 +353,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Start monitoring for pending transactions
       transactionMonitor.startMonitoring(bech32Address);
 
-      // Preload wallet balances
-      setTimeout(async () => {
+      // Preload wallet balances immediately
+      (async () => {
         try {
           console.log('Starting balance preload for address:', bech32Address);
           setBalanceLoading(true);
@@ -367,7 +367,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         } finally {
           setBalanceLoading(false);
         }
-      }, 1000); // Small delay to ensure wallet is fully connected
+      })();
 
       console.log(`Successfully connected to ${walletId} wallet`);
 
@@ -521,11 +521,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             // Initialize fraud detection on reconnect
             await fraudDetection.initializeWalletTracking(formattedAddress, wallet);
             
-            // Preload wallet balances on reconnect
-            setTimeout(async () => {
+            // Preload wallet balances on reconnect immediately
+            (async () => {
               try {
+                console.log('Starting balance preload on reconnect for address:', formattedAddress);
                 setBalanceLoading(true);
                 const walletBalance = await walletBalanceService.getWalletBalance(formattedAddress);
+                console.log('Preloaded wallet balance on reconnect:', walletBalance);
                 setBalance(walletBalance);
               } catch (error) {
                 console.error('Failed to preload wallet balance on reconnect:', error);
@@ -533,7 +535,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
               } finally {
                 setBalanceLoading(false);
               }
-            }, 1000); // Small delay to ensure wallet is fully connected
+            })();
             
             console.log(`Successfully reconnected to ${savedWallet} wallet`);
           }
