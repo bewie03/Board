@@ -45,10 +45,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="mb-8"
         >
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-blue-700 mb-4">
             BoneBoard
           </h1>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-600 mx-auto rounded-full"></div>
+          <div className="w-24 h-1 bg-blue-600 mx-auto rounded-full"></div>
         </motion.div>
         
         <motion.div 

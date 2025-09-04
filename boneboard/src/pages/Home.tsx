@@ -174,7 +174,7 @@ const Home: React.FC = () => {
               transition={{ duration: 0.8 }}
               className="mb-6"
             >
-              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent mb-4">
+              <h1 className="text-5xl md:text-6xl font-bold text-blue-700 mb-4">
                 BoneBoard
               </h1>
               <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-600 mx-auto rounded-full"></div>
@@ -197,7 +197,7 @@ const Home: React.FC = () => {
             >
               <Link 
                 to="/jobs" 
-                className="inline-flex items-center justify-center px-10 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+                className="inline-flex items-center justify-center px-10 py-4 text-lg font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
               >
                 Browse Jobs
               </Link>
