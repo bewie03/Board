@@ -3,10 +3,15 @@ import { useWallet } from '../../contexts/WalletContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
+import { useNavigate } from 'react-router-dom';
 
 const AccountSettings: React.FC = () => {
   const { walletAddress, username, setUsername, profilePhoto, setProfilePhoto } = useWallet();
+  const navigate = useNavigate();
   const [localUsername, setLocalUsername] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load username from context when component mounts or username changes
   useEffect(() => {
@@ -143,6 +148,52 @@ const AccountSettings: React.FC = () => {
       console.error('Error updating profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      toast.error('Please type "DELETE" to confirm account deletion');
+      return;
+    }
+
+    setIsDeleting(true);
+    
+    try {
+      if (!walletAddress) {
+        toast.error('Please connect your wallet first');
+        return;
+      }
+
+      const response = await fetch(`/api/user-profiles?wallet=${encodeURIComponent(walletAddress)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          confirmDelete: true
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
+      }
+
+      toast.success('Account deleted successfully. You will be redirected to the home page.');
+      
+      // Clear local storage and redirect
+      localStorage.clear();
+      setTimeout(() => {
+        navigate('/');
+        window.location.reload();
+      }, 2000);
+
+    } catch (error: any) {
+      toast.error(`Failed to delete account: ${error.message}`);
+      console.error('Error deleting account:', error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -291,6 +342,98 @@ const AccountSettings: React.FC = () => {
               </button>
             </div>
           </form>
+
+          {/* Danger Zone - Delete Account */}
+          <div className="mt-12 pt-8 border-t border-red-200">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-red-800 mb-2 flex items-center">
+                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                Danger Zone
+              </h3>
+              <p className="text-red-700 text-sm mb-4">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-red-800 mb-2">
+                    This will permanently delete:
+                  </p>
+                  <ul className="text-sm text-red-700 space-y-1 ml-4">
+                    <li>• Your user profile and settings</li>
+                    <li>• All job postings you've created</li>
+                    <li>• All projects you've posted</li>
+                    <li>• Your freelancer profile (if any)</li>
+                    <li>• All saved jobs and bookmarks</li>
+                    <li>• Transaction history and payments</li>
+                    <li>• Messages and conversations</li>
+                    <li>• All other account data</li>
+                  </ul>
+                </div>
+
+                {!showDeleteConfirm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                  >
+                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Account
+                  </button>
+                ) : (
+                  <div className="space-y-4 p-4 bg-white border border-red-300 rounded-md">
+                    <p className="text-sm font-medium text-red-800">
+                      Are you absolutely sure? This action cannot be undone.
+                    </p>
+                    <p className="text-sm text-red-700">
+                      Please type <span className="font-mono font-semibold">DELETE</span> to confirm:
+                    </p>
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      className="block w-full px-3 py-2 border border-red-300 rounded-md text-sm focus:ring-red-500 focus:border-red-500"
+                      placeholder="Type DELETE to confirm"
+                    />
+                    <div className="flex space-x-3">
+                      <button
+                        type="button"
+                        onClick={handleDeleteAccount}
+                        disabled={isDeleting || deleteConfirmText !== 'DELETE'}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Deleting...
+                          </>
+                        ) : (
+                          'Delete Account Permanently'
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDeleteConfirm(false);
+                          setDeleteConfirmText('');
+                        }}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
         </div>
       </div>

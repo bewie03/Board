@@ -210,23 +210,77 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
 async function handleDelete(req: VercelRequest, res: VercelResponse) {
   const { wallet } = req.query;
+  const { confirmDelete } = req.body;
 
   if (!wallet) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // Check if user exists
-  const userResult = await getPool().query('SELECT id FROM users WHERE wallet_address = $1', [wallet]);
-  if (userResult.rows.length === 0) {
-    return res.status(404).json({ error: 'User not found' });
+  if (!confirmDelete) {
+    return res.status(400).json({ error: 'Account deletion must be confirmed' });
   }
 
-  // Delete user (this will cascade to related tables due to foreign key constraints)
-  const query = 'DELETE FROM users WHERE wallet_address = $1 RETURNING id';
-  const result = await getPool().query(query, [wallet]);
+  const pool = getPool();
+  
+  try {
+    // Start transaction for atomic deletion
+    await pool.query('BEGIN');
 
-  return res.status(200).json({ 
-    success: true, 
-    message: 'User deleted successfully' 
-  });
+    // Check if user exists and get user ID
+    const userResult = await pool.query('SELECT id FROM users WHERE wallet_address = $1', [wallet]);
+    if (userResult.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userId = userResult.rows[0].id;
+    console.log(`Starting account deletion for wallet: ${wallet}, user_id: ${userId}`);
+
+    // Delete data in specific order to avoid foreign key conflicts
+    
+    // 1. Delete wallet address references first
+    await pool.query('DELETE FROM project_votes WHERE wallet_address = $1', [wallet]);
+    await pool.query('DELETE FROM ada_transactions WHERE from_wallet = $1', [wallet]);
+    await pool.query('DELETE FROM funding_contributions WHERE contributor_wallet = $1', [wallet]);
+    await pool.query('DELETE FROM project_funding WHERE wallet_address = $1', [wallet]);
+    await pool.query('DELETE FROM job_listings WHERE user_id = $1', [wallet]);
+    
+    // 2. Delete user ID references (these will cascade to child tables automatically)
+    await pool.query('DELETE FROM scam_reports WHERE reporter_id = $1 OR verified_by = $1', [userId]);
+    await pool.query('DELETE FROM bone_transactions WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM wallet_connections WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM saved_jobs WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM notifications WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM reviews WHERE reviewer_id = $1', [userId]);
+    
+    // 3. Delete projects (this will cascade to project_funding, project_votes, etc.)
+    await pool.query('DELETE FROM projects WHERE user_id = $1', [userId]);
+    
+    // 4. Delete freelancer profiles (this will cascade to service_packages, job_applications, reviews)
+    await pool.query('DELETE FROM freelancer_profiles WHERE user_id = $1', [userId]);
+    
+    // 5. Finally delete the main user record
+    const deleteResult = await pool.query('DELETE FROM users WHERE id = $1 RETURNING wallet_address', [userId]);
+
+    // Commit transaction
+    await pool.query('COMMIT');
+
+    console.log(`Account deletion completed for wallet: ${wallet}`);
+
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Account and all associated data deleted successfully',
+      deletedWallet: deleteResult.rows[0]?.wallet_address
+    });
+
+  } catch (error: any) {
+    // Rollback transaction on error
+    await pool.query('ROLLBACK');
+    console.error('Account deletion failed:', error);
+    
+    return res.status(500).json({ 
+      error: 'Failed to delete account', 
+      details: error.message 
+    });
+  }
 }
