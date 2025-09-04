@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaDiscord, FaLayerGroup } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import Modal from './Modal';
@@ -7,6 +7,16 @@ const Footer: React.FC = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCookies, setShowCookies] = useState(false);
+
+  // Listen for cookie policy modal trigger from CookieConsent component
+  useEffect(() => {
+    const handleOpenCookiePolicy = () => {
+      setShowCookies(true);
+    };
+
+    window.addEventListener('openCookiePolicy', handleOpenCookiePolicy);
+    return () => window.removeEventListener('openCookiePolicy', handleOpenCookiePolicy);
+  }, []);
 
   const openDiscord = () => {
     window.open('https://discord.gg/boneboard', '_blank', 'noopener,noreferrer');

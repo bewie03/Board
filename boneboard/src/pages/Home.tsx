@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUsers, FaBookOpen } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
+import CookieConsent from '../components/CookieConsent';
 import { motion } from 'framer-motion';
 import { JobService } from '../services/jobService';
 
@@ -321,6 +322,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Cookie Consent Popup */}
+      <CookieConsent />
     </PageTransition>
   );
 };
