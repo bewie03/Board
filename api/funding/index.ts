@@ -67,11 +67,20 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           p.discord_invite,
           p.is_verified,
           p.user_id as project_owner_id,
-          u.wallet_address as owner_wallet
+          u.wallet_address as owner_wallet,
+          COALESCE(
+            (SELECT SUM(fc.ada_amount) 
+             FROM funding_contributions fc 
+             WHERE fc.project_funding_id = pf.id), 
+            0
+          ) as current_funding,
+          COUNT(DISTINCT fc_count.contributor_wallet) as contributor_count
         FROM project_funding pf
         LEFT JOIN projects p ON pf.project_id = p.id
         LEFT JOIN users u ON p.user_id = u.id
+        LEFT JOIN funding_contributions fc_count ON fc_count.project_funding_id = pf.id
         WHERE pf.id = $1
+        GROUP BY pf.id, p.id, u.id
       `;
       
       const contributionsQuery = `
@@ -141,7 +150,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         progress_percentage: project.funding_goal > 0 
           ? Math.min((parseFloat(project.current_funding) / parseFloat(project.funding_goal)) * 100, 100)
           : 0,
-        contributor_count: contributions.length,
+        contributor_count: parseInt(project.contributor_count) || 0,
         current_funding: parseFloat(project.current_funding) || 0,
         funding_goal: parseFloat(project.funding_goal) || 0
       };
