@@ -516,7 +516,7 @@ const Funding: React.FC = () => {
                         <span>Goal: {fundingService.formatADA(project.funding_goal)} ADA</span>
                         <span className="flex items-center">
                           <FaUsers className="mr-1" />
-                          {project.contributor_count} contributors
+                          {project.contributor_count} contributions
                         </span>
                       </div>
                     </div>
