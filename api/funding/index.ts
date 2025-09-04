@@ -109,7 +109,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         progress_percentage: project.funding_goal > 0 
           ? Math.min((parseFloat(project.current_funding) / parseFloat(project.funding_goal)) * 100, 100)
           : 0,
-        contributor_count: contributions.length,
+        contributor_count: new Set(contributions.map(c => c.contributor_wallet)).size,
         current_funding: parseFloat(project.current_funding) || 0,
         funding_goal: parseFloat(project.funding_goal) || 0
       };
@@ -137,7 +137,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           ELSE 0 
         END as progress_percentage,
         (
-          SELECT COUNT(*) 
+          SELECT COUNT(DISTINCT fc.contributor_wallet) 
           FROM funding_contributions fc 
           WHERE fc.project_funding_id = pf.id
         ) as contributor_count
@@ -353,23 +353,58 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       try {
         await client.query('BEGIN');
 
-        // Insert contribution
-        const contributionQuery = `
-          INSERT INTO funding_contributions (
-            project_funding_id, contributor_wallet, ada_amount, 
-            ada_tx_hash, message, is_anonymous
-          ) VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING *
-        `;
+        // Check if this wallet has already contributed to this project
+        const existingContribution = await client.query(
+          'SELECT * FROM funding_contributions WHERE project_funding_id = $1 AND contributor_wallet = $2',
+          [project_funding_id, walletAddress]
+        );
 
-        const contributionResult = await client.query(contributionQuery, [
-          project_funding_id,
-          walletAddress,
-          ada_amount,
-          ada_tx_hash,
-          message,
-          is_anonymous
-        ]);
+        let contributionResult;
+        if (existingContribution.rows.length > 0) {
+          // Update existing contribution - stack ADA amounts and update message if provided
+          const existing = existingContribution.rows[0];
+          const newTotalAmount = parseFloat(existing.ada_amount) + parseFloat(ada_amount);
+          const updatedMessage = message && message.trim() ? message : existing.message;
+          
+          const updateQuery = `
+            UPDATE funding_contributions 
+            SET 
+              ada_amount = $1,
+              message = $2,
+              is_anonymous = $3,
+              ada_tx_hash = $4,
+              updated_at = NOW()
+            WHERE project_funding_id = $5 AND contributor_wallet = $6
+            RETURNING *
+          `;
+
+          contributionResult = await client.query(updateQuery, [
+            newTotalAmount,
+            updatedMessage,
+            is_anonymous,
+            ada_tx_hash, // Update to latest transaction hash
+            project_funding_id,
+            walletAddress
+          ]);
+        } else {
+          // Insert new contribution
+          const contributionQuery = `
+            INSERT INTO funding_contributions (
+              project_funding_id, contributor_wallet, ada_amount, 
+              ada_tx_hash, message, is_anonymous
+            ) VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+          `;
+
+          contributionResult = await client.query(contributionQuery, [
+            project_funding_id,
+            walletAddress,
+            ada_amount,
+            ada_tx_hash,
+            message,
+            is_anonymous
+          ]);
+        }
 
         // Update current funding amount
         const updateFundingQuery = `
