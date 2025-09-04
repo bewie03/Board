@@ -70,13 +70,11 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // Get user and profile data
+  // Get user data from users table only (no user_profiles table exists)
   const query = `
-    SELECT u.*, up.nickname, up.avatar_url, up.bio, up.location,
-           up.website, up.twitter, up.discord, up.created_at as profile_created_at
-    FROM users u
-    LEFT JOIN user_profiles up ON u.id = up.user_id
-    WHERE u.wallet_address = $1
+    SELECT id, wallet_address, username, email, created_at, updated_at, is_active, profile_type
+    FROM users
+    WHERE wallet_address = $1
   `;
 
   const result = await getPool().query(query, [wallet]);
@@ -89,81 +87,57 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   const profile = {
     id: user.id,
     walletAddress: user.wallet_address,
-    nickname: user.nickname,
-    avatarUrl: user.avatar_url,
-    bio: user.bio,
-    location: user.location,
-    website: user.website,
-    twitter: user.twitter,
-    discord: user.discord,
+    username: user.username,
+    email: user.email,
     createdAt: user.created_at,
-    profileCreatedAt: user.profile_created_at
+    updatedAt: user.updated_at,
+    isActive: user.is_active,
+    profileType: user.profile_type
   };
 
   return res.status(200).json(profile);
 }
 
 async function handlePost(req: VercelRequest, res: VercelResponse) {
-  const { walletAddress, nickname, avatarUrl, bio, location, website, twitter, discord } = req.body;
+  const { walletAddress, username, email } = req.body;
 
   if (!walletAddress) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // First, ensure user exists and update username
-  let userId;
+  // Check if user exists
   const userCheck = await getPool().query('SELECT id FROM users WHERE wallet_address = $1', [walletAddress]);
   
   if (userCheck.rows.length === 0) {
-    // Create user with username
-    const userResult = await getPool().query(
-      'INSERT INTO users (wallet_address, username) VALUES ($1, $2) RETURNING id',
-      [walletAddress, nickname]
-    );
-    userId = userResult.rows[0].id;
-  } else {
-    // Update existing user's username
-    userId = userCheck.rows[0].id;
-    await getPool().query(
-      'UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2',
-      [nickname, userId]
-    );
-  }
-
-  // Create or update profile
-  const profileCheck = await getPool().query('SELECT id FROM user_profiles WHERE user_id = $1', [userId]);
-  
-  if (profileCheck.rows.length === 0) {
-    // Create new profile
+    // Create new user
     const query = `
-      INSERT INTO user_profiles (user_id, nickname, avatar_url, bio, location, website, twitter, discord)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO users (wallet_address, username, email)
+      VALUES ($1, $2, $3)
       RETURNING *
     `;
     
-    const result = await getPool().query(query, [userId, nickname, avatarUrl, bio, location, website, twitter, discord]);
+    const result = await getPool().query(query, [walletAddress, username, email]);
     
     return res.status(201).json({
       success: true,
-      message: 'Profile created successfully',
-      profile: result.rows[0]
+      message: 'User created successfully',
+      user: result.rows[0]
     });
   } else {
-    // Update existing profile
+    // Update existing user
     const query = `
-      UPDATE user_profiles 
-      SET nickname = $2, avatar_url = $3, bio = $4, location = $5, 
-          website = $6, twitter = $7, discord = $8, updated_at = NOW()
-      WHERE user_id = $1
+      UPDATE users 
+      SET username = $2, email = $3, updated_at = NOW()
+      WHERE wallet_address = $1
       RETURNING *
     `;
     
-    const result = await getPool().query(query, [userId, nickname, avatarUrl, bio, location, website, twitter, discord]);
+    const result = await getPool().query(query, [walletAddress, username, email]);
     
     return res.status(200).json({
       success: true,
-      message: 'Profile updated successfully',
-      profile: result.rows[0]
+      message: 'User updated successfully',
+      user: result.rows[0]
     });
   }
 }
@@ -182,66 +156,55 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'wallet_address in body is required' });
   }
 
-  // Get user ID
+  // Check if user exists
   const userResult = await getPool().query('SELECT id FROM users WHERE wallet_address = $1', [wallet]);
   if (userResult.rows.length === 0) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  const userId = userResult.rows[0].id;
-
-  // Update username in users table if provided
-  if (updates.nickname || updates.username) {
-    const usernameValue = updates.username || updates.nickname;
-    await getPool().query(
-      'UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2',
-      [usernameValue, userId]
-    );
-  }
-
-  // For user_profiles table, we only need to handle profile_photo -> avatar_url
-  // The username is stored in the users table, not user_profiles
+  // Build dynamic update query for users table
   const updateFields: string[] = [];
   const params: any[] = [];
   let paramIndex = 1;
 
+  // Map frontend field names to database column names
   const fieldMapping: { [key: string]: string } = {
-    nickname: 'nickname',
-    avatarUrl: 'avatar_url',
-    bio: 'bio',
-    location: 'location',
-    website: 'website',
-    twitter: 'twitter',
-    discord: 'discord'
+    username: 'username',
+    nickname: 'username', // nickname maps to username in users table
+    email: 'email',
+    profile_type: 'profile_type',
+    is_active: 'is_active'
   };
 
   Object.entries(updates).forEach(([key, value]) => {
     const dbField = fieldMapping[key];
-    if (dbField && key !== 'username' && key !== 'wallet_address') { // Skip username as it's handled above
+    if (dbField && key !== 'wallet_address') { // Skip wallet_address as it's the identifier
       updateFields.push(`${dbField} = $${paramIndex}`);
       params.push(value);
       paramIndex++;
     }
   });
 
-  // Only update user_profiles if there are valid fields to update
-  let result = null;
-  if (updateFields.length > 0) {
-    params.push(userId);
-    const query = `
-      UPDATE user_profiles 
-      SET ${updateFields.join(', ')}, updated_at = NOW()
-      WHERE user_id = $${paramIndex}
-      RETURNING *
-    `;
-
-    result = await getPool().query(query, params);
+  if (updateFields.length === 0) {
+    return res.status(400).json({ error: 'No valid fields to update' });
   }
+
+  // Add wallet address as the WHERE condition parameter
+  params.push(wallet);
+  
+  const query = `
+    UPDATE users 
+    SET ${updateFields.join(', ')}, updated_at = NOW()
+    WHERE wallet_address = $${paramIndex}
+    RETURNING *
+  `;
+
+  const result = await getPool().query(query, params);
 
   return res.status(200).json({ 
     success: true, 
-    message: 'Profile updated successfully',
-    profile: result ? result.rows[0] : null 
+    message: 'User updated successfully',
+    user: result.rows[0]
   });
 }
 
@@ -252,24 +215,18 @@ async function handleDelete(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Wallet address is required' });
   }
 
-  // Get user ID
+  // Check if user exists
   const userResult = await getPool().query('SELECT id FROM users WHERE wallet_address = $1', [wallet]);
   if (userResult.rows.length === 0) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  const userId = userResult.rows[0].id;
-
-  // Delete profile (user will remain for referential integrity)
-  const query = 'DELETE FROM user_profiles WHERE user_id = $1 RETURNING id';
-  const result = await getPool().query(query, [userId]);
-
-  if (result.rows.length === 0) {
-    return res.status(404).json({ error: 'Profile not found' });
-  }
+  // Delete user (this will cascade to related tables due to foreign key constraints)
+  const query = 'DELETE FROM users WHERE wallet_address = $1 RETURNING id';
+  const result = await getPool().query(query, [wallet]);
 
   return res.status(200).json({ 
     success: true, 
-    message: 'Profile deleted successfully' 
+    message: 'User deleted successfully' 
   });
 }
