@@ -111,7 +111,7 @@ export const useContract = (): UseContractReturn => {
       if (error instanceof Error) {
         const message = error.message.toLowerCase();
         
-        if (message.includes('input exhaust') || message.includes('insufficient funds')) {
+        if (message.includes('input exhaust') || message.includes('insufficient funds') || message.includes('inputsexhaustederror')) {
           errorMessage = 'Insufficient funds: Your wallet doesn\'t have enough ADA to cover the transaction cost and fees. Please add more ADA or consolidate your UTXOs by sending all ADA to yourself.';
         } else if (message.includes('utxo') || message.includes('unspent')) {
           errorMessage = 'UTXO issue: Your wallet has fragmented funds. Try consolidating by sending all your ADA to yourself in one transaction, then retry.';
