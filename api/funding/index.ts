@@ -136,8 +136,6 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       ]);
 
       if (fundingResult.rows.length === 0) {
-        console.log('DEBUG: No funding project found for ID:', id);
-        console.log('DEBUG: Query executed:', fundingQuery);
         return res.status(404).json({ error: 'Funding project not found' });
       }
 
