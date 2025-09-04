@@ -50,7 +50,7 @@ const JobDetailPreview: React.FC<JobDetailPreviewProps> = ({
   isFeatured = false
 }) => {
   return (
-    <div className={`w-full max-w-full overflow-hidden ${isFeatured ? 'ring-2 ring-blue-500' : ''}`}>
+    <div className={`w-full max-w-full overflow-hidden rounded-xl ${isFeatured ? 'ring-2 ring-blue-500' : ''}`}>
       <div className="p-6">
         {/* Header Section */}
         <div className="flex gap-6 mb-6">
