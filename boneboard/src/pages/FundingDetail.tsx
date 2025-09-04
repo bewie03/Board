@@ -286,7 +286,10 @@ const FundingDetail: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <span className="font-bold text-green-600 text-lg">
-                            {fundingService.formatADA(contribution.total_ada_amount)} ADA
+                            {(() => {
+                              console.log('CONTRIBUTION DEBUG:', contribution);
+                              return fundingService.formatADA(contribution.total_ada_amount);
+                            })()} ADA
                           </span>
                           <p className="text-xs text-gray-500">
                             {formatDate(contribution.latest_contribution_date || contribution.created_at || '')}
