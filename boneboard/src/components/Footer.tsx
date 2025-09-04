@@ -655,6 +655,7 @@ const Footer: React.FC = () => {
         isOpen={showTerms} 
         onClose={() => setShowTerms(false)}
         title="Terms of Service"
+        showUnderstandButton={true}
       >
         {termsContent}
       </Modal>
@@ -663,6 +664,7 @@ const Footer: React.FC = () => {
         isOpen={showPrivacy} 
         onClose={() => setShowPrivacy(false)}
         title="Privacy Policy"
+        showUnderstandButton={true}
       >
         {privacyContent}
       </Modal>
@@ -671,6 +673,7 @@ const Footer: React.FC = () => {
         isOpen={showCookies} 
         onClose={() => setShowCookies(false)}
         title="Cookie Policy"
+        showUnderstandButton={true}
       >
         {cookieContent}
       </Modal>

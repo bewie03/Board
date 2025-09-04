@@ -329,9 +329,6 @@ const AccountSettings: React.FC = () => {
                 onClick={() => setShowDeleteConfirm(true)}
                 className="inline-flex items-center justify-center rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
-                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
                 Delete Account
               </button>
               
@@ -367,20 +364,13 @@ const AccountSettings: React.FC = () => {
           >
             <div className="space-y-6">
               {/* Warning */}
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-red-900">
-                    Permanently delete your account and all associated data
-                  </h3>
-                  <p className="mt-2 text-sm text-red-700">
-                    This action cannot be undone. All of your data will be permanently removed.
-                  </p>
-                </div>
+              <div>
+                <h3 className="text-lg font-medium text-red-900">
+                  Are you absolutely sure?
+                </h3>
+                <p className="mt-1 text-sm text-red-700">
+                  This action cannot be undone. This will permanently delete your account and remove all associated data from our servers.
+                </p>
               </div>
 
               {/* What will be deleted */}
