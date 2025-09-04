@@ -290,12 +290,6 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Debug logging for project association
-  console.log('=== JOB CREATION DEBUG ===');
-  console.log('selectedProjectId received:', selectedProjectId);
-  console.log('selectedProjectId type:', typeof selectedProjectId);
-  console.log('selectedProjectId || null:', selectedProjectId || null);
-
   // Optional: Check if company matches an existing project for verification purposes
   // This is informational only - jobs can be posted without matching projects
   if (company) {
@@ -333,13 +327,8 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
   ];
 
   try {
-    console.log('Executing INSERT with params:', params);
-    console.log('Final project_id value (param 26):', params[25]);
-    
     const result = await getPool().query(query, params);
     const job = result.rows[0];
-    
-    console.log('Job created successfully with project_id:', job.project_id);
 
     // Transform to frontend format
     const transformedJob = {

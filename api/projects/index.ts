@@ -128,6 +128,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
   const projects = result.rows.map((row: any) => ({
     id: row.id,
     title: row.title,
+    name: row.title, // Add name field mapping to title for PostJob compatibility
     description: row.description,
     category: row.category,
     fundingGoal: parseFloat(row.funding_goal) || 0,
