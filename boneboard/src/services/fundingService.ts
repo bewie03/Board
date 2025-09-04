@@ -80,7 +80,7 @@ class FundingService {
 
   async getFundingProject(id: string): Promise<FundingProject & { contributions: FundingContribution[] }> {
     try {
-      const response = await fetch(`${this.baseUrl}?action=single&id=${id}`);
+      const response = await fetch(`${this.baseUrl}/${id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch funding project');
       }
