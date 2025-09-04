@@ -7,6 +7,82 @@ import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject, FundingContribution } from '../services/fundingService';
 import { toast } from 'react-toastify';
 
+// Contributors Section Component
+const ContributorsSection: React.FC<{ projectId: string }> = ({ projectId }) => {
+  const [contributions, setContributions] = useState<FundingContribution[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContributions = async () => {
+      try {
+        setLoading(true);
+        const project = await fundingService.getFundingProject(projectId);
+        setContributions(project.contributions || []);
+      } catch (error) {
+        console.error('Error fetching contributions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContributions();
+  }, [projectId]);
+
+  if (loading) {
+    return <div className="text-center py-4">Loading contributors...</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {contributions.length > 0 ? (
+        contributions
+          .sort((a, b) => (parseFloat(String(b.total_ada_amount)) || 0) - (parseFloat(String(a.total_ada_amount)) || 0))
+          .slice(0, 10)
+          .map((contribution) => (
+            <div key={contribution.latest_contribution_id || contribution.contributor_wallet} className="bg-gray-50 rounded-lg p-4">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  {contribution.display_name === 'Anonymous' ? (
+                    <p className="font-medium text-gray-900">Anonymous</p>
+                  ) : (
+                    <div className="flex flex-col">
+                      <span className="text-gray-900 font-medium">
+                        {contribution.display_name || 'Unknown User'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(contribution.contributor_wallet);
+                          toast.success('Wallet address copied!');
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline text-left mt-1"
+                        title="Click to copy full wallet address"
+                      >
+                        {contribution.contributor_wallet.slice(0, 8)}...{contribution.contributor_wallet.slice(-6)}
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    {contribution.latest_contribution_date || contribution.created_at 
+                      ? new Date(contribution.latest_contribution_date || contribution.created_at!).toLocaleDateString()
+                      : 'Unknown Date'}
+                  </p>
+                </div>
+                <span className="text-lg font-semibold text-blue-600">
+                  {fundingService.formatADA(contribution.total_ada_amount)} ADA
+                </span>
+              </div>
+              {contribution.latest_message && (
+                <p className="text-gray-700 text-sm italic">"{contribution.latest_message}"</p>
+              )}
+            </div>
+          ))
+      ) : (
+        <p className="text-gray-500 text-center py-8">No contributions yet. Be the first to support this project!</p>
+      )}
+    </div>
+  );
+};
+
 const FundingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -245,63 +321,7 @@ const FundingDetail: React.FC = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Top Contributors
                 </h2>
-                
-                {(() => {
-                  console.log('DEBUG FRONTEND: project.contributions:', project.contributions);
-                  console.log('DEBUG FRONTEND: contributions length:', project.contributions.length);
-                  if (project.contributions && project.contributions.length > 0) {
-                    console.log('DEBUG FRONTEND: First contribution:', project.contributions[0]);
-                  }
-                  return false; // Force show contributions section
-                })() ? (
-                  <div className="text-center py-8">
-                    <div className="text-gray-400 text-4xl mb-2">🏆</div>
-                    <p className="text-gray-500">No contributions yet. Be the first to support this project!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {project.contributions
-                      .sort((a, b) => (parseFloat(String(b.total_ada_amount)) || 0) - (parseFloat(String(a.total_ada_amount)) || 0))
-                      .slice(0, 5)
-                      .map((contribution, index) => (
-                      <div key={contribution.latest_contribution_id || contribution.contributor_wallet} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
-                        <div className="flex items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3 ${
-                            index === 0 ? 'bg-yellow-500 text-white' :
-                            index === 1 ? 'bg-gray-400 text-white' :
-                            index === 2 ? 'bg-orange-600 text-white' :
-                            'bg-blue-100 text-blue-600'
-                          }`}>
-                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-900">
-                                {contribution.display_name}
-                              </span>
-                              {contribution.contribution_count > 1 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                  {contribution.contribution_count}x
-                                </span>
-                              )}
-                            </div>
-                            {contribution.latest_message && (
-                              <p className="text-gray-600 text-sm mt-2 italic">"{contribution.latest_message || contribution.message}"</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-bold text-green-600 text-lg">
-                            {fundingService.formatADA(contribution.total_ada_amount)} ADA
-                          </span>
-                          <p className="text-xs text-gray-500">
-                            {formatDate(contribution.latest_contribution_date || contribution.created_at || '')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <ContributorsSection projectId={id!} />
               </motion.div>
             </div>
 
