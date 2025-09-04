@@ -733,11 +733,6 @@ const MyJobs: React.FC = () => {
                                 <FaBuilding className="text-gray-400 text-xl" />
                               </div>
                             )}
-                            {selectedJob?.projectId && editingJob && (
-                              <div className="absolute -bottom-6 left-0 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                                Project Logo
-                              </div>
-                            )}
                           </>
                         )}
                       </div>
