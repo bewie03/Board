@@ -675,7 +675,7 @@ const MyJobs: React.FC = () => {
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                   <div className="px-8 py-6">
                     {/* Header Section */}
-                    <div className="flex gap-6 mb-6">
+                    <div className="flex gap-6 mb-8">
                       {/* Logo */}
                       <div className="flex-shrink-0 relative">
                         {editingJob && !selectedJob?.projectId ? (
@@ -743,17 +743,17 @@ const MyJobs: React.FC = () => {
                       </div>
                       
                       {/* Title and Company */}
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         {editingJob ? (
-                          <div className="space-y-4">
-                            <div className="text-3xl font-bold text-gray-900 w-full pb-2">
+                          <div className="space-y-3">
+                            <div className="text-3xl font-bold text-gray-900 leading-tight">
                               {selectedJob?.title || 'Job Title'}
                             </div>
-                            <div className="flex items-center gap-3">
-                              <div className="text-xl text-gray-700 font-medium flex-1">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="text-xl text-gray-700 font-medium">
                                 {selectedJob?.company || 'Company Name'}
                               </div>
-                              <div className="relative">
+                              <div className="flex-shrink-0">
                                 <CustomSelect
                                   options={JOB_CATEGORIES.map(category => ({
                                     value: category.id,
