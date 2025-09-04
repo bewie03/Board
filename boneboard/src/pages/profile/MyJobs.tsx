@@ -677,24 +677,68 @@ const MyJobs: React.FC = () => {
                     {/* Header Section */}
                     <div className="flex gap-6 mb-6">
                       {/* Logo */}
-                      <div className="flex-shrink-0">
-                        {selectedJob.companyLogo ? (
-                          <img 
-                            src={selectedJob.companyLogo} 
-                            alt={`${selectedJob.company} logo`}
-                            className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                              const parent = (e.target as HTMLImageElement).parentElement;
-                              if (parent) {
-                                parent.innerHTML = '<div class="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200"><span class="text-gray-400 text-base font-medium">No Logo</span></div>';
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
-                            <FaBuilding className="text-gray-400 text-xl" />
+                      <div className="flex-shrink-0 relative">
+                        {editingJob && !selectedJob?.projectId ? (
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    setEditFormData(prev => ({ 
+                                      ...prev, 
+                                      companyLogo: event.target?.result as string 
+                                    }));
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            />
+                            <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
+                              {editFormData.companyLogo || selectedJob.companyLogo ? (
+                                <img 
+                                  src={editFormData.companyLogo || selectedJob.companyLogo || ''} 
+                                  alt="Company logo"
+                                  className="w-full h-full rounded-xl object-cover"
+                                />
+                              ) : (
+                                <div className="text-center">
+                                  <FaBuilding className="text-gray-400 text-xl mx-auto mb-1" />
+                                  <span className="text-xs text-gray-500">Upload</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        ) : (
+                          <>
+                            {selectedJob.companyLogo ? (
+                              <img 
+                                src={selectedJob.companyLogo} 
+                                alt={`${selectedJob.company} logo`}
+                                className="w-20 h-20 rounded-xl object-cover border-2 border-gray-100 shadow-sm"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                  const parent = (e.target as HTMLImageElement).parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = '<div class="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200"><span class="text-gray-400 text-base font-medium">No Logo</span></div>';
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                                <FaBuilding className="text-gray-400 text-xl" />
+                              </div>
+                            )}
+                            {selectedJob?.projectId && editingJob && (
+                              <div className="absolute -bottom-2 -right-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                                Project Logo
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                       
@@ -708,6 +752,7 @@ const MyJobs: React.FC = () => {
                               onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
                               className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-blue-200 focus:border-blue-500 outline-none w-full pb-2"
                               placeholder="Job Title"
+                              disabled={!!selectedJob?.projectId}
                             />
                             <div className="flex items-center gap-3">
                               <input
@@ -716,6 +761,7 @@ const MyJobs: React.FC = () => {
                                 onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
                                 className="text-xl text-gray-700 font-medium bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none flex-1"
                                 placeholder="Company Name"
+                                disabled={!!selectedJob?.projectId}
                               />
                               <CustomSelect
                                 options={JOB_CATEGORIES.map(category => ({
