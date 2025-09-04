@@ -716,17 +716,33 @@ const PostJob: React.FC = () => {
                                 type="file"
                                 className="sr-only"
                                 accept="image/*"
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
-                                    const reader = new FileReader();
-                                    reader.onload = (event) => {
+                                    const { compressImage, validateImageFile } = await import('../utils/imageCompression');
+                                    
+                                    const validationError = validateImageFile(file);
+                                    if (validationError) {
+                                      alert(validationError);
+                                      return;
+                                    }
+
+                                    try {
+                                      const compressedDataUrl = await compressImage(file, {
+                                        maxSizeBytes: 3 * 1024 * 1024, // 3MB
+                                        quality: 0.8,
+                                        maxWidth: 800,
+                                        maxHeight: 800
+                                      });
+                                      
                                       setFormData(prev => ({
                                         ...prev,
-                                        companyLogo: event.target?.result as string
+                                        companyLogo: compressedDataUrl
                                       }));
-                                    };
-                                    reader.readAsDataURL(file);
+                                    } catch (error) {
+                                      console.error('Error compressing image:', error);
+                                      alert('Failed to process image. Please try a different file.');
+                                    }
                                   }
                                 }}
                               />
@@ -734,7 +750,7 @@ const PostJob: React.FC = () => {
                             <p className="pl-1">or drag and drop</p>
                           </div>
                           <p className="text-xs text-gray-500">
-                            PNG, JPG, GIF up to 2MB
+                            PNG, JPG, GIF up to 3MB (auto-compressed)
                           </p>
                         </div>
                       </div>

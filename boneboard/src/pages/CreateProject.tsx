@@ -152,26 +152,35 @@ const CreateProject: React.FC = () => {
   };
 
 
-  const handleLogoUpload = (file: File) => {
+  const handleLogoUpload = async (file: File) => {
     if (file) {
-      // Check file size (2MB max)
-      if (file.size > 2 * 1024 * 1024) {
-        alert('File size should not exceed 2MB');
+      const { compressImage, validateImageFile } = await import('../utils/imageCompression');
+      
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        alert(validationError);
         return;
       }
-      
-      // Check file type
-      if (!file.type.match('image.*')) {
-        alert('Please select an image file');
-        return;
+
+      try {
+        const compressedDataUrl = await compressImage(file, {
+          maxSizeBytes: 3 * 1024 * 1024, // 3MB
+          quality: 0.8,
+          maxWidth: 800,
+          maxHeight: 800
+        });
+        
+        setLogoPreview(compressedDataUrl);
+        
+        // Create a new File object from the compressed data for upload
+        const response = await fetch(compressedDataUrl);
+        const blob = await response.blob();
+        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+        setLogoFile(compressedFile);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        alert('Failed to process image. Please try a different file.');
       }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-        setLogoFile(file);
-      };
-      reader.readAsDataURL(file);
     }
   };
   
@@ -522,7 +531,7 @@ const CreateProject: React.FC = () => {
                       </div>
                     )}
                     <p className="text-xs text-gray-500 mt-2">
-                      PNG, JPG, GIF up to 2MB
+                      PNG, JPG, GIF up to 3MB (auto-compressed)
                     </p>
                     {logoFile && (
                       <p className="text-xs text-gray-500 mt-1">
