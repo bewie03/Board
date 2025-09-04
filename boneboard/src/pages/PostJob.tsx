@@ -1088,12 +1088,11 @@ const PostJob: React.FC = () => {
                         type="checkbox"
                         checked={formData.featured}
                         onChange={handleChange}
-                        className="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded"
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
                       />
                     </div>
                     <div className="ml-3 text-sm">
                       <label htmlFor="featured" className="font-medium text-gray-700 flex items-center cursor-pointer">
-                        <span className="text-blue-600 mr-2">★</span>
                         Feature this job listing
                         <span className="ml-2 text-blue-600 font-medium">+50% cost</span>
                       </label>
@@ -1115,7 +1114,7 @@ const PostJob: React.FC = () => {
                           ...prev,
                           agreeToTerms: e.target.checked
                         }))}
-                        className="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded"
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
                         required
                       />
                     </div>
