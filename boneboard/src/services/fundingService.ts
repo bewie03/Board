@@ -25,22 +25,16 @@ interface FundingProject {
 }
 
 interface FundingContribution {
-  id?: string;
-  latest_contribution_id?: string;
+  id: string;
   project_funding_id: string;
   contributor_wallet: string;
   display_name?: string;
-  amount?: number;
-  ada_amount?: number;
-  total_ada_amount: number;
-  ada_tx_hash?: string;
-  latest_tx_hash?: string;
+  amount: number;
+  ada_amount: number;
+  ada_tx_hash: string;
   message?: string;
-  latest_message?: string;
-  contribution_count: number;
   is_anonymous: boolean;
-  created_at?: string;
-  latest_contribution_date?: string;
+  created_at: string;
 }
 
 interface CreateFundingData {
@@ -323,9 +317,6 @@ class FundingService {
 
   // Utility methods
   formatADA(amount: number): string {
-    if (amount === null || amount === undefined || isNaN(amount)) {
-      return '0.00';
-    }
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6

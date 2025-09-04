@@ -67,67 +67,26 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           p.discord_invite,
           p.is_verified,
           p.user_id as project_owner_id,
-          u.wallet_address as owner_wallet,
-          COALESCE(
-            (SELECT SUM(fc.ada_amount) 
-             FROM funding_contributions fc 
-             WHERE fc.project_funding_id = pf.id), 
-            0
-          ) as current_funding,
-          COUNT(DISTINCT fc_count.contributor_wallet) as contributor_count
+          u.wallet_address as owner_wallet
         FROM project_funding pf
         LEFT JOIN projects p ON pf.project_id = p.id
         LEFT JOIN users u ON p.user_id = u.id
-        LEFT JOIN funding_contributions fc_count ON fc_count.project_funding_id = pf.id
         WHERE pf.id = $1
-        GROUP BY pf.id, p.id, u.id
       `;
       
       const contributionsQuery = `
         SELECT 
-          fc.contributor_wallet,
-          fc.project_funding_id,
-          fc.is_anonymous,
+          fc.*,
           u.username,
           CASE 
             WHEN fc.is_anonymous = true THEN 'Anonymous'
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             ELSE SUBSTRING(fc.contributor_wallet, 1, 8) || '...' || SUBSTRING(fc.contributor_wallet, -6)
-          END as display_name,
-          SUM(fc.ada_amount)::DECIMAL(15,6) as total_ada_amount,
-          COUNT(*)::INTEGER as contribution_count,
-          MAX(fc.created_at) as latest_contribution_date,
-          (
-            SELECT message 
-            FROM funding_contributions fc2 
-            WHERE fc2.contributor_wallet = fc.contributor_wallet 
-              AND fc2.project_funding_id = fc.project_funding_id
-              AND fc2.message IS NOT NULL 
-              AND fc2.message != ''
-            ORDER BY fc2.created_at DESC 
-            LIMIT 1
-          ) as latest_message,
-          (
-            SELECT ada_tx_hash 
-            FROM funding_contributions fc3 
-            WHERE fc3.contributor_wallet = fc.contributor_wallet 
-              AND fc3.project_funding_id = fc.project_funding_id
-            ORDER BY fc3.created_at DESC 
-            LIMIT 1
-          ) as latest_tx_hash,
-          (
-            SELECT id 
-            FROM funding_contributions fc4 
-            WHERE fc4.contributor_wallet = fc.contributor_wallet 
-              AND fc4.project_funding_id = fc.project_funding_id
-            ORDER BY fc4.created_at DESC 
-            LIMIT 1
-          ) as latest_contribution_id
+          END as display_name
         FROM funding_contributions fc
         LEFT JOIN users u ON fc.contributor_wallet = u.wallet_address
         WHERE fc.project_funding_id = $1
-        GROUP BY fc.contributor_wallet, fc.project_funding_id, fc.is_anonymous, u.username
-        ORDER BY MAX(fc.created_at) DESC
+        ORDER BY fc.created_at DESC
       `;
 
       const [fundingResult, contributionsResult] = await Promise.all([
@@ -136,42 +95,24 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       ]);
 
       if (fundingResult.rows.length === 0) {
+        console.log('DEBUG: No funding project found for ID:', id);
+        console.log('DEBUG: Query executed:', fundingQuery);
         return res.status(404).json({ error: 'Funding project not found' });
       }
 
       const project = fundingResult.rows[0];
       const contributions = contributionsResult.rows;
 
-      console.log('DEBUG: Raw contributions from database:', JSON.stringify(contributions, null, 2));
-      console.log('DEBUG: First contribution total_ada_amount type:', typeof contributions[0]?.total_ada_amount);
-      console.log('DEBUG: First contribution total_ada_amount value:', contributions[0]?.total_ada_amount);
-
-
-      // Process contributions to ensure numeric values
-      const processedContributions = contributions.map(contrib => {
-        const parsed = parseFloat(contrib.total_ada_amount);
-        console.log('DEBUG: Parsing total_ada_amount:', contrib.total_ada_amount, '->', parsed);
-        return {
-          ...contrib,
-          total_ada_amount: parsed,
-          contribution_count: parseInt(contrib.contribution_count) || 0,
-          ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
-        };
-      });
-
-      console.log('DEBUG: processedContributions:', JSON.stringify(processedContributions, null, 2));
-
       const processedProject = {
         ...project,
-        contributions: processedContributions,
+        contributions,
         progress_percentage: project.funding_goal > 0 
           ? Math.min((parseFloat(project.current_funding) / parseFloat(project.funding_goal)) * 100, 100)
           : 0,
-        contributor_count: parseInt(project.contributor_count) || 0,
+        contributor_count: contributions.length,
         current_funding: parseFloat(project.current_funding) || 0,
         funding_goal: parseFloat(project.funding_goal) || 0
       };
-
       
       return res.status(200).json(processedProject);
     }
@@ -196,7 +137,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           ELSE 0 
         END as progress_percentage,
         (
-          SELECT COUNT(DISTINCT fc.contributor_wallet) 
+          SELECT COUNT(*) 
           FROM funding_contributions fc 
           WHERE fc.project_funding_id = pf.id
         ) as contributor_count
@@ -222,7 +163,10 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 
     query += ' ORDER BY pf.created_at DESC';
 
+    console.log('Executing funding query:', query);
+    console.log('Query params:', queryParams);
     const result = await pool.query(query, queryParams);
+    console.log('Raw database result:', result.rows.length, 'rows');
     
     // Convert progress_percentage to number to ensure .toFixed() works on frontend
     const processedRows = result.rows.map(row => ({
