@@ -15,7 +15,9 @@ function getPool(): Pool {
     console.log('Initializing database connection...');
     pool = new Pool({
       connectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: {
+        rejectUnauthorized: false
+      },
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
