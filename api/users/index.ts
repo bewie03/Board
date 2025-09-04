@@ -6,14 +6,23 @@ let pool: Pool | null = null;
 
 function getPool(): Pool {
   if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) {
-      throw new Error('DATABASE_URL environment variable is not set');
+      console.error('No database connection string found. Checked DATABASE_URL and POSTGRES_URL');
+      throw new Error('Database connection string not found');
     }
     
+    console.log('Initializing database connection...');
     pool = new Pool({
       connectionString,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
+
+    pool.on('error', (err) => {
+      console.error('Database pool error:', err);
     });
   }
   return pool;
@@ -30,6 +39,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    console.log(`${req.method} request to /api/users`);
+    
     switch (req.method) {
       case 'POST':
         return await handlePost(req, res);
@@ -40,23 +51,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
 
 async function handlePost(req: VercelRequest, res: VercelResponse) {
   const { walletAddress } = req.body;
 
+  console.log('POST /api/users - walletAddress:', walletAddress);
+
   if (!walletAddress) {
-    return res.status(400).json({ error: 'Wallet address is required' });
+    return res.status(400).json({ 
+      success: false,
+      error: 'Wallet address is required' 
+    });
   }
 
   try {
+    console.log('Checking if user exists...');
     // First check if user already exists
     const existingUser = await getPool().query(
       'SELECT id, wallet_address, username, email, created_at, updated_at, is_active, profile_type FROM users WHERE wallet_address = $1',
       [walletAddress]
     );
+
+    console.log('Existing user query result:', existingUser.rows.length);
 
     if (existingUser.rows.length > 0) {
       // User exists, return existing user
@@ -77,11 +100,14 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Create new user
+    console.log('Creating new user...');
+    // Create new user with explicit defaults
     const result = await getPool().query(
-      'INSERT INTO users (wallet_address, profile_type) VALUES ($1, $2) RETURNING id, wallet_address, username, email, created_at, updated_at, is_active, profile_type',
-      [walletAddress, 'user']
+      'INSERT INTO users (wallet_address, profile_type, is_active) VALUES ($1, $2, $3) RETURNING id, wallet_address, username, email, created_at, updated_at, is_active, profile_type',
+      [walletAddress, 'user', true]
     );
+
+    console.log('New user created:', result.rows[0]);
 
     const newUser = result.rows[0];
     return res.status(201).json({
