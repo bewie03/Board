@@ -436,8 +436,7 @@ const CreateFunding: React.FC = () => {
         const handleFundingSuccess = (event: any) => {
           if (event.detail.txHash === result.txHash) {
             setPaymentStatus('success');
-            const successMessage = isExtending ? 'Funding deadline extended successfully!' : 'Funding project created successfully!';
-            toast.success(successMessage);
+            // Don't show toast here - transaction monitor already shows it
             setTimeout(() => {
               navigate('/my-funding');
             }, 2000);
