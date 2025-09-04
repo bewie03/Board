@@ -1080,32 +1080,34 @@ const PostJob: React.FC = () => {
                   </div>
                   
                   {/* Featured Job Option */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-start">
-                        <div className="flex items-center h-5">
-                          <input
-                            id="featured"
-                            name="featured"
-                            type="checkbox"
-                            checked={formData.featured}
-                            onChange={handleChange}
-                            className="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer transition-all duration-200 hover:scale-105"
-                          />
-                        </div>
-                        <div className="ml-3">
-                          <label htmlFor="featured" className="flex items-center font-semibold text-gray-800 cursor-pointer text-base">
-                            <span className="text-yellow-500 mr-2 text-lg">★</span>
-                            Feature this job listing
-                            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                              +50% cost
-                            </span>
-                          </label>
-                          <p className="text-gray-600 mt-2 text-sm leading-relaxed">
-                            Featured jobs appear at the top of search results with highlighted styling and premium placement for maximum visibility.
-                          </p>
-                        </div>
-                      </div>
+                  <div className="flex items-start">
+                    <div className="flex items-center h-5 relative">
+                      <input
+                        id="featured"
+                        name="featured"
+                        type="checkbox"
+                        checked={formData.featured}
+                        onChange={handleChange}
+                        className="sr-only"
+                      />
+                      <label 
+                        htmlFor="featured" 
+                        className="flex items-center justify-center w-4 h-4 border border-gray-300 rounded cursor-pointer hover:border-blue-500 transition-colors"
+                      >
+                        {formData.featured && (
+                          <span className="text-blue-600 text-xs">★</span>
+                        )}
+                      </label>
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label htmlFor="featured" className="font-medium text-gray-700 flex items-center cursor-pointer">
+                        <span className="text-blue-600 mr-2">★</span>
+                        Feature this job listing
+                        <span className="ml-2 text-blue-600 font-medium">+50% cost</span>
+                      </label>
+                      <p className="text-gray-600 mt-1">
+                        Featured jobs appear at the top of search results with highlighted styling and premium placement for maximum visibility.
+                      </p>
                     </div>
                   </div>
                   
@@ -1470,6 +1472,8 @@ const PostJob: React.FC = () => {
                   twitter={formData.twitter}
                   discord={formData.discord}
                   contactEmail={formData.contactEmail}
+                  isVerified={selectedProject ? !!userProjects.find(p => p.id === selectedProject)?.verifiedAt : false}
+                  isFeatured={formData.featured}
                 />
             </div>
           </div>
