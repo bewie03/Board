@@ -19,8 +19,8 @@ const WalletBalanceDisplay: React.FC<WalletBalanceDisplayProps> = ({
   const [balance, setBalance] = useState<WalletBalance>({ ada: 0, bone: 0 });
   const [loading, setLoading] = useState(false);
 
-  // Use context balance if available and matches the requested wallet address
-  const shouldUseContextBalance = contextBalance && walletAddress && contextBalance.ada > 0 || contextBalance.bone > 0;
+  // Use context balance if available (context balance is always preferred when wallet is connected)
+  const shouldUseContextBalance = contextBalance && walletAddress;
   const displayBalance = shouldUseContextBalance ? contextBalance : balance;
   const displayLoading = shouldUseContextBalance ? contextLoading : loading;
 

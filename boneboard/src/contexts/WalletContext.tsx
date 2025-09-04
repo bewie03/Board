@@ -126,9 +126,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       return;
     }
 
+    console.log('Refreshing balance for address:', walletAddress);
     setBalanceLoading(true);
     try {
       const walletBalance = await walletBalanceService.getWalletBalance(walletAddress);
+      console.log('Refreshed wallet balance:', walletBalance);
       setBalance(walletBalance);
     } catch (error) {
       console.error('Failed to refresh wallet balance:', error);
@@ -354,8 +356,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Preload wallet balances
       setTimeout(async () => {
         try {
+          console.log('Starting balance preload for address:', bech32Address);
           setBalanceLoading(true);
           const walletBalance = await walletBalanceService.getWalletBalance(bech32Address);
+          console.log('Preloaded wallet balance:', walletBalance);
           setBalance(walletBalance);
         } catch (error) {
           console.error('Failed to preload wallet balance:', error);
