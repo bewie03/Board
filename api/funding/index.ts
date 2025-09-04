@@ -143,9 +143,6 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const contributions = contributionsResult.rows;
 
 
-      // Add temporary debug logging
-      console.log('DEBUG - Raw contributions from DB:', JSON.stringify(contributions, null, 2));
-      
       // Process contributions to ensure numeric values
       const processedContributions = contributions.map(contrib => ({
         ...contrib,
@@ -153,8 +150,6 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         contribution_count: parseInt(contrib.contribution_count) || 0,
         ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
       }));
-      
-      console.log('DEBUG - Processed contributions:', JSON.stringify(processedContributions, null, 2));
 
       const processedProject = {
         ...project,

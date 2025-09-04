@@ -30,8 +30,6 @@ const FundingDetail: React.FC = () => {
     try {
       setLoading(true);
       const data = await fundingService.getFundingProject(id!);
-      console.log('DEBUG - Frontend received data:', JSON.stringify(data, null, 2));
-      console.log('DEBUG - Contributions array:', data.contributions);
       setProject(data);
     } catch (error) {
       console.error('Error fetching project:', error);
