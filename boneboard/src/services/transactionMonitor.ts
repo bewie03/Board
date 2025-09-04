@@ -228,7 +228,7 @@ class TransactionMonitor {
       howToApply: jobData.howToApply,
       duration: jobData.duration,
       featured: jobData.featured,
-      projectId: jobData.selectedProjectId || undefined
+      selectedProjectId: jobData.selectedProjectId || undefined
     };
     
     await JobService.addJob(jobToSave);
