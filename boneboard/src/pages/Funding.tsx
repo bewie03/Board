@@ -243,23 +243,21 @@ const Funding: React.FC = () => {
         toast.warning('Unusual activity detected. Contribution will be monitored.');
       }
 
-      // Send ADA transaction to funding wallet and get payment address
-      const { txHash, paymentAddress } = await fundingService.sendADA(
+      // Validate wallet address BEFORE transaction
+      const validation = await fundingService.validateWalletAddress(walletAddress);
+      
+      if (!validation.isValid) {
+        console.error('Wallet address validation failed:', validation.error);
+        toast.error(validation.error || 'Wallet address validation failed');
+        setContributing(false);
+        return;
+      }
+
+      // Send ADA transaction to funding wallet using validated address
+      const { txHash } = await fundingService.sendADA(
         selectedProject.funding_wallet || selectedProject.wallet_address,
         amount
       );
-
-      // Validate that the connected wallet address matches the payment address
-      if (paymentAddress !== walletAddress) {
-        console.error('Wallet address mismatch:', { 
-          connected: walletAddress, 
-          payment: paymentAddress 
-        });
-        toast.error(
-          `Wallet address mismatch detected. Your connected wallet address (${walletAddress.substring(0, 8)}...) does not match the payment address (${paymentAddress.substring(0, 8)}...). Please ensure you're using the same address for both connection and payment.`
-        );
-        return;
-      }
 
       // Record contribution in database with validated address
       await fundingService.contributeTo({
@@ -268,7 +266,7 @@ const Funding: React.FC = () => {
         ada_tx_hash: txHash,
         message: contributionMessage,
         is_anonymous: isContributionAnonymous
-      }, paymentAddress); // Use the validated payment address
+      }, validation.paymentAddress!); // Use the pre-validated payment address
 
       toast.success('Contribution successful! Thank you for supporting this project.');
       setShowContributeModal(false);

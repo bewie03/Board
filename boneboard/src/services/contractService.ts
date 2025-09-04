@@ -601,6 +601,21 @@ export class ContractService {
     }
   }
 
+  async getWalletPaymentAddress(): Promise<{ success: boolean; paymentAddress?: string; error?: string }> {
+    if (!this.lucid) {
+      return { success: false, error: 'Lucid not initialized' };
+    }
+
+    try {
+      const paymentAddress = await this.lucid.wallet.address();
+      console.log('Payment address from wallet:', paymentAddress);
+      return { success: true, paymentAddress };
+    } catch (error) {
+      console.error('Error getting wallet payment address:', error);
+      return { success: false, error: 'Failed to get payment address from wallet' };
+    }
+  }
+
   async contributeADA(recipientAddress: string, amount: number): Promise<{ success: boolean; txHash?: string; error?: string; paymentAddress?: string }> {
     if (!this.lucid) {
       return { success: false, error: 'Lucid not initialized' };

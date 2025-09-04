@@ -168,6 +168,43 @@ class FundingService {
   }
 
   // Wallet integration methods
+  async validateWalletAddress(connectedAddress: string): Promise<{ isValid: boolean; paymentAddress?: string; error?: string }> {
+    const { contractService } = await import('./contractService');
+    
+    try {
+      // Get wallet API from window.cardano
+      const walletApi = await this.getConnectedWalletApi();
+      if (!walletApi) {
+        return { isValid: false, error: 'No wallet connected' };
+      }
+
+      // Initialize Lucid with wallet
+      const initialized = await contractService.initializeLucid(walletApi);
+      if (!initialized) {
+        return { isValid: false, error: 'Failed to initialize smart contract service' };
+      }
+
+      // Get payment address from wallet
+      const result = await contractService.getWalletPaymentAddress();
+      
+      if (!result.success || !result.paymentAddress) {
+        return { isValid: false, error: result.error || 'Failed to get payment address from wallet' };
+      }
+
+      // Validate addresses match
+      const isValid = result.paymentAddress === connectedAddress;
+      
+      return { 
+        isValid, 
+        paymentAddress: result.paymentAddress,
+        error: isValid ? undefined : `Connected wallet address (${connectedAddress.substring(0, 8)}...) does not match payment address (${result.paymentAddress.substring(0, 8)}...)`
+      };
+    } catch (error) {
+      console.error('Error validating wallet address:', error);
+      return { isValid: false, error: 'Failed to validate wallet address' };
+    }
+  }
+
   async sendADA(recipientAddress: string, amount: number): Promise<{ txHash: string; paymentAddress: string }> {
     const { contractService } = await import('./contractService');
     
