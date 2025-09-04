@@ -300,6 +300,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Track wallet session for fraud detection with wallet API access
       await fraudDetection.initializeWalletTracking(bech32Address, wallet);
       
+      // Create or get user in database
+      try {
+        const { userApi } = await import('../api/index');
+        const userResult = await userApi.createOrGetUser(bech32Address);
+        if (!userResult.success) {
+          console.warn('Failed to create/get user in database:', userResult.error);
+        } else {
+          console.log('User created/retrieved in database:', userResult.data);
+        }
+      } catch (error) {
+        console.error('Error creating user in database:', error);
+      }
+
       // Load profile data for this wallet
       loadWalletProfile(bech32Address);
 
@@ -427,6 +440,17 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             setWalletAddress(formattedAddress);
             setIsConnected(true);
             
+            // Create or get user in database on reconnect
+            try {
+              const { userApi } = await import('../api/index');
+              const userResult = await userApi.createOrGetUser(formattedAddress);
+              if (!userResult.success) {
+                console.warn('Failed to create/get user in database on reconnect:', userResult.error);
+              }
+            } catch (error) {
+              console.error('Error creating user in database on reconnect:', error);
+            }
+
             // Load wallet-specific profile data
             loadWalletProfile(formattedAddress);
             
