@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import PageTransition from '../../components/PageTransition';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/Modal';
+import ImageCropModal from '../../components/ImageCropModal';
 
 const AccountSettings: React.FC = () => {
   const { walletAddress, username, setUsername, profilePhoto, setProfilePhoto } = useWallet();
@@ -24,6 +25,8 @@ const AccountSettings: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(profilePhoto);
   const [isCopied, setIsCopied] = useState(false);
+  const [showImageCrop, setShowImageCrop] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const compressImage = (file: File, maxSizeKB: number = 1024): Promise<string> => {
@@ -82,23 +85,38 @@ const AccountSettings: React.FC = () => {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        // Show loading state for large files
-        if (file.size > 1024 * 1024) {
-          toast.info('Compressing image, please wait...');
-        }
-        
-        const compressedImage = await compressImage(file, 1024);
-        setProfileImage(compressedImage);
-        setProfilePhoto(compressedImage);
-        
-        if (file.size > 1024 * 1024) {
-          toast.success('Image compressed and uploaded successfully!');
-        }
-      } catch (error) {
-        console.error('Error compressing image:', error);
-        toast.error('Failed to process image. Please try again.');
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
       }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Image file is too large. Please select an image smaller than 10MB.');
+        return;
+      }
+      
+      // Store the file and show crop modal
+      setSelectedImageFile(file);
+      setShowImageCrop(true);
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    try {
+      // Convert blob to base64 for storage
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        setProfileImage(base64String);
+        setProfilePhoto(base64String);
+        toast.success('Profile picture updated successfully!');
+      };
+      reader.readAsDataURL(croppedBlob);
+    } catch (error) {
+      console.error('Error processing cropped image:', error);
+      toast.error('Failed to process image. Please try again.');
     }
   };
   
@@ -460,6 +478,14 @@ const AccountSettings: React.FC = () => {
               </div>
             </div>
           </Modal>
+
+          {/* Image Crop Modal */}
+          <ImageCropModal
+            isOpen={showImageCrop}
+            onClose={() => setShowImageCrop(false)}
+            imageFile={selectedImageFile}
+            onCropComplete={handleCropComplete}
+          />
         </div>
         </div>
       </div>
