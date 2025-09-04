@@ -30,6 +30,7 @@ const Header: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showWalletBalance, setShowWalletBalance] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const handleConnectWallet = async (walletId: string) => {
@@ -208,44 +209,52 @@ const Header: React.FC = () => {
                     <div className="p-4 space-y-2">
                       <div className="mb-4">
                         
-                        {/* Wallet Balances Section */}
+                        {/* Wallet Balances Collapsible Section */}
                         <div className="mb-2">
-                          <div className="px-4 py-3 text-sm font-medium text-gray-700 rounded-lg bg-gray-50">
-                            <div className="flex items-center mb-2">
-                              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
-                                <FaWallet className="w-4 h-4 text-blue-600" />
+                          <button
+                            onClick={() => setShowWalletBalance(!showWalletBalance)}
+                            className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 flex items-center group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                              <FaWallet className="w-4 h-4 text-blue-600 group-hover:text-blue-700" />
+                            </div>
+                            <span className="flex-1">Wallet Balances</span>
+                            <FiChevronDown className={`w-4 h-4 transition-transform ${showWalletBalance ? 'transform rotate-180' : ''}`} />
+                          </button>
+                          
+                          {showWalletBalance && (
+                            <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                              <div className="flex space-x-2 w-full">
+                                {/* ADA Balance */}
+                                <div className="flex-1 flex items-center justify-between px-2 py-1.5 bg-blue-50 rounded border border-blue-100">
+                                  <span className="text-blue-600 text-sm font-bold">₳</span>
+                                  <span className="text-xs font-semibold text-blue-700">
+                                    {balanceLoading ? '...' : balance.ada.toFixed(2)}
+                                  </span>
+                                </div>
+
+                                {/* BONE Balance */}
+                                <div className="flex-1 flex items-center justify-between px-2 py-1.5 bg-blue-50 rounded border border-blue-100">
+                                  <FaBone className="text-blue-600 text-sm" />
+                                  <span className="text-xs font-semibold text-blue-700">
+                                    {balanceLoading ? '...' : balance.bone.toLocaleString()}
+                                  </span>
+                                </div>
                               </div>
-                              <span className="flex-1">Wallet Balances</span>
+                              
                               <button
                                 onClick={refreshBalance}
                                 disabled={balanceLoading}
-                                className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded transition-colors disabled:opacity-50"
+                                className="mt-2 w-full px-3 py-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded transition-colors disabled:opacity-50 flex items-center justify-center"
                                 title="Refresh balances"
                               >
-                                <svg className={`w-4 h-4 ${balanceLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className={`w-3 h-3 mr-1 ${balanceLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
+                                Refresh
                               </button>
                             </div>
-                            
-                            <div className="flex space-x-2 w-full">
-                              {/* ADA Balance */}
-                              <div className="flex-1 flex items-center justify-between px-2 py-1.5 bg-blue-50 rounded border border-blue-100">
-                                <span className="text-blue-600 text-sm font-bold">₳</span>
-                                <span className="text-xs font-semibold text-blue-700">
-                                  {balanceLoading ? '...' : balance.ada.toFixed(2)}
-                                </span>
-                              </div>
-
-                              {/* BONE Balance */}
-                              <div className="flex-1 flex items-center justify-between px-2 py-1.5 bg-blue-50 rounded border border-blue-100">
-                                <FaBone className="text-blue-600 text-sm" />
-                                <span className="text-xs font-semibold text-blue-700">
-                                  {balanceLoading ? '...' : balance.bone.toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
+                          )}
                         </div>
 
                         <button
