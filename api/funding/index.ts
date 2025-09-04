@@ -143,12 +143,14 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const contributions = contributionsResult.rows;
 
       console.log('DEBUG: Raw contributions from database:', JSON.stringify(contributions, null, 2));
+      console.log('DEBUG: First contribution total_ada_amount type:', typeof contributions[0]?.total_ada_amount);
+      console.log('DEBUG: First contribution total_ada_amount value:', contributions[0]?.total_ada_amount);
 
 
       // Process contributions to ensure numeric values
       const processedContributions = contributions.map(contrib => ({
         ...contrib,
-        total_ada_amount: parseFloat(contrib.total_ada_amount) || 0,
+        total_ada_amount: parseFloat(contrib.total_ada_amount),
         contribution_count: parseInt(contrib.contribution_count) || 0,
         ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
       }));
