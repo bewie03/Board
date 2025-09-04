@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { transactionMonitor } from '../services/transactionMonitor';
 import { fraudDetection } from '../utils/fraudDetection';
+import { walletBalanceService, WalletBalance } from '../services/walletBalanceService';
 
 // Define the wallet interface
 export interface CardanoWallet {
@@ -43,11 +44,14 @@ type WalletContextType = {
   availableWallets: Array<{ id: string; name: string; icon?: string }>;
   username: string | null;
   profilePhoto: string | null;
+  balance: WalletBalance;
+  balanceLoading: boolean;
   setUsername: (username: string) => void;
   setProfilePhoto: (photoUrl: string | null) => void;
   connect: (walletId: string) => Promise<void>;
   disconnect: () => void;
   formatAddress: (address: string | null) => string;
+  refreshBalance: () => Promise<void>;
 };
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -73,6 +77,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   });
   const [username, setUsernameState] = useState<string | null>(null);
   const [profilePhoto, setProfilePhotoState] = useState<string | null>(null);
+  const [balance, setBalance] = useState<WalletBalance>({ ada: 0, bone: 0 });
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(false);
   
   const walletRef = useRef<CardanoWallet | null>(null);
   
@@ -112,6 +118,25 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       localStorage.removeItem(photoKey);
     }
   }, [getWalletProfileKey]);
+
+  // Refresh wallet balance
+  const refreshBalance = useCallback(async () => {
+    if (!walletAddress) {
+      setBalance({ ada: 0, bone: 0 });
+      return;
+    }
+
+    setBalanceLoading(true);
+    try {
+      const walletBalance = await walletBalanceService.getWalletBalance(walletAddress);
+      setBalance(walletBalance);
+    } catch (error) {
+      console.error('Failed to refresh wallet balance:', error);
+      setBalance({ ada: 0, bone: 0 });
+    } finally {
+      setBalanceLoading(false);
+    }
+  }, [walletAddress]);
   
   // Update wallet reference and localStorage
   const updateWallet = useCallback((newWallet: CardanoWallet | null, walletId?: string) => {
@@ -326,6 +351,20 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Start monitoring for pending transactions
       transactionMonitor.startMonitoring(bech32Address);
 
+      // Preload wallet balances
+      setTimeout(async () => {
+        try {
+          setBalanceLoading(true);
+          const walletBalance = await walletBalanceService.getWalletBalance(bech32Address);
+          setBalance(walletBalance);
+        } catch (error) {
+          console.error('Failed to preload wallet balance:', error);
+          setBalance({ ada: 0, bone: 0 });
+        } finally {
+          setBalanceLoading(false);
+        }
+      }, 1000); // Small delay to ensure wallet is fully connected
+
       console.log(`Successfully connected to ${walletId} wallet`);
 
     } catch (error) {
@@ -353,6 +392,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     // Clear profile data when disconnecting
     setUsernameState(null);
     setProfilePhotoState(null);
+    
+    // Clear balance data when disconnecting
+    setBalance({ ada: 0, bone: 0 });
+    setBalanceLoading(false);
 
     // Stop transaction monitoring
     transactionMonitor.stopMonitoring();
@@ -474,6 +517,20 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             // Initialize fraud detection on reconnect
             await fraudDetection.initializeWalletTracking(formattedAddress, wallet);
             
+            // Preload wallet balances on reconnect
+            setTimeout(async () => {
+              try {
+                setBalanceLoading(true);
+                const walletBalance = await walletBalanceService.getWalletBalance(formattedAddress);
+                setBalance(walletBalance);
+              } catch (error) {
+                console.error('Failed to preload wallet balance on reconnect:', error);
+                setBalance({ ada: 0, bone: 0 });
+              } finally {
+                setBalanceLoading(false);
+              }
+            }, 1000); // Small delay to ensure wallet is fully connected
+            
             console.log(`Successfully reconnected to ${savedWallet} wallet`);
           }
         } catch (error) {
@@ -510,11 +567,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       availableWallets,
       username,
       profilePhoto,
+      balance,
+      balanceLoading,
       setUsername,
       setProfilePhoto,
       connect,
       disconnect,
       formatAddress,
+      refreshBalance,
     }),
     [
       isConnected,
@@ -523,11 +583,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       availableWallets,
       username,
       profilePhoto,
+      balance,
+      balanceLoading,
       setUsername,
       setProfilePhoto,
       connect,
       disconnect,
-      formatAddress
+      formatAddress,
+      refreshBalance
     ]
   );
 
