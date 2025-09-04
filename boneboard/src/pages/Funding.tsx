@@ -243,20 +243,32 @@ const Funding: React.FC = () => {
         toast.warning('Unusual activity detected. Contribution will be monitored.');
       }
 
-      // Send ADA transaction to funding wallet
-      const txHash = await fundingService.sendADA(
+      // Send ADA transaction to funding wallet and get payment address
+      const { txHash, paymentAddress } = await fundingService.sendADA(
         selectedProject.funding_wallet || selectedProject.wallet_address,
         amount
       );
 
-      // Record contribution in database
+      // Validate that the connected wallet address matches the payment address
+      if (paymentAddress !== walletAddress) {
+        console.error('Wallet address mismatch:', { 
+          connected: walletAddress, 
+          payment: paymentAddress 
+        });
+        toast.error(
+          `Wallet address mismatch detected. Your connected wallet address (${walletAddress.substring(0, 8)}...) does not match the payment address (${paymentAddress.substring(0, 8)}...). Please ensure you're using the same address for both connection and payment.`
+        );
+        return;
+      }
+
+      // Record contribution in database with validated address
       await fundingService.contributeTo({
         project_funding_id: selectedProject.id,
         ada_amount: amount,
         ada_tx_hash: txHash,
         message: contributionMessage,
         is_anonymous: isContributionAnonymous
-      }, walletAddress);
+      }, paymentAddress); // Use the validated payment address
 
       toast.success('Contribution successful! Thank you for supporting this project.');
       setShowContributeModal(false);
