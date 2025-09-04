@@ -143,6 +143,9 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const contributions = contributionsResult.rows;
 
 
+      // Add debug logging to see what we're getting from database
+      console.log('Raw contributions from DB:', JSON.stringify(contributions, null, 2));
+      
       // Process contributions to ensure numeric values
       const processedContributions = contributions.map(contrib => ({
         ...contrib,
@@ -150,6 +153,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         contribution_count: parseInt(contrib.contribution_count) || 0,
         ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
       }));
+      
+      console.log('Processed contributions:', JSON.stringify(processedContributions, null, 2));
 
       const processedProject = {
         ...project,
@@ -186,7 +191,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           ELSE 0 
         END as progress_percentage,
         (
-          SELECT COUNT(*) 
+          SELECT COUNT(DISTINCT fc.contributor_wallet) 
           FROM funding_contributions fc 
           WHERE fc.project_funding_id = pf.id
         ) as contributor_count
@@ -212,10 +217,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 
     query += ' ORDER BY pf.created_at DESC';
 
-    console.log('Executing funding query:', query);
-    console.log('Query params:', queryParams);
     const result = await pool.query(query, queryParams);
-    console.log('Raw database result:', result.rows.length, 'rows');
     
     // Convert progress_percentage to number to ensure .toFixed() works on frontend
     const processedRows = result.rows.map(row => ({
