@@ -344,12 +344,8 @@ const Projects: React.FC = () => {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
           {/* Display filtered projects */}
           {filteredProjects.map((project, index) => {
-            const projectName = project.title || project.name || '';
             const relatedJobs = allJobs.filter(job => 
-              job.company && projectName && (
-                job.company.toLowerCase().includes(projectName.toLowerCase()) ||
-                projectName.toLowerCase().includes(job.company.toLowerCase())
-              )
+              job.selected_project_id === project.id || job.project_id === project.id
             );
             
             return (
@@ -467,10 +463,7 @@ const Projects: React.FC = () => {
           {/* Display sample projects */}
           {sampleProjects.map((project, index) => {
             const relatedJobs = allJobs.filter(job => 
-              job.company && project.name && (
-                job.company.toLowerCase().includes(project.name.toLowerCase()) ||
-                project.name.toLowerCase().includes(job.company.toLowerCase())
-              )
+              job.selected_project_id === project.id || job.project_id === project.id
             );
             
             return (

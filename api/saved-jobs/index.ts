@@ -76,7 +76,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
            p.is_verified as project_verified, p.status as project_status
     FROM saved_jobs sj
     INNER JOIN job_listings j ON sj.job_id = j.id
-    LEFT JOIN projects p ON j.company = p.title
+    LEFT JOIN projects p ON (j.selected_project_id = p.id OR j.project_id = p.id)
     WHERE sj.wallet_address = $1
     ORDER BY sj.created_at DESC
   `;
