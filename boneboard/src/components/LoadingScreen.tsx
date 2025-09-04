@@ -45,7 +45,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="mb-8"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-blue-700 mb-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-4">
             BoneBoard
           </h1>
           <div className="w-24 h-1 bg-blue-600 mx-auto rounded-full"></div>

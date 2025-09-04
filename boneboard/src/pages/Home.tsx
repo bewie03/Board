@@ -174,7 +174,7 @@ const Home: React.FC = () => {
               transition={{ duration: 0.8 }}
               className="mb-6"
             >
-              <h1 className="text-5xl md:text-6xl font-bold text-blue-700 mb-4">
+              <h1 className="text-5xl md:text-6xl font-bold text-blue-600 mb-4">
                 BoneBoard
               </h1>
               <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-600 mx-auto rounded-full"></div>
