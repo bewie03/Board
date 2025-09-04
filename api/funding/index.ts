@@ -77,6 +77,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const contributionsQuery = `
         SELECT 
           fc.contributor_wallet,
+          fc.project_funding_id,
           fc.is_anonymous,
           u.username,
           CASE 
@@ -116,7 +117,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         FROM funding_contributions fc
         LEFT JOIN users u ON fc.contributor_wallet = u.wallet_address
         WHERE fc.project_funding_id = $1
-        GROUP BY fc.contributor_wallet, fc.is_anonymous, u.username
+        GROUP BY fc.contributor_wallet, fc.project_funding_id, fc.is_anonymous, u.username
         ORDER BY MAX(fc.created_at) DESC
       `;
 
