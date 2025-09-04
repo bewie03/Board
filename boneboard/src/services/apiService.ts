@@ -276,9 +276,13 @@ export class ApiService {
     
     if (updates.discord && typeof updates.discord === 'object') {
       // Extract invite for discord_invite field
-      transformedData.discordInvite = updates.discord.invite || updates.discord.url;
+      transformedData.discordInvite = updates.discord.inviteUrl || updates.discord.invite || updates.discord.url;
       // Keep discordLink for compatibility  
-      transformedData.discordLink = updates.discord.invite || updates.discord.url;
+      transformedData.discordLink = updates.discord.inviteUrl || updates.discord.invite || updates.discord.url;
+    } else if (updates.discord && typeof updates.discord === 'string') {
+      // Handle string discord values
+      transformedData.discordInvite = updates.discord;
+      transformedData.discordLink = updates.discord;
     }
 
     // Transform frontend data structure to match API expectations
