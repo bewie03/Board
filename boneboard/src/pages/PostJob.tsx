@@ -297,42 +297,13 @@ const PostJob: React.FC = () => {
   
   const totalCost = calculateTotal();
   
-  const handleProjectSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const projectId = e.target.value || null;
-    setSelectedProject(projectId);
-    
-    if (projectId) {
-      const project = userProjects.find(p => p.id === projectId);
-      if (project) {
-        setFormData(prev => ({
-          ...prev,
-          company: project.name || project.title || '',
-          companyWebsite: project.website || '',
-          website: project.website || '',
-          twitter: typeof project.twitter === 'object' ? project.twitter.username || '' : project.twitter || '',
-          discord: typeof project.discord === 'object' ? project.discord.inviteUrl || '' : project.discord || '',
-          companyLogo: project.logo || '',
-        }));
-      }
-    } else {
-      // Clear company info if no project selected
-      setFormData(prev => ({
-        ...prev,
-        company: '',
-        companyWebsite: '',
-        website: '',
-        twitter: '',
-        discord: '',
-        companyLogo: '',
-      }));
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      listingDuration: name === 'listingDuration' ? parseInt(value) : prev.listingDuration
     }));
   };
 
@@ -555,7 +526,35 @@ const PostJob: React.FC = () => {
                         }))
                       ]}
                       value={selectedProject || ''}
-                      onChange={(value) => handleProjectSelect({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}
+                      onChange={(value) => {
+                        const projectId = value || null;
+                        setSelectedProject(projectId);
+                        
+                        if (projectId) {
+                          const project = userProjects.find(p => p.id === projectId);
+                          if (project) {
+                            setFormData(prev => ({
+                              ...prev,
+                              company: project.name || project.title || '',
+                              companyWebsite: project.website || '',
+                              website: project.website || '',
+                              twitter: typeof project.twitter === 'object' ? project.twitter.username || '' : project.twitter || '',
+                              discord: typeof project.discord === 'object' ? project.discord.inviteUrl || '' : project.discord || '',
+                              companyLogo: project.logo || '',
+                            }));
+                          }
+                        } else {
+                          setFormData(prev => ({
+                            ...prev,
+                            company: '',
+                            companyWebsite: '',
+                            website: '',
+                            twitter: '',
+                            discord: '',
+                            companyLogo: null,
+                          }));
+                        }
+                      }}
                       placeholder="Select a project"
                     />
                   </div>
