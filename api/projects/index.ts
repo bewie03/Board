@@ -190,17 +190,28 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
     });
   }
 
+  // First, get or create the user to get the user_id
+  const userQuery = `
+    INSERT INTO users (wallet_address, profile_type, is_active)
+    VALUES ($1, 'user', true)
+    ON CONFLICT (wallet_address) DO UPDATE SET updated_at = NOW()
+    RETURNING id
+  `;
+  const userResult = await getPool().query(userQuery, [walletAddress]);
+  const userId = userResult.rows[0].id;
+
   const query = `
     INSERT INTO projects (
-      title, description, category, funding_goal, logo, website, funding_address,
+      user_id, title, description, category, funding_goal, logo, website, funding_address,
       discord_link, twitter_link, wallet_address, payment_amount,
       payment_currency, tx_hash, expires_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
     ) RETURNING *
   `;
 
   const params = [
+    userId,
     title, 
     description, 
     category, 
