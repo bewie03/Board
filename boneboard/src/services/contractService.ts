@@ -106,8 +106,33 @@ export class ContractService {
         NETWORK as 'Preview' | 'Mainnet'
       );
       
-      // Select wallet if provided
+      // Select wallet if provided - this validates the wallet address matches
       if (walletApi) {
+        // Get the wallet address that will be used for the transaction
+        const walletAddresses = await walletApi.getUsedAddresses();
+        if (walletAddresses.length === 0) {
+          throw new Error('No addresses found in wallet');
+        }
+        
+        // Convert hex to bech32 if needed
+        let walletAddress = walletAddresses[0];
+        if (walletAddress && (walletAddress.startsWith('0x') || /^[0-9a-fA-F]+$/.test(walletAddress)) && !walletAddress.startsWith('addr')) {
+          try {
+            const CML = await import('@dcspark/cardano-multiplatform-lib-browser');
+            const cleanHex = walletAddress.startsWith('0x') ? walletAddress.slice(2) : walletAddress;
+            const bytes = new Uint8Array(Math.ceil(cleanHex.length / 2));
+            for (let i = 0; i < cleanHex.length; i += 2) {
+              bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+            }
+            const addr = CML.Address.from_bytes(bytes);
+            walletAddress = addr.to_bech32();
+            addr.free();
+          } catch (error) {
+            console.warn('Failed to convert hex address to bech32:', error);
+          }
+        }
+        
+        console.log('Smart contract will use wallet address:', walletAddress);
         lucid.selectWallet(walletApi);
       }
       
