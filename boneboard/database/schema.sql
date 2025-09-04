@@ -323,7 +323,7 @@ CREATE TABLE funding_contributions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. BLOCKCHAIN TRANSACTION
+-- 3. BLOCKCHAIN TRANSACTIONS
 CREATE TABLE bone_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,

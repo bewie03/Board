@@ -198,30 +198,6 @@ class FundingService {
     }
   }
 
-  async sendADAWithWallet(recipientAddress: string, amount: number, walletApi: any): Promise<string> {
-    const { contractService } = await import('./contractService');
-    
-    try {
-      // Initialize Lucid with the provided validated wallet API
-      const initialized = await contractService.initializeLucid(walletApi);
-      if (!initialized) {
-        throw new Error('Failed to initialize smart contract service');
-      }
-
-      // Create ADA contribution transaction
-      const result = await contractService.contributeADA(recipientAddress, amount);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Transaction failed');
-      }
-
-      return result.txHash!;
-    } catch (error) {
-      console.error('Error sending ADA with wallet:', error);
-      throw error;
-    }
-  }
-
   private async getConnectedWalletApi(): Promise<any> {
     // Check for connected wallet in window.cardano
     const cardano = (window as any).cardano;
