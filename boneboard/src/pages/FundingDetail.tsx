@@ -69,14 +69,15 @@ const FundingDetail: React.FC = () => {
       console.log(`[WALLET DEBUG] Validating ${connectedWallet} wallet for contribution`);
       console.log(`[WALLET DEBUG] Expected wallet address: ${walletAddress}`);
       
-      // Try multiple methods to get the current address (same as WalletContext)
-      const getAddress = walletApi.getChangeAddress || walletApi.getUnusedAddresses || walletApi.getUsedAddresses || walletApi.getAddress;
-      if (!getAddress) {
-        throw new Error('Connected wallet does not support address retrieval');
+      // Use getUsedAddresses first (same as other payment validations)
+      const currentAddresses = await walletApi.getUsedAddresses();
+      
+      if (currentAddresses.length === 0) {
+        throw new Error(`No addresses found in ${connectedWallet} wallet. Please check your wallet connection.`);
       }
-
-      let address = await getAddress();
-      let currentAddress = Array.isArray(address) ? address[0] : address;
+      
+      // Get current wallet address from the specific connected wallet extension
+      let currentAddress = currentAddresses[0];
       
       console.log(`[WALLET DEBUG] Raw address from ${connectedWallet}:`, currentAddress);
 

@@ -79,16 +79,15 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           SELECT 
             fc.contributor_wallet,
             SUM(fc.ada_amount) as total_ada_amount,
-            STRING_AGG(fc.ada_tx_hash, ',' ORDER BY fc.updated_at DESC, fc.created_at DESC) as tx_hashes,
+            STRING_AGG(fc.ada_tx_hash, ',' ORDER BY fc.created_at DESC) as tx_hashes,
             FIRST_VALUE(fc.message) OVER (
               PARTITION BY fc.contributor_wallet 
-              ORDER BY fc.updated_at DESC, fc.created_at DESC
+              ORDER BY fc.created_at DESC
             ) as latest_message,
             FIRST_VALUE(fc.is_anonymous) OVER (
               PARTITION BY fc.contributor_wallet 
-              ORDER BY fc.updated_at DESC, fc.created_at DESC
+              ORDER BY fc.created_at DESC
             ) as latest_is_anonymous,
-            MAX(fc.updated_at) as latest_updated_at,
             MAX(fc.created_at) as latest_created_at,
             MIN(fc.id) as id
           FROM funding_contributions fc
@@ -104,7 +103,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           ac.latest_message as message,
           ac.latest_is_anonymous as is_anonymous,
           ac.latest_created_at as created_at,
-          ac.latest_updated_at as updated_at,
+          ac.latest_created_at as updated_at,
           u.username,
           CASE 
             WHEN ac.latest_is_anonymous = true THEN 'Anonymous'
@@ -113,7 +112,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
           END as display_name
         FROM aggregated_contributions ac
         LEFT JOIN users u ON ac.contributor_wallet = u.wallet_address
-        ORDER BY ac.latest_updated_at DESC, ac.latest_created_at DESC
+        ORDER BY ac.latest_created_at DESC
       `;
 
       const [fundingResult, contributionsResult] = await Promise.all([
@@ -399,8 +398,7 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
               ada_amount = $1,
               message = $2,
               is_anonymous = $3,
-              ada_tx_hash = $4,
-              updated_at = NOW()
+              ada_tx_hash = $4
             WHERE project_funding_id = $5 AND contributor_wallet = $6
             RETURNING *
           `;
