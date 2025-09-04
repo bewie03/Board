@@ -25,16 +25,22 @@ interface FundingProject {
 }
 
 interface FundingContribution {
-  id: string;
+  id?: string;
+  latest_contribution_id?: string;
   project_funding_id: string;
   contributor_wallet: string;
   display_name?: string;
-  amount: number;
-  ada_amount: number;
-  ada_tx_hash: string;
+  amount?: number;
+  ada_amount?: number;
+  total_ada_amount: number;
+  ada_tx_hash?: string;
+  latest_tx_hash?: string;
   message?: string;
+  latest_message?: string;
+  contribution_count: number;
   is_anonymous: boolean;
-  created_at: string;
+  created_at?: string;
+  latest_contribution_date?: string;
 }
 
 interface CreateFundingData {

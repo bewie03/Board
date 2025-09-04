@@ -252,10 +252,10 @@ const FundingDetail: React.FC = () => {
                   <div className="space-y-3">
                     {project.contributions
                       .filter(c => !c.is_anonymous)
-                      .sort((a, b) => b.ada_amount - a.ada_amount)
+                      .sort((a, b) => b.total_ada_amount - a.total_ada_amount)
                       .slice(0, 5)
                       .map((contribution, index) => (
-                      <div key={contribution.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                      <div key={contribution.latest_contribution_id || contribution.contributor_wallet} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
                         <div className="flex items-center">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3 ${
                             index === 0 ? 'bg-yellow-500 text-white' :
@@ -266,112 +266,28 @@ const FundingDetail: React.FC = () => {
                             {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                           </div>
                           <div>
-                            <span className="font-medium text-gray-900">
-                              {contribution.display_name}
-                            </span>
-                            {contribution.message && (
-                              <p className="text-gray-600 text-sm mt-1 italic">"{contribution.message}"</p>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">
+                                {contribution.display_name}
+                              </span>
+                              {contribution.contribution_count > 1 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                  {contribution.contribution_count}x
+                                </span>
+                              )}
+                            </div>
+                            {contribution.latest_message && (
+                              <p className="text-gray-600 text-sm mt-2 italic">"{contribution.latest_message || contribution.message}"</p>
                             )}
                           </div>
                         </div>
                         <div className="text-right">
                           <span className="font-bold text-green-600 text-lg">
-                            {fundingService.formatADA(contribution.ada_amount)} ADA
+                            {fundingService.formatADA(contribution.total_ada_amount)} ADA
                           </span>
                           <p className="text-xs text-gray-500">
-                            {formatDate(contribution.created_at)}
+                            {formatDate(contribution.latest_contribution_date || contribution.created_at || '')}
                           </p>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {/* Anonymous contributions summary */}
-                    {project.contributions.filter(c => c.is_anonymous).length > 0 && (
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm mr-3">
-                            🕶️
-                          </div>
-                          <span className="font-medium text-gray-700">
-                            {project.contributions.filter(c => c.is_anonymous).length} Anonymous Contributors
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-semibold text-green-600">
-                            {fundingService.formatADA(
-                              project.contributions
-                                .filter(c => c.is_anonymous)
-                                .reduce((sum, c) => sum + c.ada_amount, 0)
-                            )} ADA
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-              
-              {/* Contribution Timeline */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-white shadow-sm rounded-lg p-6"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Contribution Timeline ({project.contributions.length})
-                  </h2>
-                  <div className="flex gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Total: {fundingService.formatADA(project.current_funding)} ADA
-                    </span>
-                  </div>
-                </div>
-                
-                {project.contributions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="text-gray-400 text-4xl mb-2">📈</div>
-                    <p className="text-gray-500">No contributions yet. Your contribution will be the first!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {project.contributions
-                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                      .map((contribution, index) => (
-                      <div key={contribution.id} className="relative">
-                        {/* Timeline line */}
-                        {index < project.contributions.length - 1 && (
-                          <div className="absolute left-4 top-8 w-0.5 h-16 bg-gray-200"></div>
-                        )}
-                        
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">💰</span>
-                          </div>
-                          <div className="ml-4 flex-1 bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center">
-                                <span className="font-medium text-gray-900 mr-2">
-                                  {contribution.display_name}
-                                </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                  +{fundingService.formatADA(contribution.ada_amount)} ADA
-                                </span>
-                              </div>
-                              <span className="text-sm text-gray-500">
-                                {formatDate(contribution.created_at)}
-                              </span>
-                            </div>
-                            {contribution.message && (
-                              <p className="text-gray-700 text-sm bg-white p-2 rounded border-l-4 border-blue-200 italic">
-                                "{contribution.message}"
-                              </p>
-                            )}
-                            <div className="mt-2 text-xs text-gray-500">
-                              TX: {contribution.ada_tx_hash.substring(0, 20)}...
-                            </div>
-                          </div>
                         </div>
                       </div>
                     ))}
@@ -456,7 +372,7 @@ const FundingDetail: React.FC = () => {
                       <div className="text-2xl font-bold text-blue-600">
                         {fundingService.formatADA(
                           project.contributions.length > 0 
-                            ? project.contributions.reduce((sum, c) => sum + c.ada_amount, 0) / project.contributions.length
+                            ? project.contributions.reduce((sum, c) => sum + (c.total_ada_amount || c.ada_amount || 0), 0) / project.contributions.length
                             : 0
                         )}
                       </div>
@@ -469,11 +385,11 @@ const FundingDetail: React.FC = () => {
                     <h4 className="font-medium text-gray-700">Contribution Breakdown</h4>
                     <div className="space-y-2">
                       {[
-                        { range: '1000+ ADA', count: project.contributions.filter(c => c.ada_amount >= 1000).length, color: 'bg-purple-500' },
-                        { range: '100-999 ADA', count: project.contributions.filter(c => c.ada_amount >= 100 && c.ada_amount < 1000).length, color: 'bg-blue-500' },
-                        { range: '10-99 ADA', count: project.contributions.filter(c => c.ada_amount >= 10 && c.ada_amount < 100).length, color: 'bg-green-500' },
-                        { range: '1-9 ADA', count: project.contributions.filter(c => c.ada_amount >= 1 && c.ada_amount < 10).length, color: 'bg-yellow-500' },
-                        { range: '<1 ADA', count: project.contributions.filter(c => c.ada_amount < 1).length, color: 'bg-gray-400' }
+                        { range: '1000+ ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 1000).length, color: 'bg-purple-500' },
+                        { range: '100-999 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 100 && (c.total_ada_amount || c.ada_amount || 0) < 1000).length, color: 'bg-blue-500' },
+                        { range: '10-99 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 10 && (c.total_ada_amount || c.ada_amount || 0) < 100).length, color: 'bg-green-500' },
+                        { range: '1-9 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 1 && (c.total_ada_amount || c.ada_amount || 0) < 10).length, color: 'bg-yellow-500' },
+                        { range: '<1 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) < 1).length, color: 'bg-gray-400' }
                       ].map((tier, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center">

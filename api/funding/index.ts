@@ -76,17 +76,48 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       
       const contributionsQuery = `
         SELECT 
-          fc.*,
+          fc.contributor_wallet,
+          fc.is_anonymous,
           u.username,
           CASE 
             WHEN fc.is_anonymous = true THEN 'Anonymous'
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             ELSE SUBSTRING(fc.contributor_wallet, 1, 8) || '...' || SUBSTRING(fc.contributor_wallet, -6)
-          END as display_name
+          END as display_name,
+          SUM(fc.ada_amount) as total_ada_amount,
+          COUNT(*) as contribution_count,
+          MAX(fc.created_at) as latest_contribution_date,
+          (
+            SELECT message 
+            FROM funding_contributions fc2 
+            WHERE fc2.contributor_wallet = fc.contributor_wallet 
+              AND fc2.project_funding_id = fc.project_funding_id
+              AND fc2.message IS NOT NULL 
+              AND fc2.message != ''
+            ORDER BY fc2.created_at DESC 
+            LIMIT 1
+          ) as latest_message,
+          (
+            SELECT ada_tx_hash 
+            FROM funding_contributions fc3 
+            WHERE fc3.contributor_wallet = fc.contributor_wallet 
+              AND fc3.project_funding_id = fc.project_funding_id
+            ORDER BY fc3.created_at DESC 
+            LIMIT 1
+          ) as latest_tx_hash,
+          (
+            SELECT id 
+            FROM funding_contributions fc4 
+            WHERE fc4.contributor_wallet = fc.contributor_wallet 
+              AND fc4.project_funding_id = fc.project_funding_id
+            ORDER BY fc4.created_at DESC 
+            LIMIT 1
+          ) as latest_contribution_id
         FROM funding_contributions fc
         LEFT JOIN users u ON fc.contributor_wallet = u.wallet_address
         WHERE fc.project_funding_id = $1
-        ORDER BY fc.created_at DESC
+        GROUP BY fc.contributor_wallet, fc.is_anonymous, u.username
+        ORDER BY MAX(fc.created_at) DESC
       `;
 
       const [fundingResult, contributionsResult] = await Promise.all([
