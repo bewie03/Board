@@ -243,7 +243,7 @@ async function handleDelete(req: VercelRequest, res: VercelResponse) {
     await pool.query('DELETE FROM ada_transactions WHERE from_wallet = $1', [wallet]);
     await pool.query('DELETE FROM funding_contributions WHERE contributor_wallet = $1', [wallet]);
     await pool.query('DELETE FROM project_funding WHERE wallet_address = $1', [wallet]);
-    await pool.query('DELETE FROM job_listings WHERE user_id = $1', [wallet]);
+    await pool.query('DELETE FROM job_listings WHERE user_id = $1', [userId]);
     
     // 2. Delete user ID references (these will cascade to child tables automatically)
     await pool.query('DELETE FROM scam_reports WHERE reporter_id = $1 OR verified_by = $1', [userId]);
