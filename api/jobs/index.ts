@@ -360,7 +360,8 @@ async function handlePost(req: VercelRequest, res: VercelResponse) {
       website: job.website,
       twitter: job.twitter,
       discord: job.discord,
-      featured: job.is_featured
+      featured: job.is_featured,
+      projectId: job.project_id
     };
 
     return res.status(201).json(transformedJob);
