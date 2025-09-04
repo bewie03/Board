@@ -252,7 +252,7 @@ const FundingDetail: React.FC = () => {
                   <div className="space-y-3">
                     {project.contributions
                       .filter(c => !c.is_anonymous)
-                      .sort((a, b) => b.total_ada_amount - a.total_ada_amount)
+                      .sort((a, b) => (parseFloat(String(b.total_ada_amount)) || 0) - (parseFloat(String(a.total_ada_amount)) || 0))
                       .slice(0, 5)
                       .map((contribution, index) => (
                       <div key={contribution.latest_contribution_id || contribution.contributor_wallet} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
@@ -283,7 +283,7 @@ const FundingDetail: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <span className="font-bold text-green-600 text-lg">
-                            {fundingService.formatADA(contribution.total_ada_amount)} ADA
+                            {fundingService.formatADA(parseFloat(String(contribution.total_ada_amount)) || 0)} ADA
                           </span>
                           <p className="text-xs text-gray-500">
                             {formatDate(contribution.latest_contribution_date || contribution.created_at || '')}
@@ -372,10 +372,9 @@ const FundingDetail: React.FC = () => {
                       <div className="text-2xl font-bold text-blue-600">
                         {fundingService.formatADA(
                           project.contributions.length > 0 
-                            ? project.contributions.reduce((sum, c) => sum + (c.total_ada_amount || c.ada_amount || 0), 0) / project.contributions.length
+                            ? project.contributions.reduce((sum, c) => sum + (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0), 0) / project.contributions.length
                             : 0
-                        )}
-                      </div>
+                        )}</div>
                       <div className="text-sm text-blue-700">Avg. Contribution</div>
                     </div>
                   </div>
@@ -385,11 +384,11 @@ const FundingDetail: React.FC = () => {
                     <h4 className="font-medium text-gray-700">Contribution Breakdown</h4>
                     <div className="space-y-2">
                       {[
-                        { range: '1000+ ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 1000).length, color: 'bg-purple-500' },
-                        { range: '100-999 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 100 && (c.total_ada_amount || c.ada_amount || 0) < 1000).length, color: 'bg-blue-500' },
-                        { range: '10-99 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 10 && (c.total_ada_amount || c.ada_amount || 0) < 100).length, color: 'bg-green-500' },
-                        { range: '1-9 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) >= 1 && (c.total_ada_amount || c.ada_amount || 0) < 10).length, color: 'bg-yellow-500' },
-                        { range: '<1 ADA', count: project.contributions.filter(c => (c.total_ada_amount || c.ada_amount || 0) < 1).length, color: 'bg-gray-400' }
+                        { range: '1000+ ADA', count: project.contributions.filter(c => (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) >= 1000).length, color: 'bg-purple-500' },
+                        { range: '100-999 ADA', count: project.contributions.filter(c => (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) >= 100 && (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) < 1000).length, color: 'bg-blue-500' },
+                        { range: '10-99 ADA', count: project.contributions.filter(c => (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) >= 10 && (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) < 100).length, color: 'bg-green-500' },
+                        { range: '1-9 ADA', count: project.contributions.filter(c => (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) >= 1 && (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) < 10).length, color: 'bg-yellow-500' },
+                        { range: '<1 ADA', count: project.contributions.filter(c => (parseFloat(String(c.total_ada_amount)) || parseFloat(String(c.ada_amount)) || 0) < 1).length, color: 'bg-gray-400' }
                       ].map((tier, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center">

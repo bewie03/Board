@@ -94,8 +94,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             ELSE SUBSTRING(fc.contributor_wallet, 1, 8) || '...' || SUBSTRING(fc.contributor_wallet, -6)
           END as display_name,
-          SUM(fc.ada_amount) as total_ada_amount,
-          COUNT(*) as contribution_count,
+          SUM(fc.ada_amount)::DECIMAL(15,6) as total_ada_amount,
+          COUNT(*)::INTEGER as contribution_count,
           MAX(fc.created_at) as latest_contribution_date,
           (
             SELECT message 
@@ -144,9 +144,18 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const project = fundingResult.rows[0];
       const contributions = contributionsResult.rows;
 
+
+      // Process contributions to ensure numeric values
+      const processedContributions = contributions.map(contrib => ({
+        ...contrib,
+        total_ada_amount: parseFloat(contrib.total_ada_amount) || 0,
+        contribution_count: parseInt(contrib.contribution_count) || 0,
+        ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
+      }));
+
       const processedProject = {
         ...project,
-        contributions,
+        contributions: processedContributions,
         progress_percentage: project.funding_goal > 0 
           ? Math.min((parseFloat(project.current_funding) / parseFloat(project.funding_goal)) * 100, 100)
           : 0,
@@ -154,6 +163,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         current_funding: parseFloat(project.current_funding) || 0,
         funding_goal: parseFloat(project.funding_goal) || 0
       };
+
       
       return res.status(200).json(processedProject);
     }
