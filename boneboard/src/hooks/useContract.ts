@@ -104,8 +104,32 @@ export const useContract = (): UseContractReturn => {
       }
     } catch (error) {
       console.error('Error posting job:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred while posting the job';
-      toast.error(errorMessage);
+      
+      // Handle specific error types with user-friendly messages
+      let errorMessage = 'An unexpected error occurred while posting the job';
+      
+      if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+        
+        if (message.includes('input exhaust') || message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds: Your wallet doesn\'t have enough ADA to cover the transaction cost and fees. Please add more ADA or consolidate your UTXOs by sending all ADA to yourself.';
+        } else if (message.includes('utxo') || message.includes('unspent')) {
+          errorMessage = 'UTXO issue: Your wallet has fragmented funds. Try consolidating by sending all your ADA to yourself in one transaction, then retry.';
+        } else if (message.includes('network') || message.includes('connection')) {
+          errorMessage = 'Network connection issue: Please check your internet connection and try again.';
+        } else if (message.includes('wallet') || message.includes('cardano')) {
+          errorMessage = 'Wallet connection issue: Please disconnect and reconnect your wallet, then try again.';
+        } else if (message.includes('timeout')) {
+          errorMessage = 'Transaction timeout: The blockchain is busy. Please wait a moment and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage, {
+        autoClose: 8000,
+        style: { whiteSpace: 'pre-line' }
+      });
       return false;
     } finally {
       setIsLoading(false);
