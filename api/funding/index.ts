@@ -148,12 +148,16 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
 
 
       // Process contributions to ensure numeric values
-      const processedContributions = contributions.map(contrib => ({
-        ...contrib,
-        total_ada_amount: parseFloat(contrib.total_ada_amount),
-        contribution_count: parseInt(contrib.contribution_count) || 0,
-        ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
-      }));
+      const processedContributions = contributions.map(contrib => {
+        const parsed = parseFloat(contrib.total_ada_amount);
+        console.log('DEBUG: Parsing total_ada_amount:', contrib.total_ada_amount, '->', parsed);
+        return {
+          ...contrib,
+          total_ada_amount: parsed,
+          contribution_count: parseInt(contrib.contribution_count) || 0,
+          ada_amount: contrib.ada_amount ? parseFloat(contrib.ada_amount) : undefined
+        };
+      });
 
       const processedProject = {
         ...project,
