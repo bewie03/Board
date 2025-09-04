@@ -142,6 +142,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       const project = fundingResult.rows[0];
       const contributions = contributionsResult.rows;
 
+      console.log('DEBUG: Raw contributions from database:', JSON.stringify(contributions, null, 2));
+
 
       // Process contributions to ensure numeric values
       const processedContributions = contributions.map(contrib => ({
