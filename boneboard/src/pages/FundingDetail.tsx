@@ -97,10 +97,11 @@ const FundingDetail: React.FC = () => {
         throw new Error(`Address mismatch detected: expecting ${expectedTruncated} but ${currentTruncated} is connected in ${connectedWallet}. Please switch to the correct address or reconnect your wallet.`);
       }
 
-      // Send ADA transaction
-      const txHash = await fundingService.sendADA(
+      // Send ADA transaction using the validated wallet API
+      const txHash = await fundingService.sendADAWithWallet(
         project.wallet_address,
-        amount
+        amount,
+        walletApi
       );
 
       // Record contribution in database
