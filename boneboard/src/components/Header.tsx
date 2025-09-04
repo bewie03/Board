@@ -75,7 +75,7 @@ const Header: React.FC = () => {
                 <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center group-hover:bg-blue-200 group-hover:scale-110 transition-all duration-200">
                   <FaBone className="text-blue-600 text-xl group-hover:text-blue-700" />
                 </div>
-                <span className="text-xl font-bold text-blue-700 group-hover:text-blue-800 transition-colors duration-200">BoneBoard</span>
+                <span className="text-xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors duration-200">BoneBoard</span>
               </NavLink>
             </div>
             

@@ -171,6 +171,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     twitter: row.twitter,
     discord: row.discord,
     featured: row.is_featured,
+    projectId: row.project_id,
     isProjectVerified: row.project_verified || row.project_status === 'verified'
   }));
 
