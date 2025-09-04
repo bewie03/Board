@@ -91,34 +91,32 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     if (typeof window === 'undefined') return;
     
     try {
-      // First try to fetch from database
+      // Fetch from database - API returns user object directly
       const response = await fetch(`/api/user-profiles?wallet=${encodeURIComponent(address)}`);
       if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          console.log('Loaded username from database:', data.data.username);
-          setUsernameState(data.data.username || null);
-          // Profile photo still comes from localStorage for now
-          const photoKey = getWalletProfileKey(address, 'profile_photo');
-          const savedPhoto = localStorage.getItem(photoKey);
-          setProfilePhotoState(savedPhoto);
-          return;
-        }
+        const userData = await response.json();
+        console.log('Loaded user data from database:', userData);
+        setUsernameState(userData.username || null);
+        // Profile photo still comes from localStorage for now
+        const photoKey = getWalletProfileKey(address, 'profile_photo');
+        const savedPhoto = localStorage.getItem(photoKey);
+        setProfilePhotoState(savedPhoto);
+        return;
+      } else if (response.status === 404) {
+        // User doesn't exist in database yet - create with null username
+        console.log('User not found in database, will be created on first username save');
+        setUsernameState(null);
+        setProfilePhotoState(null);
+        return;
       }
     } catch (error) {
       console.error('Failed to load username from database:', error);
     }
     
-    // Fallback to localStorage if database fetch fails
-    const usernameKey = getWalletProfileKey(address, 'username');
-    const photoKey = getWalletProfileKey(address, 'profile_photo');
-    
-    const savedUsername = localStorage.getItem(usernameKey);
-    const savedPhoto = localStorage.getItem(photoKey);
-    
-    console.log('Loaded username from localStorage (fallback):', savedUsername);
-    setUsernameState(savedUsername);
-    setProfilePhotoState(savedPhoto);
+    // If API fails, set to null - no localStorage fallback
+    console.log('Database fetch failed, setting username to null');
+    setUsernameState(null);
+    setProfilePhotoState(null);
   }, [getWalletProfileKey]);
 
   const saveWalletProfile = useCallback((address: string, username: string | null, photo: string | null) => {
@@ -177,12 +175,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Set username and update both database and localStorage
+  // Set username and save to database only
   const setUsername = useCallback(async (newUsername: string) => {
     if (!walletAddress) return;
     
     try {
-      // Save to database first
+      // Save to database - API will create user if doesn't exist
       const response = await fetch(`/api/user-profiles?wallet=${encodeURIComponent(walletAddress)}`, {
         method: 'PUT',
         headers: {
@@ -195,18 +193,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        console.log('Username saved to database:', newUsername);
+        const result = await response.json();
+        console.log('Username saved to database:', result);
+        // Update local state only after successful database save
+        setUsernameState(newUsername);
       } else {
-        console.error('Failed to save username to database');
+        console.error('Failed to save username to database, response:', response.status);
+        throw new Error(`Database save failed: ${response.status}`);
       }
     } catch (error) {
       console.error('Error saving username to database:', error);
+      throw error; // Re-throw so AccountSettings can handle the error
     }
-    
-    // Update local state and localStorage regardless of database result
-    setUsernameState(newUsername);
-    saveWalletProfile(walletAddress, newUsername, profilePhoto);
-  }, [walletAddress, profilePhoto, saveWalletProfile]);
+  }, [walletAddress]);
   
   // Set profile photo and update wallet-specific localStorage
   const setProfilePhoto = useCallback((newPhoto: string | null) => {
