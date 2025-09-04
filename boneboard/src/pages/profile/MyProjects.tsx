@@ -34,12 +34,8 @@ const MyProjects: React.FC = () => {
 
   // Helper function to get job count for a project
   const getProjectJobCount = (project: Project) => {
-    const projectName = project.title || project.name;
     return allJobs.filter(job => 
-      job.company && projectName && (
-        job.company.toLowerCase().includes(projectName.toLowerCase()) ||
-        projectName.toLowerCase().includes(job.company.toLowerCase())
-      )
+      job.projectId === project.id
     ).length;
   };
 
@@ -118,7 +114,7 @@ const MyProjects: React.FC = () => {
 
   const handleDeleteProject = (projectId: string) => {
     // Count jobs associated with this project
-    const associatedJobs = allJobs.filter(job => job.project_id === projectId || job.selected_project_id === projectId);
+    const associatedJobs = allJobs.filter(job => job.projectId === projectId);
     const project = projects.find(p => p.id === projectId);
     
     setProjectToDelete({

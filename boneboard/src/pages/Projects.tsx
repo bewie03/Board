@@ -345,7 +345,7 @@ const Projects: React.FC = () => {
           {/* Display filtered projects */}
           {filteredProjects.map((project, index) => {
             const relatedJobs = allJobs.filter(job => 
-              job.projectId === project.id || job.project_id === project.id
+              job.projectId === project.id
             );
             
             return (
@@ -463,7 +463,7 @@ const Projects: React.FC = () => {
           {/* Display sample projects */}
           {sampleProjects.map((project, index) => {
             const relatedJobs = allJobs.filter(job => 
-              job.projectId === project.id || job.project_id === project.id
+              job.projectId === project.id
             );
             
             return (
