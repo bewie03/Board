@@ -300,14 +300,21 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Track wallet session for fraud detection with wallet API access
       await fraudDetection.initializeWalletTracking(bech32Address, wallet);
       
-      // Create or get user in database
+      // Create or get user in database via API
       try {
-        const { userApi } = await import('../api/index');
-        const userResult = await userApi.createOrGetUser(bech32Address);
-        if (!userResult.success) {
-          console.warn('Failed to create/get user in database:', userResult.error);
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ walletAddress: bech32Address }),
+        });
+        
+        const result = await response.json();
+        if (!result.success) {
+          console.warn('Failed to create/get user in database:', result.error);
         } else {
-          console.log('User created/retrieved in database:', userResult.data);
+          console.log('User created/retrieved in database:', result.data);
         }
       } catch (error) {
         console.error('Error creating user in database:', error);
@@ -440,12 +447,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             setWalletAddress(formattedAddress);
             setIsConnected(true);
             
-            // Create or get user in database on reconnect
+            // Create or get user in database on reconnect via API
             try {
-              const { userApi } = await import('../api/index');
-              const userResult = await userApi.createOrGetUser(formattedAddress);
-              if (!userResult.success) {
-                console.warn('Failed to create/get user in database on reconnect:', userResult.error);
+              const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ walletAddress: formattedAddress }),
+              });
+              
+              const result = await response.json();
+              if (!result.success) {
+                console.warn('Failed to create/get user in database on reconnect:', result.error);
               }
             } catch (error) {
               console.error('Error creating user in database on reconnect:', error);
