@@ -353,21 +353,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       // Start monitoring for pending transactions
       transactionMonitor.startMonitoring(bech32Address);
 
-      // Preload wallet balances immediately
-      (async () => {
-        try {
-          console.log('Starting balance preload for address:', bech32Address);
-          setBalanceLoading(true);
-          const walletBalance = await walletBalanceService.getWalletBalance(bech32Address);
-          console.log('Preloaded wallet balance:', walletBalance);
-          setBalance(walletBalance);
-        } catch (error) {
-          console.error('Failed to preload wallet balance:', error);
-          setBalance({ ada: 0, bone: 0 });
-        } finally {
-          setBalanceLoading(false);
-        }
-      })();
+      // Balance will be loaded automatically by useEffect when walletAddress changes
 
       console.log(`Successfully connected to ${walletId} wallet`);
 
@@ -423,6 +409,18 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       setProfilePhotoState(null);
     }
   }, [walletAddress, loadWalletProfile]);
+
+  // Load wallet balance when wallet address changes
+  useEffect(() => {
+    if (walletAddress) {
+      console.log('Wallet address changed, loading balance for:', walletAddress);
+      refreshBalance();
+    } else {
+      // Clear balance when no wallet is connected
+      setBalance({ ada: 0, bone: 0 });
+      setBalanceLoading(false);
+    }
+  }, [walletAddress, refreshBalance]);
 
   // Reconnect to wallet on page load if previously connected
   useEffect(() => {
@@ -521,21 +519,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
             // Initialize fraud detection on reconnect
             await fraudDetection.initializeWalletTracking(formattedAddress, wallet);
             
-            // Preload wallet balances on reconnect immediately
-            (async () => {
-              try {
-                console.log('Starting balance preload on reconnect for address:', formattedAddress);
-                setBalanceLoading(true);
-                const walletBalance = await walletBalanceService.getWalletBalance(formattedAddress);
-                console.log('Preloaded wallet balance on reconnect:', walletBalance);
-                setBalance(walletBalance);
-              } catch (error) {
-                console.error('Failed to preload wallet balance on reconnect:', error);
-                setBalance({ ada: 0, bone: 0 });
-              } finally {
-                setBalanceLoading(false);
-              }
-            })();
+            // Balance will be loaded automatically by useEffect when walletAddress changes
             
             console.log(`Successfully reconnected to ${savedWallet} wallet`);
           }
