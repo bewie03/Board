@@ -707,13 +707,13 @@ const Projects: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                       Available Jobs ({allJobs.filter(job => 
-                        job.projectId === selectedProject.id || job.project_id === selectedProject.id
+                        job.projectId === selectedProject.id
                       ).length})
                     </h3>
                     <div className="space-y-4">
                       {allJobs
                         .filter(job => 
-                          job.projectId === selectedProject.id || job.project_id === selectedProject.id
+                          job.projectId === selectedProject.id
                         )
                         .map((job) => (
                           <Link
@@ -757,7 +757,7 @@ const Projects: React.FC = () => {
                         ))
                       }
                       {allJobs.filter(job => 
-                        job.projectId === selectedProject.id || job.project_id === selectedProject.id
+                        job.projectId === selectedProject.id
                       ).length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           <p>No jobs currently available for this project.</p>
