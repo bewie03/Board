@@ -118,7 +118,7 @@ function App() {
             <Layout>
               <AnimatedRoutes />
             </Layout>
-            <ToastContainer position="top-right" autoClose={5000} />
+            <ToastContainer position="top-right" autoClose={3500} />
           </Router>
         </WalletProvider>
       </motion.div>

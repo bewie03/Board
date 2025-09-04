@@ -127,7 +127,7 @@ export const useContract = (): UseContractReturn => {
       }
       
       toast.error(errorMessage, {
-        autoClose: 8000,
+        autoClose: 5600,
         style: { whiteSpace: 'pre-line' }
       });
       return false;

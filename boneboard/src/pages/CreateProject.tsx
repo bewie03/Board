@@ -371,7 +371,7 @@ const CreateProject: React.FC = () => {
       // Check if it's a wallet address mismatch error
       if (errorMessage && errorMessage.includes('Address mismatch detected')) {
         toast.error('❌ Wallet Address Mismatch\n\n' + errorMessage, {
-          autoClose: 8000,
+          autoClose: 5600,
           style: { whiteSpace: 'pre-line' }
         });
       } else {

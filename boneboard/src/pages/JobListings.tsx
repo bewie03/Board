@@ -300,7 +300,7 @@ const JobListings: React.FC = () => {
           const errorData = await response.json();
           toast.error(errorData.message || 'You can only submit 2 reports every 3 minutes. Please wait before submitting another report.', {
             position: 'top-right',
-            autoClose: 5000,
+            autoClose: 3500,
           });
           setShowReportModal(false);
           setReportingJob(null);
@@ -316,7 +316,7 @@ const JobListings: React.FC = () => {
       console.error('Error submitting report:', error);
       toast.error('Failed to submit report. Please try again.', {
         position: 'top-right',
-        autoClose: 3000,
+        autoClose: 2100,
       });
     }
   };
