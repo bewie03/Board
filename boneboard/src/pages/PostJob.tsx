@@ -312,6 +312,11 @@ const PostJob: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStep < 2) {
+      // Validate required skills before proceeding to payment step
+      if (formData.requiredSkills.length === 0) {
+        toast.error('Please add at least 1 required skill');
+        return;
+      }
       setCurrentStep(2);
       return;
     }
@@ -876,15 +881,16 @@ const PostJob: React.FC = () => {
                         <input
                           type="text"
                           value={skillInput}
-                          onChange={(e) => setSkillInput(e.target.value)}
+                          onChange={(e) => setSkillInput(e.target.value.slice(0, 25))}
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
                               addSkill();
                             }
                           }}
+                          maxLength={25}
                           className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Type a skill and press Enter"
+                          placeholder="Type a skill and press Enter (max 25 chars)"
                           disabled={formData.requiredSkills.length >= 5}
                         />
                         <button
@@ -1059,24 +1065,30 @@ const PostJob: React.FC = () => {
                   
                   {/* Featured Job Option */}
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                    <div className="flex items-start">
-                      <div className="flex items-center h-5">
-                        <input
-                          id="featured"
-                          name="featured"
-                          type="checkbox"
-                          checked={formData.featured}
-                          onChange={handleChange}
-                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded cursor-pointer"
-                        />
-                      </div>
-                      <div className="ml-3 text-sm">
-                        <label htmlFor="featured" className="font-medium text-gray-700 cursor-pointer">
-                          ★ Feature this job listing (+50% cost)
-                        </label>
-                        <p className="text-gray-600 mt-1">
-                          Featured jobs appear at the top of search results and get highlighted styling for maximum visibility.
-                        </p>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="flex items-center h-5">
+                          <input
+                            id="featured"
+                            name="featured"
+                            type="checkbox"
+                            checked={formData.featured}
+                            onChange={handleChange}
+                            className="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer transition-all duration-200 hover:scale-105"
+                          />
+                        </div>
+                        <div className="ml-3">
+                          <label htmlFor="featured" className="flex items-center font-semibold text-gray-800 cursor-pointer text-base">
+                            <span className="text-yellow-500 mr-2 text-lg">★</span>
+                            Feature this job listing
+                            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                              +50% cost
+                            </span>
+                          </label>
+                          <p className="text-gray-600 mt-2 text-sm leading-relaxed">
+                            Featured jobs appear at the top of search results with highlighted styling and premium placement for maximum visibility.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
