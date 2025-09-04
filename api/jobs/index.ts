@@ -101,10 +101,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
       p.is_verified as project_verified,
       p.status as project_status
     FROM job_listings j
-    LEFT JOIN projects p ON (
-      j.selected_project_id = p.id OR
-      j.project_id = p.id
-    )
+    LEFT JOIN projects p ON j.project_id = p.id
   `;
   const params: any[] = [];
   const conditions: string[] = [];
