@@ -87,15 +87,36 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     return `boneboard_${field}_${address}`;
   }, []);
 
-  const loadWalletProfile = useCallback((address: string) => {
+  const loadWalletProfile = useCallback(async (address: string) => {
     if (typeof window === 'undefined') return;
     
+    try {
+      // First try to fetch from database
+      const response = await fetch(`/api/user-profiles?wallet=${encodeURIComponent(address)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          console.log('Loaded username from database:', data.data.username);
+          setUsernameState(data.data.username || null);
+          // Profile photo still comes from localStorage for now
+          const photoKey = getWalletProfileKey(address, 'profile_photo');
+          const savedPhoto = localStorage.getItem(photoKey);
+          setProfilePhotoState(savedPhoto);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load username from database:', error);
+    }
+    
+    // Fallback to localStorage if database fetch fails
     const usernameKey = getWalletProfileKey(address, 'username');
     const photoKey = getWalletProfileKey(address, 'profile_photo');
     
     const savedUsername = localStorage.getItem(usernameKey);
     const savedPhoto = localStorage.getItem(photoKey);
     
+    console.log('Loaded username from localStorage (fallback):', savedUsername);
     setUsernameState(savedUsername);
     setProfilePhotoState(savedPhoto);
   }, [getWalletProfileKey]);
@@ -156,10 +177,33 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Set username and update wallet-specific localStorage
-  const setUsername = useCallback((newUsername: string) => {
+  // Set username and update both database and localStorage
+  const setUsername = useCallback(async (newUsername: string) => {
     if (!walletAddress) return;
     
+    try {
+      // Save to database first
+      const response = await fetch(`/api/user-profiles?wallet=${encodeURIComponent(walletAddress)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          wallet_address: walletAddress,
+          username: newUsername
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Username saved to database:', newUsername);
+      } else {
+        console.error('Failed to save username to database');
+      }
+    } catch (error) {
+      console.error('Error saving username to database:', error);
+    }
+    
+    // Update local state and localStorage regardless of database result
     setUsernameState(newUsername);
     saveWalletProfile(walletAddress, newUsername, profilePhoto);
   }, [walletAddress, profilePhoto, saveWalletProfile]);
