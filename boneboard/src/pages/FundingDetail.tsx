@@ -249,7 +249,10 @@ const FundingDetail: React.FC = () => {
                 {(() => {
                   console.log('DEBUG FRONTEND: project.contributions:', project.contributions);
                   console.log('DEBUG FRONTEND: contributions length:', project.contributions.length);
-                  return project.contributions.length === 0;
+                  if (project.contributions && project.contributions.length > 0) {
+                    console.log('DEBUG FRONTEND: First contribution:', project.contributions[0]);
+                  }
+                  return false; // Force show contributions section
                 })() ? (
                   <div className="text-center py-8">
                     <div className="text-gray-400 text-4xl mb-2">🏆</div>

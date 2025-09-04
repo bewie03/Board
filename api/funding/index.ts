@@ -159,6 +159,8 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
         };
       });
 
+      console.log('DEBUG: processedContributions:', JSON.stringify(processedContributions, null, 2));
+
       const processedProject = {
         ...project,
         contributions: processedContributions,
