@@ -388,6 +388,20 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
     return res.status(404).json({ error: 'Project not found' });
   }
 
+  // If logo was updated, also update all jobs associated with this project
+  if (updates.logo) {
+    try {
+      await getPool().query(
+        'UPDATE job_listings SET company_logo_url = $1 WHERE project_id = $2',
+        [updates.logo, id]
+      );
+      console.log(`Updated logo for all jobs associated with project ${id}`);
+    } catch (error) {
+      console.error('Error updating job logos:', error);
+      // Don't fail the project update if job logo update fails
+    }
+  }
+
   return res.status(200).json({ success: true, project: result.rows[0] });
 }
 
