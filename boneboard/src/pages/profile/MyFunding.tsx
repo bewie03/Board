@@ -460,11 +460,11 @@ const MyFunding: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-gray-900">Active Funding Projects</h2>
                   {fundingProjects.some(funding => funding.is_funded && !fundingService.isExpired(funding.funding_deadline)) && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-                      <p className="text-sm text-blue-700 font-medium">
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <p className="text-sm text-gray-700 font-medium">
                         Congratulations! Your project has been fully funded.
                       </p>
-                      <p className="text-xs text-blue-600 mt-1">
+                      <p className="text-xs text-gray-600 mt-1">
                         You cannot post a new funding until this one's deadline has come to its end.
                       </p>
                     </div>
@@ -476,7 +476,7 @@ const MyFunding: React.FC = () => {
                 key={funding.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-white shadow-sm rounded-lg overflow-hidden relative ${
+                className={`bg-white shadow-sm rounded-xl overflow-hidden relative ${
                   fundingService.isExpired(funding.funding_deadline) 
                     ? 'border-l-4 border-red-500 opacity-75' 
                     : funding.is_funded 
@@ -519,19 +519,21 @@ const MyFunding: React.FC = () => {
                             <FaUsers className="w-4 h-4 mr-1" />
                             {funding.contributor_count} contributors
                           </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            fundingService.isExpired(funding.funding_deadline)
-                              ? 'bg-red-100 text-red-800'
-                              : funding.is_active 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {fundingService.isExpired(funding.funding_deadline) 
-                              ? 'Expired' 
-                              : funding.is_active 
-                                ? 'Active' 
-                                : 'Paused'}
-                          </span>
+                          {!funding.is_funded && (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              fundingService.isExpired(funding.funding_deadline)
+                                ? 'bg-red-100 text-red-800'
+                                : funding.is_active 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {fundingService.isExpired(funding.funding_deadline) 
+                                ? 'Expired' 
+                                : funding.is_active 
+                                  ? 'Active' 
+                                  : 'Paused'}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
