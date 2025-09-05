@@ -17,8 +17,8 @@ const MigrationDashboard: React.FC = () => {
 
   const getProgressPercentage = () => {
     if (!status) return 0;
-    const total = status.freelancers.total + status.jobs.total + status.projects.total + status.messages.total + status.reviews.total;
-    const migrated = status.freelancers.migrated + status.jobs.migrated + status.projects.migrated + status.messages.migrated + status.reviews.migrated;
+    const total = status.jobs.total + status.projects.total + status.messages.total + status.reviews.total;
+    const migrated = status.jobs.migrated + status.projects.migrated + status.messages.migrated + status.reviews.migrated;
     return total > 0 ? Math.round((migrated / total) * 100) : 0;
   };
 
@@ -112,8 +112,7 @@ const MigrationDashboard: React.FC = () => {
           </div>
 
           {/* Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <StatusCard title="Freelancers" data={status.freelancers} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <StatusCard title="Jobs" data={status.jobs} />
             <StatusCard title="Projects" data={status.projects} />
             <StatusCard title="Messages" data={status.messages} />

@@ -1,5 +1,4 @@
 // API integration layer to connect frontend with database services
-import { freelancerDatabaseService, type FreelancerProfile, type ServicePackage } from '../services/freelancerDatabaseService';
 import { jobDatabaseService, type JobListing, type JobApplication } from '../services/jobDatabaseService';
 import { projectDatabaseService, type Project } from '../services/projectDatabaseService';
 import { messagingDatabaseService, type Conversation, type Message } from '../services/messagingDatabaseService';
@@ -43,44 +42,6 @@ export const userApi = {
   }
 };
 
-// Freelancer API
-export const freelancerApi = {
-  async createProfile(walletAddress: string, profileData: Partial<FreelancerProfile>): Promise<ApiResponse<FreelancerProfile>> {
-    return apiCall(() => freelancerDatabaseService.createFreelancerProfile(walletAddress, profileData));
-  },
-
-  async getProfile(walletAddress: string): Promise<ApiResponse<FreelancerProfile | null>> {
-    return apiCall(() => freelancerDatabaseService.getFreelancerByWallet(walletAddress));
-  },
-
-  async getProfileById(id: string): Promise<ApiResponse<FreelancerProfile | null>> {
-    return apiCall(() => freelancerDatabaseService.getFreelancerById(id));
-  },
-
-  async getAllProfiles(filters?: { category?: string; skills?: string[] }): Promise<ApiResponse<FreelancerProfile[]>> {
-    return apiCall(() => freelancerDatabaseService.getAllFreelancers(filters));
-  },
-
-  async updateProfile(walletAddress: string, updates: Partial<FreelancerProfile>): Promise<ApiResponse<FreelancerProfile>> {
-    return apiCall(() => freelancerDatabaseService.updateFreelancerProfile(walletAddress, updates));
-  },
-
-  async createPackage(freelancerId: string, packageData: Partial<ServicePackage>): Promise<ApiResponse<ServicePackage>> {
-    return apiCall(() => freelancerDatabaseService.createServicePackage(freelancerId, packageData));
-  },
-
-  async getPackages(freelancerId: string): Promise<ApiResponse<ServicePackage[]>> {
-    return apiCall(() => freelancerDatabaseService.getServicePackages(freelancerId));
-  },
-
-  async updatePackage(packageId: string, updates: Partial<ServicePackage>): Promise<ApiResponse<ServicePackage>> {
-    return apiCall(() => freelancerDatabaseService.updateServicePackage(packageId, updates));
-  },
-
-  async migrateFromLocalStorage(): Promise<ApiResponse<void>> {
-    return apiCall(() => freelancerDatabaseService.migrateFromLocalStorage());
-  }
-};
 
 // Job API
 export const jobApi = {
@@ -238,7 +199,6 @@ export const apiUtils = {
 // Export all APIs as a single object for easy importing
 export const api = {
   user: userApi,
-  freelancer: freelancerApi,
   job: jobApi,
   project: projectApi,
   messaging: messagingApi,

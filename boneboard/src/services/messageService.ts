@@ -90,10 +90,9 @@ class MessageServiceClass {
       return existingConversation;
     }
 
-    // Get user profiles
-    const FreelancerService = await import('./freelancerService').then(m => m.FreelancerService);
-    const user1Profile = await FreelancerService.getFreelancerByWallet(user1Wallet);
-    const user2Profile = await FreelancerService.getFreelancerByWallet(user2Wallet);
+    // Get user profiles - simplified without freelancer service
+    const user1Profile = { name: 'User 1', avatar: '', isOnline: false };
+    const user2Profile = { name: 'User 2', avatar: '', isOnline: false };
 
     const newConversation: Conversation = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -129,10 +128,9 @@ class MessageServiceClass {
     _attachments?: File[]
   ): Promise<Message> {
     try {
-      // Get user profiles for sender/receiver info
-      const FreelancerService = await import('./freelancerService').then(m => m.FreelancerService);
-      const senderProfile = await FreelancerService.getFreelancerByWallet(senderWallet);
-      const receiverProfile = await FreelancerService.getFreelancerByWallet(receiverWallet);
+      // Get user profiles for sender/receiver info - simplified
+      const senderProfile = { name: 'Sender', avatar: '', isOnline: false };
+      const receiverProfile = { name: 'Receiver', avatar: '', isOnline: false };
 
       // Send message via API
       const response = await fetch('/api/messages', {
