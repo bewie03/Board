@@ -150,6 +150,24 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
     const conditions: string[] = [];
 
     if (owner) {
+      // For MyFunding page - first unpause any expired paused projects
+      console.log('Checking for expired paused funding projects to unpause for owner:', owner);
+      
+      const unpauseQuery = `
+        UPDATE project_funding 
+        SET is_active = true, updated_at = NOW()
+        WHERE wallet_address = $1 
+          AND is_active = false 
+          AND funding_deadline < NOW()
+          AND current_funding < funding_goal
+      `;
+      
+      const unpauseResult = await pool.query(unpauseQuery, [owner]);
+      
+      if (unpauseResult.rowCount && unpauseResult.rowCount > 0) {
+        console.log(`Unpaused ${unpauseResult.rowCount} expired funding projects for owner:`, owner);
+      }
+      
       conditions.push('pf.wallet_address = $' + (queryParams.length + 1));
       queryParams.push(owner);
     } else {
