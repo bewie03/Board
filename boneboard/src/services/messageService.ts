@@ -42,7 +42,7 @@ export interface Conversation {
 }
 
 export interface ResponseTimeData {
-  freelancerWallet: string;
+  userWallet: string;
   responseTimes: number[]; // in minutes
   averageResponseTime: number;
   lastUpdated: Date;
@@ -90,7 +90,7 @@ class MessageServiceClass {
       return existingConversation;
     }
 
-    // Get user profiles - simplified without freelancer service
+    // Get user profiles - simplified
     const user1Profile = { name: 'User 1', avatar: '', isOnline: false };
     const user2Profile = { name: 'User 2', avatar: '', isOnline: false };
 
@@ -180,9 +180,9 @@ class MessageServiceClass {
 
 
 
-  // Get average response time for a freelancer
-  getAverageResponseTime(freelancerWallet: string): string {
-    const responseData = this.responseTimeData.find(data => data.freelancerWallet === freelancerWallet);
+  // Get average response time for a user
+  getAverageResponseTime(userWallet: string): string {
+    const responseData = this.responseTimeData.find(data => data.userWallet === userWallet);
     
     if (!responseData || responseData.responseTimes.length === 0) {
       return "No data yet";
@@ -362,9 +362,9 @@ class MessageServiceClass {
     };
   }
 
-  // Get notification count (new orders, reviews, etc.)
-  getNotificationCount(_freelancerWallet: string): number {
-    // This would integrate with order system, review system, etc.
+  // Get notification count
+  getNotificationCount(_walletAddress: string): number {
+    // This would integrate with order system, etc.
     // For now, return 0 since no notification system is implemented yet
     return 0;
   }

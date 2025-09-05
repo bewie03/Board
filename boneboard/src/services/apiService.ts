@@ -4,55 +4,10 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   : '/api';
 
 export class ApiService {
-  // Freelancer operations
-  static async getFreelancers(): Promise<any[]> {
-    const response = await fetch(`${API_BASE_URL}/freelancers`);
-    if (!response.ok) throw new Error('Failed to fetch freelancers');
-    return response.json();
-  }
 
-  static async getFreelancerByWallet(walletAddress: string): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/freelancers?walletAddress=${walletAddress}`);
-    if (!response.ok) throw new Error('Failed to fetch freelancer');
-    return response.json();
-  }
 
-  static async createFreelancer(freelancerData: any): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/freelancers`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(freelancerData)
-    });
-    if (!response.ok) throw new Error('Failed to create freelancer');
-    return response.json();
-  }
 
-  static async updateFreelancer(walletAddress: string, updates: any): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/freelancers?walletAddress=${walletAddress}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
-    });
-    if (!response.ok) throw new Error('Failed to update freelancer');
-    return response.json();
-  }
 
-  // Review operations
-  static async getReviews(freelancerId: string): Promise<any[]> {
-    const response = await fetch(`${API_BASE_URL}/reviews?freelancerId=${freelancerId}`);
-    if (!response.ok) throw new Error('Failed to fetch reviews');
-    return response.json();
-  }
-
-  static async createReview(reviewData: any): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/reviews`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reviewData)
-    });
-    if (!response.ok) throw new Error('Failed to create review');
-    return response.json();
-  }
 
   // Job operations
   static async getJobs(params?: { wallet?: string; status?: string; category?: string; active?: boolean; removeDuplicates?: boolean }): Promise<any[]> {

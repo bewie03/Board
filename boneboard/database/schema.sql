@@ -13,51 +13,10 @@ CREATE TABLE users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     is_active BOOLEAN DEFAULT true,
-    profile_type VARCHAR(20) DEFAULT 'user' CHECK (profile_type IN ('user', 'freelancer', 'client', 'both'))
+    profile_type VARCHAR(20) DEFAULT 'user' CHECK (profile_type IN ('user', 'client'))
 );
 
--- Freelancer profiles
-CREATE TABLE freelancer_profiles (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    title VARCHAR(200) NOT NULL,
-    bio TEXT,
-    avatar_url TEXT,
-    category VARCHAR(50),
-    skills TEXT[], -- Array of skills
-    languages TEXT[], -- Array of languages
-    hourly_rate DECIMAL(10,2),
-    location VARCHAR(100),
-    timezone VARCHAR(50),
-    rating DECIMAL(3,2) DEFAULT 0.00,
-    review_count INTEGER DEFAULT 0,
-    completed_orders INTEGER DEFAULT 0,
-    response_time VARCHAR(20) DEFAULT '1 hour',
-    member_since TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    is_online BOOLEAN DEFAULT true,
-    busy_status VARCHAR(20) DEFAULT 'available' CHECK (busy_status IN ('available', 'busy', 'unavailable')),
-    social_links JSONB DEFAULT '{}',
-    work_images TEXT[], -- Array of image URLs
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
--- Service packages for freelancers (matches deployed database structure)
-CREATE TABLE service_packages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    freelancer_id UUID REFERENCES freelancer_profiles(id) ON DELETE CASCADE,
-    title VARCHAR(200) NOT NULL,
-    description TEXT,
-    features TEXT[], -- Array of feature strings
-    price NUMERIC NOT NULL,
-    currency VARCHAR(10) DEFAULT 'ADA',
-    delivery_time VARCHAR(50),
-    package_type VARCHAR(20) NOT NULL CHECK (package_type IN ('basic', 'standard', 'premium')),
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
 -- Projects
 CREATE TABLE projects (
@@ -124,18 +83,6 @@ CREATE TABLE job_listings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Job applications
-CREATE TABLE job_applications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    job_id UUID REFERENCES job_listings(id) ON DELETE CASCADE,
-    freelancer_id UUID REFERENCES freelancer_profiles(id) ON DELETE CASCADE,
-    cover_letter TEXT,
-    proposed_rate DECIMAL(10,2),
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(job_id, freelancer_id)
-);
 
 -- Enhanced Messages/Conversations
 CREATE TABLE conversations (
@@ -182,27 +129,7 @@ CREATE TABLE message_attachments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Response time tracking
-CREATE TABLE freelancer_response_times (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    freelancer_wallet VARCHAR(255) NOT NULL,
-    response_time_minutes INTEGER NOT NULL,
-    conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
--- Reviews for freelancers
-CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    freelancer_id UUID REFERENCES freelancer_profiles(id) ON DELETE CASCADE,
-    reviewer_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    job_id UUID REFERENCES job_listings(id) ON DELETE SET NULL,
-    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    comment TEXT,
-    service_title VARCHAR(200),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(freelancer_id, reviewer_id, job_id)
-);
 
 -- Saved jobs (user bookmarks)
 CREATE TABLE saved_jobs (
@@ -227,21 +154,14 @@ CREATE TABLE notifications (
 
 -- Indexes for better performance
 CREATE INDEX idx_users_wallet_address ON users(wallet_address);
-CREATE INDEX idx_freelancer_profiles_user_id ON freelancer_profiles(user_id);
-CREATE INDEX idx_freelancer_profiles_category ON freelancer_profiles(category);
-CREATE INDEX idx_freelancer_profiles_rating ON freelancer_profiles(rating DESC);
-CREATE INDEX idx_service_packages_freelancer_id ON service_packages(freelancer_id);
 CREATE INDEX idx_projects_user_id ON projects(user_id);
 CREATE INDEX idx_job_listings_user_id ON job_listings(user_id);
 CREATE INDEX idx_job_listings_category ON job_listings(category);
 CREATE INDEX idx_job_listings_status ON job_listings(status);
 CREATE INDEX idx_job_listings_created_at ON job_listings(created_at DESC);
-CREATE INDEX idx_job_applications_job_id ON job_applications(job_id);
-CREATE INDEX idx_job_applications_freelancer_id ON job_applications(freelancer_id);
 CREATE INDEX idx_conversations_participants ON conversations(participant_1, participant_2);
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
 CREATE INDEX idx_messages_created_at ON messages(created_at DESC);
-CREATE INDEX idx_reviews_freelancer_id ON reviews(freelancer_id);
 CREATE INDEX idx_saved_jobs_user_id ON saved_jobs(user_id);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_is_read ON notifications(is_read);
@@ -256,11 +176,8 @@ END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_freelancer_profiles_updated_at BEFORE UPDATE ON freelancer_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_service_packages_updated_at BEFORE UPDATE ON service_packages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_job_listings_updated_at BEFORE UPDATE ON job_listings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_job_applications_updated_at BEFORE UPDATE ON job_applications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- BONEBOARD CORE FEATURES
 

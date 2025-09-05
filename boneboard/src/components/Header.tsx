@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 import { useWallet } from '../contexts/WalletContext';
 import { isAdminWallet } from '../utils/adminAuth';
 import { AdminPanel } from './AdminPanel';
-// Freelancer and messaging services removed
 import WalletSelector from './WalletSelector';
 
 const Header: React.FC = () => {

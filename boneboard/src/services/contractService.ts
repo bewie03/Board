@@ -42,6 +42,7 @@ export interface JobPostingData {
   // Relisting metadata
   isRelisting?: boolean;
   relistingJobId?: string;
+  relistingProjectId?: string;
 }
 
 export interface ProjectPostingData {
@@ -62,25 +63,9 @@ export interface ProjectPostingData {
   isExtending?: boolean;
   extendingFundingId?: string;
   duration?: number;
+  fundingId?: string;
 }
 
-export interface FreelancerProfileData {
-  name: string;
-  title: string;
-  description: string;
-  skills: string[];
-  experience: string;
-  hourlyRate?: string;
-  contactEmail: string;
-  walletAddress: string;
-  paymentAmount: number;
-  paymentCurrency: 'BONE' | 'ADA';
-  timestamp: number;
-  website?: string;
-  twitter?: string;
-  discord?: string;
-  portfolio?: string[];
-}
 
 export class ContractService {
   private lucid: Lucid | null = null;
@@ -301,130 +286,7 @@ export class ContractService {
     }
   }
 
-  async postFreelancerWithADA(freelancerData: FreelancerProfileData): Promise<{ success: boolean; txHash?: string; error?: string }> {
-    if (!this.lucid) {
-      return { success: false, error: 'Lucid not initialized' };
-    }
 
-    try {
-      console.log('Creating ADA freelancer profile transaction...');
-      
-      // Create the freelancer profile metadata - truncate strings to fit Cardano 64 char limit
-      const metadata = {
-        676: { // Standard metadata label for freelancer profiles
-          freelancer: {
-            name: freelancerData.name.substring(0, 60),
-            title: freelancerData.title.substring(0, 60),
-            description: freelancerData.description.substring(0, 60),
-            skills: freelancerData.skills.join(',').substring(0, 60),
-            experience: freelancerData.experience.substring(0, 60),
-            hourlyRate: freelancerData.hourlyRate?.substring(0, 30) || '',
-            contactEmail: freelancerData.contactEmail.substring(0, 60),
-            timestamp: freelancerData.timestamp,
-            poster: freelancerData.walletAddress.substring(0, 60),
-            fee: `${freelancerData.paymentAmount} ADA`
-          }
-        }
-      };
-
-      // Dynamic fee from admin settings in lovelace (1 ADA = 1,000,000 lovelace)
-      const feeInLovelace = BigInt(freelancerData.paymentAmount * 1_000_000);
-      
-      console.log(`Sending ${freelancerData.paymentAmount} ADA (${feeInLovelace} lovelace) to ${JOB_POSTING_ADDRESS}`);
-      
-      // Build the transaction - send 2 ADA to the posting address
-      const tx = this.lucid.newTx()
-        .payToAddress(JOB_POSTING_ADDRESS, { lovelace: feeInLovelace })
-        .attachMetadata(676, metadata[676]);
-
-      console.log('Building transaction...');
-      const completeTx = await tx.complete();
-      
-      console.log('Signing transaction...');
-      const signedTx = await completeTx.sign().complete();
-      
-      console.log('Submitting transaction...');
-      const txHash = await signedTx.submit();
-      
-      console.log('Transaction submitted successfully:', txHash);
-      return { success: true, txHash };
-    } catch (error) {
-      console.error('Error posting freelancer with ADA:', error);
-      const errorMessage = this.parsePaymentError(error, 'ADA', freelancerData.paymentAmount);
-      return { success: false, error: errorMessage };
-    }
-  }
-
-  async postFreelancerWithBONE(freelancerData: FreelancerProfileData): Promise<{ success: boolean; txHash?: string; error?: string }> {
-    if (!this.lucid) {
-      return { success: false, error: 'Lucid not initialized' };
-    }
-
-    try {
-      // Create the freelancer profile metadata - truncate strings to fit Cardano 64 char limit
-      const metadata = {
-        676: { // Standard metadata label for freelancer profiles
-          freelancer: {
-            name: freelancerData.name.substring(0, 60),
-            title: freelancerData.title.substring(0, 60),
-            description: freelancerData.description.substring(0, 60),
-            skills: freelancerData.skills.join(',').substring(0, 60),
-            experience: freelancerData.experience.substring(0, 60),
-            hourlyRate: freelancerData.hourlyRate?.substring(0, 30) || '',
-            contactEmail: freelancerData.contactEmail.substring(0, 60),
-            timestamp: freelancerData.timestamp,
-            poster: freelancerData.walletAddress.substring(0, 60)
-          }
-        }
-      };
-
-      // Calculate BONE amount (assuming whole tokens, no decimals for simplicity)
-      const boneAmount = Math.floor(freelancerData.paymentAmount);
-      
-      // Construct the full asset ID: policyId + tokenName (hex)
-      const fullAssetId = `${BONE_POLICY_ID}${BONE_TOKEN_NAME}`;
-      
-      console.log(`Sending ${boneAmount} BONE tokens`);
-      console.log(`Asset ID: ${fullAssetId}`);
-      console.log(`To address: ${JOB_POSTING_ADDRESS}`);
-      
-      // Build the transaction
-      const tx = this.lucid.newTx()
-        .payToAddress(
-          JOB_POSTING_ADDRESS,
-          { 
-            [fullAssetId]: BigInt(boneAmount)
-          }
-        )
-        .attachMetadata(676, metadata[676]);
-
-      // Complete and submit the transaction
-      const completeTx = await tx.complete();
-      const signedTx = await completeTx.sign().complete();
-      const txHash = await signedTx.submit();
-
-      // Track BONE payment in database
-      try {
-        await fetch('/api/burnedbone', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ amount: boneAmount })
-        });
-      } catch (error) {
-        console.warn('Failed to track BONE payment in database:', error);
-      }
-
-      // Freelancer profile will be stored by useContract after successful transaction
-      return { success: true, txHash };
-    } catch (error) {
-      console.error('Error posting freelancer with BONE:', error);
-      const boneAmount = Math.floor(freelancerData.paymentAmount);
-      const errorMessage = this.parsePaymentError(error, 'BONE', boneAmount);
-      return { success: false, error: errorMessage };
-    }
-  }
 
   private parsePaymentError(error: any, currency: 'ADA' | 'BONE', amount: number): string {
     const errorMessage = error instanceof Error ? error.message : String(error);

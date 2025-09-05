@@ -18,10 +18,6 @@ import SavedJobs from './pages/SavedJobs';
 import Funding from './pages/Funding';
 import CreateFunding from './pages/CreateFunding';
 import FundingDetail from './pages/FundingDetail';
-// Freelancer imports commented out
-// import Freelancers from './pages/Freelancers';
-// import FreelancerProfile from './pages/FreelancerProfile';
-// import FreelancerProfileCreation from './pages/FreelancerProfileCreation';
 import TwitterCallback from './pages/auth/TwitterCallback';
 import DiscordCallback from './pages/auth/DiscordCallback';
 import 'react-toastify/dist/ReactToastify.css';
@@ -53,11 +49,6 @@ function AnimatedRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<JobListings />} />
         <Route path="/jobs/:jobId" element={<JobListings />} />
-        {/* Freelancer routes commented out */}
-        {/* <Route path="/freelancers" element={<Freelancers />} /> */}
-        {/* <Route path="/freelancers/:id" element={<FreelancerProfile />} /> */}
-        {/* <Route path="/freelancers/create" element={<FreelancerProfileCreation />} /> */}
-        {/* <Route path="/freelancers/edit" element={<FreelancerProfileCreation />} /> */}
         <Route path="/projects" element={<Projects />} />
         <Route path="/submit-project" element={<SubmitProject />} />
         <Route path="/post-job" element={<PostJob />} />

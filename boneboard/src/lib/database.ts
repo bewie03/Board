@@ -46,252 +46,67 @@ export const getUserByWallet = async (walletAddress: string) => {
   }
 };
 
-// Freelancer database operations
-export const createFreelancer = async (freelancerData: any) => {
-  try {
-    console.log('Creating freelancer with data:', freelancerData);
-    
-    const query = `
-      INSERT INTO freelancer_profiles (
-        user_id, name, title, bio, avatar_url, category, skills, languages,
-        location, rating, review_count, completed_orders, response_time, 
-        is_online, busy_status, social_links, work_images
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-      RETURNING *
-    `;
-    
-    const values = [
-      freelancerData.userId,
-      freelancerData.name || 'Freelancer', // Ensure name is never null
-      freelancerData.title || 'Professional',
-      freelancerData.bio || '',
-      freelancerData.avatarUrl || freelancerData.avatar || '',
-      freelancerData.category || 'Other',
-      freelancerData.skills || [], // PostgreSQL array
-      freelancerData.languages || ['English'], // PostgreSQL array
-      freelancerData.location || '',
-      freelancerData.rating || 0,
-      freelancerData.reviewCount || 0,
-      freelancerData.completedOrders || 0,
-      freelancerData.responseTime || '24 hours',
-      freelancerData.isOnline !== undefined ? freelancerData.isOnline : true,
-      freelancerData.busyStatus || 'available',
-      JSON.stringify(freelancerData.socialLinks || {}),
-      freelancerData.workImages || [] // PostgreSQL array
-    ];
-    
-    console.log('Query values:', values);
-    
-    const result = await getPool().query(query, values);
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error creating freelancer:', error);
-    console.error('Freelancer data that failed:', freelancerData);
-    throw error;
-  }
-};
 
-export const getFreelancerByWallet = async (walletAddress: string) => {
-  try {
-    const query = `
-      SELECT f.*, u.wallet_address 
-      FROM freelancer_profiles f
-      JOIN users u ON f.user_id = u.id
-      WHERE u.wallet_address = $1
-    `;
-    
-    const result = await getPool().query(query, [walletAddress]);
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error getting freelancer by wallet:', error);
-    throw error;
-  }
-};
 
-export const updateFreelancer = async (walletAddress: string, updates: any) => {
-  try {
-    // First get the current freelancer data to preserve existing values
-    const currentFreelancer = await getFreelancerByWallet(walletAddress);
-    if (!currentFreelancer) {
-      throw new Error('Freelancer not found');
-    }
 
-    // Only include fields that are being updated to avoid payload size issues
-    const fieldsToUpdate = [];
-    const values = [walletAddress];
-    let paramIndex = 2;
-    
-    if (updates.name !== undefined) {
-      fieldsToUpdate.push(`name = $${paramIndex}`);
-      values.push(updates.name || currentFreelancer.name || 'Freelancer');
-      paramIndex++;
-    }
-    
-    if (updates.title !== undefined) {
-      fieldsToUpdate.push(`title = $${paramIndex}`);
-      values.push(updates.title || currentFreelancer.title || 'Professional');
-      paramIndex++;
-    }
-    
-    if (updates.bio !== undefined) {
-      fieldsToUpdate.push(`bio = $${paramIndex}`);
-      values.push(updates.bio || currentFreelancer.bio || '');
-      paramIndex++;
-    }
-    
-    if (updates.avatarUrl !== undefined || updates.avatar !== undefined) {
-      fieldsToUpdate.push(`avatar_url = $${paramIndex}`);
-      values.push(updates.avatarUrl || updates.avatar || currentFreelancer.avatar_url || '');
-      paramIndex++;
-    }
-    
-    if (updates.location !== undefined) {
-      fieldsToUpdate.push(`location = $${paramIndex}`);
-      values.push(updates.location || currentFreelancer.location || '');
-      paramIndex++;
-    }
-    
-    if (updates.category !== undefined) {
-      fieldsToUpdate.push(`category = $${paramIndex}`);
-      values.push(updates.category || currentFreelancer.category || '');
-      paramIndex++;
-    }
-    
-    if (updates.languages !== undefined) {
-      fieldsToUpdate.push(`languages = $${paramIndex}`);
-      values.push(updates.languages || currentFreelancer.languages || []);
-      paramIndex++;
-    }
-    
-    if (updates.skills !== undefined) {
-      fieldsToUpdate.push(`skills = $${paramIndex}`);
-      values.push(updates.skills || currentFreelancer.skills || []);
-      paramIndex++;
-    }
-    
-    if (updates.busyStatus !== undefined) {
-      fieldsToUpdate.push(`busy_status = $${paramIndex}`);
-      values.push(updates.busyStatus || currentFreelancer.busy_status || 'available');
-      paramIndex++;
-    }
-    
-    if (updates.isOnline !== undefined) {
-      fieldsToUpdate.push(`is_online = $${paramIndex}`);
-      values.push(updates.isOnline);
-      paramIndex++;
-    }
-    
-    if (updates.socialLinks !== undefined) {
-      fieldsToUpdate.push(`social_links = $${paramIndex}`);
-      values.push(JSON.stringify(updates.socialLinks || currentFreelancer.social_links || {}));
-      paramIndex++;
-    }
-    
-    if (updates.workImages !== undefined) {
-      fieldsToUpdate.push(`work_images = $${paramIndex}`);
-      values.push(updates.workImages || currentFreelancer.work_images || []);
-      paramIndex++;
-    }
-    
-    // Always add updated_at
-    fieldsToUpdate.push(`updated_at = NOW()`);
-    
-    if (fieldsToUpdate.length === 1) { // Only updated_at
-      return currentFreelancer; // No changes to make
-    }
-
-    const updateQuery = `
-      UPDATE freelancer_profiles 
-      SET ${fieldsToUpdate.join(', ')}
-      FROM users u
-      WHERE freelancer_profiles.user_id = u.id AND u.wallet_address = $1
-      RETURNING freelancer_profiles.*
-    `;
-    
-    const result = await getPool().query(updateQuery, values);
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error updating freelancer:', error);
-    console.error('Update data:', updates);
-    throw error;
-  }
-};
-
-export const getAllFreelancers = async () => {
-  try {
-    const query = `
-      SELECT f.*, u.wallet_address 
-      FROM freelancer_profiles f
-      JOIN users u ON f.user_id = u.id
-      ORDER BY f.created_at DESC
-    `;
-    
-    const result = await getPool().query(query);
-    return result.rows;
-  } catch (error) {
-    console.error('Error getting all freelancers:', error);
-    throw error;
-  }
-};
 
 // Service database operations
 export const createService = async (serviceData: any) => {
   const query = `
     INSERT INTO services (
-      freelancer_id, title, description, short_description, category, skills, images
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      title, description, category, funding_goal, logo, funding_address,
+      discord_link, twitter_link, wallet_address, payment_amount,
+      payment_currency, tx_hash, expires_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     RETURNING *
   `;
   
   const values = [
-    serviceData.freelancerId,
-    serviceData.title,
-    serviceData.description,
-    serviceData.shortDescription,
-    serviceData.category,
-    serviceData.skills,
-    serviceData.images
+    serviceData.title, serviceData.description, serviceData.category,
+    serviceData.fundingGoal, serviceData.logo, serviceData.fundingAddress,
+    serviceData.discordLink, serviceData.twitterLink, serviceData.walletAddress,
+    serviceData.paymentAmount, serviceData.paymentCurrency || 'BONE',
+    serviceData.txHash, serviceData.expiresAt
   ];
   
   const result = await pool.query(query, values);
   return result.rows[0];
 };
 
-export const getServicesByFreelancer = async (freelancerId: string) => {
-  const query = 'SELECT * FROM services WHERE freelancer_id = $1 AND is_active = true';
-  const result = await pool.query(query, [freelancerId]);
+export const getActiveServices = async () => {
+  const query = `
+    SELECT s.*, 
+           COALESCE(sv_up.vote_count, 0) as upvotes,
+           COALESCE(sv_down.vote_count, 0) as downvotes,
+           COALESCE(sf.funding_sum, 0) as current_funding,
+           COALESCE(sf.backer_count, 0) as backers
+    FROM services s
+    LEFT JOIN (
+      SELECT service_id, COUNT(*) as vote_count 
+      FROM service_votes 
+      WHERE vote_type = 'up' 
+      GROUP BY service_id
+    ) sv_up ON s.id = sv_up.service_id
+    LEFT JOIN (
+      SELECT service_id, COUNT(*) as vote_count 
+      FROM service_votes 
+      WHERE vote_type = 'down' 
+      GROUP BY service_id
+    ) sv_down ON s.id = sv_down.service_id
+    LEFT JOIN (
+      SELECT service_id, SUM(amount) as funding_sum, COUNT(*) as backer_count
+      FROM service_fundings 
+      GROUP BY service_id
+    ) sf ON s.id = sf.service_id
+    WHERE s.status = 'active'
+    ORDER BY s.created_at DESC
+  `;
+  const result = await pool.query(query);
   return result.rows;
 };
 
 // Review database operations
-export const createReview = async (reviewData: any) => {
-  const query = `
-    INSERT INTO reviews (
-      freelancer_id, client_wallet_address, client_name, client_avatar,
-      service_id, rating, comment
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING *
-  `;
-  
-  const values = [
-    reviewData.freelancerId,
-    reviewData.clientWalletAddress,
-    reviewData.clientName,
-    reviewData.clientAvatar,
-    reviewData.serviceId,
-    reviewData.rating,
-    reviewData.comment
-  ];
-  
-  const result = await pool.query(query, values);
-  return result.rows[0];
-};
 
-export const getReviewsByFreelancer = async (freelancerId: string) => {
-  const query = 'SELECT * FROM reviews WHERE freelancer_id = $1 ORDER BY created_at DESC';
-  const result = await pool.query(query, [freelancerId]);
-  return result.rows;
-};
 
 // Job database operations
 export const createJob = async (jobData: any) => {

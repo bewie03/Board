@@ -29,21 +29,11 @@ export interface JobListing {
   paymentAmount: number;
   isFeatured: boolean;
   status: 'active' | 'paused' | 'expired' | 'filled';
-  expiresAt: string;
-  createdAt: string;
-  updatedAt: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface JobApplication {
-  id: string;
-  jobId: string;
-  freelancerId: string;
-  coverLetter?: string;
-  proposedRate?: number;
-  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
-  createdAt: string;
-  updatedAt: string;
-}
 
 export class JobDatabaseService {
   // Create job listing
@@ -191,40 +181,7 @@ export class JobDatabaseService {
     }
   }
 
-  // Job application methods
-  async createJobApplication(applicationData: Partial<JobApplication>): Promise<JobApplication> {
-    try {
-      const query = `
-        INSERT INTO job_applications (job_id, freelancer_id, cover_letter, proposed_rate)
-        VALUES ($1, $2, $3, $4)
-        RETURNING *
-      `;
-      
-      const values = [
-        applicationData.jobId,
-        applicationData.freelancerId,
-        applicationData.coverLetter,
-        applicationData.proposedRate
-      ];
 
-      const result = await db.query(query, values);
-      return this.mapJobApplicationFromDb(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating job application:', error);
-      throw error;
-    }
-  }
-
-  async getJobApplications(jobId: string): Promise<JobApplication[]> {
-    try {
-      const query = 'SELECT * FROM job_applications WHERE job_id = $1 ORDER BY created_at DESC';
-      const result = await db.query(query, [jobId]);
-      return result.rows.map((row: Record<string, any>) => this.mapJobApplicationFromDb(row));
-    } catch (error) {
-      console.error('Error getting job applications:', error);
-      return [];
-    }
-  }
 
   // Migration method to move data from localStorage
   async migrateFromLocalStorage(): Promise<void> {
@@ -309,24 +266,12 @@ export class JobDatabaseService {
       paymentAmount: parseFloat(row.payment_amount),
       isFeatured: row.is_featured,
       status: row.status,
-      expiresAt: row.expires_at,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      expiresAt: new Date(row.expires_at),
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at)
     };
   }
 
-  private mapJobApplicationFromDb(row: Record<string, any>): JobApplication {
-    return {
-      id: row.id,
-      jobId: row.job_id,
-      freelancerId: row.freelancer_id,
-      coverLetter: row.cover_letter,
-      proposedRate: row.proposed_rate,
-      status: row.status,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
-  }
 
   private camelToSnake(str: string): string {
     return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);

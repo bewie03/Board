@@ -6,7 +6,7 @@ export interface User {
   walletAddress: string;
   username?: string;
   email?: string;
-  profileType: 'user' | 'freelancer' | 'client' | 'both';
+  profileType: 'user' | 'client';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
