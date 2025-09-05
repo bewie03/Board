@@ -184,7 +184,7 @@ const Header: React.FC = () => {
                               className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-200"
                             />
                           ) : (
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
                               <FaUserCircle className="text-3xl text-white" />
                             </div>
                           )}
