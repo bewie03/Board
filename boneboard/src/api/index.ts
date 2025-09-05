@@ -1,5 +1,5 @@
 // API integration layer to connect frontend with database services
-import { jobDatabaseService, type JobListing, type JobApplication } from '../services/jobDatabaseService';
+import { jobDatabaseService, type JobListing } from '../services/jobDatabaseService';
 import { projectDatabaseService, type Project } from '../services/projectDatabaseService';
 import { messagingDatabaseService, type Conversation, type Message } from '../services/messagingDatabaseService';
 import { migrationService, type MigrationStatus } from '../services/migrationService';
@@ -65,13 +65,6 @@ export const jobApi = {
     return apiCall(() => jobDatabaseService.updateJobListing(jobId, updates));
   },
 
-  async applyToJob(applicationData: Partial<JobApplication>): Promise<ApiResponse<JobApplication>> {
-    return apiCall(() => jobDatabaseService.createJobApplication(applicationData));
-  },
-
-  async getJobApplications(jobId: string): Promise<ApiResponse<JobApplication[]>> {
-    return apiCall(() => jobDatabaseService.getJobApplications(jobId));
-  },
 
   async migrateFromLocalStorage(): Promise<ApiResponse<void>> {
     return apiCall(() => jobDatabaseService.migrateFromLocalStorage());
