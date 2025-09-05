@@ -33,6 +33,9 @@ declare global {
       eternl?: WalletInfo;
       nami?: WalletInfo;
       flint?: WalletInfo;
+      gerowallet?: WalletInfo;
+      typhon?: WalletInfo;
+      tokeo?: WalletInfo;
     };
   }
 }
@@ -260,14 +263,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     const vesprInfo = getWalletInfo(cardano.vespr, 'vespr', 'Vespr');
     const laceInfo = getWalletInfo(cardano.lace, 'lace', 'Lace');
     const eternlInfo = getWalletInfo(cardano.eternl, 'eternl', 'Eternl');
-    const namiInfo = getWalletInfo(cardano.nami, 'nami', 'Nami');
-    const flintInfo = getWalletInfo(cardano.flint, 'flint', 'Flint');
+    const geroInfo = getWalletInfo(cardano.gerowallet, 'gerowallet', 'Gero');
+
 
     if (vesprInfo) wallets.push(vesprInfo);
     if (laceInfo) wallets.push(laceInfo);
     if (eternlInfo) wallets.push(eternlInfo);
-    if (namiInfo) wallets.push(namiInfo);
-    if (flintInfo) wallets.push(flintInfo);
+    if (geroInfo) wallets.push(geroInfo);
 
     return wallets;
   }, []);

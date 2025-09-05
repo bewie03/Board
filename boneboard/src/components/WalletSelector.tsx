@@ -5,6 +5,7 @@ import { FaTimes, FaWallet } from 'react-icons/fa';
 import vesperIcon from '../assets/vesper.png';
 import laceIcon from '../assets/lace.png';
 import eternlIcon from '../assets/eternal.png';
+import geroIcon from '../../images/gero.png';
 // Fallback icons for wallets without specific images
 import walletFallbackIcon from '../assets/Wallet Icon.png';
 
@@ -20,6 +21,7 @@ const WALLET_CONFIG = {
   vespr: { name: 'Vespr', icon: vesperIcon },
   lace: { name: 'Lace', icon: laceIcon },
   eternl: { name: 'Eternl', icon: eternlIcon },
+  gerowallet: { name: 'Gero', icon: geroIcon },
   nami: { name: 'Nami', icon: walletFallbackIcon },
   flint: { name: 'Flint', icon: walletFallbackIcon },
 } as const;
