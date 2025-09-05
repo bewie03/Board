@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaSort, FaCheck, FaClock, FaDollarSign, FaUsers, FaDiscord, FaGlobe, FaTimes, FaInfoCircle, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaSort, FaCheck, FaClock, FaUsers, FaDiscord, FaGlobe, FaTimes, FaInfoCircle, FaPlus } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
@@ -479,7 +479,11 @@ const Funding: React.FC = () => {
                         <img 
                           src={project.logo} 
                           alt={`${project.title} logo`}
-                          className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
+                          className={`w-16 h-16 rounded-lg object-cover border-2 border-gray-100 shadow-sm flex-shrink-0 ${
+                            !project.is_funded && fundingService.isExpired(project.funding_deadline) 
+                              ? 'filter grayscale' 
+                              : ''
+                          }`}
                         />
                       ) : (
                         <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200 flex-shrink-0">
@@ -551,14 +555,17 @@ const Funding: React.FC = () => {
                         {project.is_funded ? (
                           'Fully Funded'
                         ) : fundingService.isExpired(project.funding_deadline) ? (
-                          'Contribute'
+                          <>
+                            <FaClock />
+                            Expired
+                          </>
                         ) : (
                           'Contribute'
                         )}
                       </button>
                       
-                      {/* Time Left Indicator - only show if not fully funded */}
-                      {!project.is_funded && (
+                      {/* Time Left Indicator - only show if not fully funded and not expired */}
+                      {!project.is_funded && !fundingService.isExpired(project.funding_deadline) && (
                         <div className="flex items-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-md border border-gray-200 min-w-[120px] justify-center">
                           <FaClock className="mr-2 text-gray-500" />
                           <span className="font-medium">{fundingService.formatDeadline(project.funding_deadline)}</span>
@@ -736,13 +743,11 @@ const Funding: React.FC = () => {
                       'Fully Funded'
                     ) : fundingService.isExpired(selectedProjectForPanel.funding_deadline) ? (
                       <>
-                        <FaDollarSign />
-                        Contribute Now
+                        Contribute
                       </>
                     ) : (
                       <>
-                        <FaDollarSign />
-                        Contribute Now
+                        Contribute
                       </>
                     )}
                   </button>
