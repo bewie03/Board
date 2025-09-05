@@ -473,6 +473,19 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
       return res.status(403).json({ error: 'Not authorized to modify this funding project' });
     }
 
+    // Check if trying to extend deadline on a fully funded project
+    if (funding_deadline) {
+      const currentFunding = parseFloat(ownershipCheck.rows[0].current_funding) || 0;
+      const fundingGoal = parseFloat(ownershipCheck.rows[0].funding_goal) || 0;
+      
+      if (currentFunding >= fundingGoal && fundingGoal > 0) {
+        return res.status(400).json({ 
+          error: 'Cannot extend deadline for fully funded projects',
+          details: `Project has reached its funding goal (${currentFunding}/${fundingGoal} ADA)`
+        });
+      }
+    }
+
     const updateQuery = `
       UPDATE project_funding 
       SET 

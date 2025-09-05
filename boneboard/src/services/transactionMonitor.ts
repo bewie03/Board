@@ -315,11 +315,15 @@ class TransactionMonitor {
                 }));
                 return;
               } else {
-                throw new Error('Failed to update funding deadline in database');
+                // Get detailed error message from API response
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error || 'Failed to update funding deadline in database';
+                throw new Error(errorMessage);
               }
             } catch (error) {
               console.error('Error extending funding deadline:', error);
-              toast.error('Failed to extend funding deadline');
+              const errorMessage = error instanceof Error ? error.message : 'Failed to extend funding deadline';
+              toast.error(errorMessage);
               return;
             }
           }
