@@ -452,7 +452,7 @@ const Funding: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0 }}
-                  className={`bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer relative ${project.is_funded ? 'ring-2 ring-blue-500' : ''}`}
+                  className={`bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer relative ${project.is_funded ? 'ring-2 ring-blue-100' : ''}`}
                   onClick={() => setSelectedProjectForPanel(project)}
                 >
                   {/* Light blue overlay for fully funded projects */}
