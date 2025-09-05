@@ -524,7 +524,13 @@ const Funding: React.FC = () => {
                           setShowContributeModal(true);
                         }}
                         disabled={fundingService.isExpired(project.funding_deadline) || project.is_funded}
-                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                        className={`flex-1 px-4 py-2 rounded-md transition-colors text-sm font-medium flex items-center justify-center gap-2 ${
+                          project.is_funded 
+                            ? 'bg-blue-600 text-white cursor-default' 
+                            : fundingService.isExpired(project.funding_deadline)
+                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
                       >
                         {project.is_funded ? (
                           <>
