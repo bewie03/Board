@@ -22,8 +22,7 @@ const WALLET_CONFIG = {
   lace: { name: 'Lace', icon: laceIcon },
   eternl: { name: 'Eternl', icon: eternlIcon },
   gerowallet: { name: 'Gero', icon: geroIcon },
-  nami: { name: 'Nami', icon: walletFallbackIcon },
-  flint: { name: 'Flint', icon: walletFallbackIcon },
+
 } as const;
 
 const WalletSelector: React.FC<WalletSelectorProps> = ({
