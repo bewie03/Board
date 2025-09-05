@@ -494,14 +494,22 @@ const Funding: React.FC = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
                           {project.is_verified && (
-                            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center" title="Verified Project">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                              !project.is_funded && fundingService.isExpired(project.funding_deadline)
+                                ? 'bg-gray-400'
+                                : 'bg-blue-500'
+                            }`} title="Verified Project">
                               <FaCheck className="text-white text-xs" />
                             </div>
                           )}
                           {/* Status badges - removed for fully funded projects */}
                         </div>
                         {project.category && (
-                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            !project.is_funded && fundingService.isExpired(project.funding_deadline)
+                              ? 'text-gray-500 bg-gray-200'
+                              : 'text-blue-600 bg-blue-50'
+                          }`}>
                             {project.category}
                           </span>
                         )}
