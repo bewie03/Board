@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaSearch, FaUsers, FaTimes, FaSort, FaCheckCircle, FaClock, FaDollarSign, FaCheck, FaDiscord, FaGlobe, FaInfoCircle } from 'react-icons/fa';
+import { FaSearch, FaSort, FaCheck, FaClock, FaDollarSign, FaUsers, FaDiscord, FaGlobe, FaTimes, FaInfoCircle, FaPlus } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { useWallet } from '../contexts/WalletContext';
 import { fundingService, FundingProject } from '../services/fundingService';
@@ -452,12 +452,23 @@ const Funding: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0 }}
-                  className={`bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer relative ${project.is_funded ? 'ring-2 ring-blue-100' : ''}`}
+                  className={`bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer relative ${
+                    project.is_funded 
+                      ? 'ring-2 ring-blue-100' 
+                      : fundingService.isExpired(project.funding_deadline)
+                      ? 'ring-2 ring-gray-300 opacity-60'
+                      : ''
+                  }`}
                   onClick={() => setSelectedProjectForPanel(project)}
                 >
                   {/* Light blue overlay for fully funded projects */}
                   {project.is_funded && (
                     <div className="absolute inset-0 bg-blue-100 bg-opacity-30 pointer-events-none z-10"></div>
+                  )}
+                  
+                  {/* Grey overlay for expired projects */}
+                  {!project.is_funded && fundingService.isExpired(project.funding_deadline) && (
+                    <div className="absolute inset-0 bg-gray-400 bg-opacity-20 pointer-events-none z-10"></div>
                   )}
                   
                   {/* Project Header */}
@@ -538,19 +549,11 @@ const Funding: React.FC = () => {
                         }`}
                       >
                         {project.is_funded ? (
-                          <>
-                            <FaCheckCircle />
-                            Fully Funded
-                          </>
+                          'Fully Funded'
                         ) : fundingService.isExpired(project.funding_deadline) ? (
-                          <>
-                            <FaClock />
-                            Expired
-                          </>
+                          'Contribute'
                         ) : (
-                          <>
-                            Contribute
-                          </>
+                          'Contribute'
                         )}
                       </button>
                       
@@ -730,14 +733,11 @@ const Funding: React.FC = () => {
                     className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
                   >
                     {selectedProjectForPanel.is_funded ? (
-                      <>
-                        <FaCheckCircle />
-                        Fully Funded
-                      </>
+                      'Fully Funded'
                     ) : fundingService.isExpired(selectedProjectForPanel.funding_deadline) ? (
                       <>
-                        <FaClock />
-                        Funding Expired
+                        <FaDollarSign />
+                        Contribute Now
                       </>
                     ) : (
                       <>

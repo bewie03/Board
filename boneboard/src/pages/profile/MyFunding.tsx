@@ -294,6 +294,15 @@ const MyFunding: React.FC = () => {
 
 
   const handleExtendDeadline = (funding: FundingProject) => {
+    // Check if project is fully funded
+    const currentFunding = parseFloat(funding.current_funding?.toString() || '0');
+    const fundingGoal = parseFloat(funding.funding_goal?.toString() || '0');
+    
+    if (currentFunding >= fundingGoal && fundingGoal > 0) {
+      toast.error('Cannot extend deadline for fully funded projects. Your project has already reached its funding goal.');
+      return;
+    }
+    
     // Check if user has any truly active funding campaigns (not expired)
     const hasActiveFunding = fundingProjects.some(f => 
       f.is_active && 
@@ -736,16 +745,19 @@ const MyFunding: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleExtendDeadline(funding);
-                              }}
-                              className="p-2 text-gray-400 hover:text-green-600 transition-colors"
-                              title="Extend deadline"
-                            >
-                              <FaRedo className="h-4 w-4" />
-                            </button>
+                            {/* Only show extend button for projects that aren't fully funded */}
+                            {!(parseFloat(funding.current_funding?.toString() || '0') >= parseFloat(funding.funding_goal?.toString() || '0') && parseFloat(funding.funding_goal?.toString() || '0') > 0) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleExtendDeadline(funding);
+                                }}
+                                className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                                title="Extend deadline"
+                              >
+                                <FaRedo className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
 

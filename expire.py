@@ -194,30 +194,30 @@ def expire_test_funding(conn):
     
     cursor = conn.cursor()
     
-    # Find active funding projects to expire
+    # Find active funding projects to expire (including completed ones)
     cursor.execute("""
-        SELECT id, funding_purpose, funding_goal, current_funding, funding_deadline
+        SELECT id, funding_purpose, funding_goal, current_funding, funding_deadline, 
+               CASE WHEN current_funding >= funding_goal THEN true ELSE false END as is_completed
         FROM project_funding 
-        WHERE is_funded = false 
-        AND funding_deadline > NOW()
+        WHERE funding_deadline > NOW()
         ORDER BY created_at DESC
-        LIMIT 2
+        LIMIT 3
     """)
     
     projects_to_expire = cursor.fetchall()
     
     if not projects_to_expire:
-        print("❌ No active funding projects found to expire")
+        print("❌ No funding projects found to expire")
         cursor.close()
         return
     
-    print(f"Found {len(projects_to_expire)} active funding projects to expire:")
+    print(f"Found {len(projects_to_expire)} funding projects to expire:")
     
     # Set deadline to yesterday (timezone-aware)
     yesterday = datetime.now(timezone.utc) - timedelta(days=1)
     
     for project in projects_to_expire:
-        proj_id, title, goal, current, current_deadline = project
+        proj_id, title, goal, current, current_deadline, is_completed = project
         
         cursor.execute("""
             UPDATE project_funding 
@@ -226,7 +226,8 @@ def expire_test_funding(conn):
         """, (yesterday, proj_id))
         
         progress = (current / goal * 100) if goal > 0 else 0
-        print(f"✅ Expired funding: {title}")
+        status = "COMPLETED" if is_completed else "ACTIVE"
+        print(f"✅ Expired funding: {title} ({status})")
         print(f"   ID: {proj_id}")
         print(f"   Progress: {current:.2f}/{goal:.2f} ADA ({progress:.1f}%)")
         print(f"   New deadline: {yesterday.strftime('%Y-%m-%d %H:%M')}")
