@@ -112,7 +112,7 @@ interface FundingProject {
 }
 
 // Copy Button Component with Animation
-const CopyButton: React.FC<{ textToCopy: string; fundingId: string; isFullyFunded?: boolean }> = ({ textToCopy, isFullyFunded = false }) => {
+const CopyButton: React.FC<{ textToCopy: string; fundingId: string }> = ({ textToCopy }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -131,8 +131,6 @@ const CopyButton: React.FC<{ textToCopy: string; fundingId: string; isFullyFunde
       className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md ${
         copied 
           ? 'bg-green-500 text-white' 
-          : isFullyFunded
-          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
           : 'bg-blue-600 text-white hover:bg-blue-700'
       }`}
       whileTap={{ scale: 0.95 }}
@@ -464,7 +462,7 @@ const MyFunding: React.FC = () => {
                   {fundingProjects.some(funding => funding.is_funded && !fundingService.isExpired(funding.funding_deadline)) && (
                     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                       <p className="text-sm text-gray-700 font-medium">
-                        Your project has been fully funded
+                      Congratulations! Your project has been fully funded
                       </p>
                       <p className="text-xs text-gray-600 mt-1">
                         You cannot post a new funding until this one's deadline has come to its end
@@ -482,7 +480,7 @@ const MyFunding: React.FC = () => {
                   fundingService.isExpired(funding.funding_deadline) 
                     ? 'border-l-4 border-red-500 opacity-75' 
                     : funding.is_funded 
-                    ? 'ring-2 ring-blue-100'
+                    ? 'ring-2 ring-blue-000'
                     : ''
                 }`}
               >
@@ -572,9 +570,7 @@ const MyFunding: React.FC = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          funding.is_funded ? 'bg-blue-100' : 'bg-blue-600'
-                        }`}
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min(funding.progress_percentage, 100)}%` }}
                       ></div>
                     </div>
@@ -658,7 +654,6 @@ const MyFunding: React.FC = () => {
                           <CopyButton 
                             textToCopy={funding.funding_wallet || funding.wallet_address}
                             fundingId={funding.id}
-                            isFullyFunded={funding.is_funded}
                           />
                         </div>
                       </div>
