@@ -464,12 +464,38 @@ const MyFunding: React.FC = () => {
                 key={funding.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-white shadow-sm rounded-lg overflow-hidden ${
+                className={`bg-white shadow-sm rounded-lg overflow-hidden relative ${
                   fundingService.isExpired(funding.funding_deadline) 
                     ? 'border-l-4 border-red-500 opacity-75' 
+                    : funding.is_funded 
+                    ? 'ring-2 ring-blue-500'
                     : ''
                 }`}
               >
+                {/* Light blue overlay for fully funded projects */}
+                {funding.is_funded && (
+                  <div className="absolute inset-0 bg-blue-100 bg-opacity-30 pointer-events-none z-10"></div>
+                )}
+                
+                {/* Fully funded message */}
+                {funding.is_funded && (
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <FaCheck className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-blue-700 font-medium">
+                          Congratulations! Your project has been fully funded.
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          You cannot post a new funding until this one's deadline has come to its end.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
@@ -529,13 +555,15 @@ const MyFunding: React.FC = () => {
                       >
                         <FaEye className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleToggleActive(funding.id, funding.is_active)}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                        title={funding.is_active ? 'Pause' : 'Activate'}
-                      >
-                        {funding.is_active ? <FaPause className="w-4 h-4" /> : <FaPlay className="w-4 h-4" />}
-                      </button>
+                      {!funding.is_funded && (
+                        <button
+                          onClick={() => handleToggleActive(funding.id, funding.is_active)}
+                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                          title={funding.is_active ? 'Pause' : 'Activate'}
+                        >
+                          {funding.is_active ? <FaPause className="w-4 h-4" /> : <FaPlay className="w-4 h-4" />}
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -564,7 +592,7 @@ const MyFunding: React.FC = () => {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-medium text-gray-700">Funding Purpose</label>
-                      {editingPurpose !== funding.id && (
+                      {editingPurpose !== funding.id && !funding.is_funded && (
                         <button
                           onClick={() => handleEditPurpose(funding.id, funding.funding_purpose)}
                           className="text-blue-600 hover:text-blue-700 text-sm flex items-center"
