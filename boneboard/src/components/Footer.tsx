@@ -55,7 +55,6 @@ const Footer: React.FC = () => {
             <li>Job board for blockchain and Cardano ecosystem positions</li>
             <li>Project showcase and verification system</li>
             <li>Crowdfunding platform for Cardano projects with ADA payments</li>
-            <li>Freelancer marketplace with service packages and ratings</li>
             <li>User profiles and portfolio management</li>
             <li>Community reporting and moderation tools</li>
           </ul>
@@ -72,7 +71,6 @@ const Footer: React.FC = () => {
           <ul className="list-disc pl-12 space-y-2 text-gray-700">
             <li>Job posting fees are paid in ADA via smart contracts</li>
             <li>Project funding contributions are sent directly to project wallets</li>
-            <li>Freelancer service payments are handled through connected wallets</li>
             <li>All transactions are immutable and recorded on the blockchain</li>
             <li>Users must connect a compatible Cardano wallet to use paid features</li>
             <li>Transaction fees and network costs are the user's responsibility</li>
@@ -110,7 +108,6 @@ const Footer: React.FC = () => {
           <ul className="list-disc pl-12 space-y-2 text-gray-700">
             <li>Job postings must be accurate, legitimate, and comply with employment laws</li>
             <li>Project descriptions must truthfully represent the project's goals and status</li>
-            <li>Freelancer profiles must accurately represent skills and experience</li>
             <li>All content must be appropriate for a professional environment</li>
             <li>BoneBoard reserves the right to remove content that violates these terms</li>
             <li>Users are responsible for the accuracy of their posted content</li>
@@ -235,7 +232,6 @@ const Footer: React.FC = () => {
                 <li>Job postings, project submissions, and content you create</li>
                 <li>Saved jobs and bookmarked content</li>
                 <li>Reports submitted through our moderation system</li>
-                <li>Ratings and reviews for freelancer services</li>
                 <li>Community interactions and verification status</li>
               </ul>
             </div>
