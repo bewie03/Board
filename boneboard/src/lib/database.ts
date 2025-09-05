@@ -198,7 +198,7 @@ export const getActiveProjects = async () => {
     ) pv_down ON p.id = pv_down.project_id
     LEFT JOIN (
       SELECT project_id, SUM(amount) as funding_sum, COUNT(*) as backer_count
-      FROM project_fundings 
+      FROM project_funding 
       GROUP BY project_id
     ) pf ON p.id = pf.project_id
     WHERE p.status = 'active'
