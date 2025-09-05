@@ -60,7 +60,7 @@ export const ProjectVerificationToggle: React.FC<ProjectVerificationToggleProps>
     <button
       onClick={isAdmin ? handleToggleVerification : undefined}
       disabled={isLoading || !isAdmin}
-      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
+      className={`w-4.5 h-4.5 rounded-full flex items-center justify-center transition-all duration-200 ${
         isVerified
           ? 'bg-blue-500 text-white hover:bg-blue-600'
           : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
@@ -68,11 +68,11 @@ export const ProjectVerificationToggle: React.FC<ProjectVerificationToggleProps>
       title={isAdmin ? (isVerified ? 'Click to unverify project' : 'Click to verify project') : 'Verified by admin'}
     >
       {isLoading ? (
-        <FaSpinner className="animate-spin w-3 h-3" />
+        <FaSpinner className="animate-spin w-2.5 h-2.5" />
       ) : isVerified ? (
-        <FaCheck className="w-3 h-3" />
+        <FaCheck className="w-2.5 h-2.5" />
       ) : (
-        <div className="w-3 h-3 border border-gray-400 rounded-full" />
+        <div className="w-2.5 h-2.5 border border-gray-400 rounded-full" />
       )}
     </button>
   );
