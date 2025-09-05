@@ -752,17 +752,17 @@ const CreateFunding: React.FC = () => {
                   }
                 </p>
                 {((formData.funding_deadline && !isExtending) || (isExtending && extensionMonths > 0)) && (
-                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-green-800">
+                      <span className="text-sm font-medium text-gray-700">
                         {isExtending ? 'Extension: ' : 'Duration: '}{isExtending ? extensionMonths : calculateMonthsFromNow(formData.funding_deadline)} month{(isExtending ? extensionMonths : calculateMonthsFromNow(formData.funding_deadline)) !== 1 ? 's' : ''}
                       </span>
-                      <span className="text-sm font-bold text-green-900">
+                      <span className="text-sm font-semibold text-blue-600">
                         Cost: {totalCost.amount.toLocaleString()} {totalCost.currency}
                       </span>
                     </div>
                     {isExtending && extendingFunding && (
-                      <div className="mt-2 text-xs text-green-700">
+                      <div className="mt-2 text-xs text-gray-600">
                         Current deadline: {new Date(extendingFunding.funding_deadline).toLocaleDateString()} → New deadline: {new Date(formData.funding_deadline + '-01').toLocaleDateString()}
                       </div>
                     )}
@@ -772,16 +772,22 @@ const CreateFunding: React.FC = () => {
 
 
             {/* How BoneBoard Funding Works */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center mb-3">
-                <FaInfoCircle className="text-blue-600 text-lg mr-2" />
-                <h3 className="text-md font-medium text-blue-900">How BoneBoard Funding Works</h3>
-              </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">How BoneBoard Funding Works</h3>
               
-              <div className="space-y-3 text-sm text-blue-700">
-                <p>• Contributors send ADA directly to your project wallet - no middleman fees</p>
-                <p>• All transactions are permanently recorded on Cardano blockchain</p>
-                <p>• Track funding progress and contributors in real-time</p>
+              <div className="space-y-3 text-sm text-gray-700">
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <p>Contributors send ADA directly to your project wallet - no middleman fees</p>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <p>All transactions are permanently recorded on Cardano blockchain</p>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <p>Track funding progress and contributors in real-time</p>
+                </div>
               </div>
             </div>
 

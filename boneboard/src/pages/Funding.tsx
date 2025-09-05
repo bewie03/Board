@@ -452,7 +452,7 @@ const Funding: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0 }}
-                  className="bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+                  className={`bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer ${project.is_funded ? 'ring-2 ring-blue-500' : ''}`}
                   onClick={() => setSelectedProjectForPanel(project)}
                 >
                   {/* Project Header */}
@@ -478,13 +478,7 @@ const Funding: React.FC = () => {
                               <FaCheck className="text-white text-xs" />
                             </div>
                           )}
-                          {/* Status badges */}
-                          {project.is_funded && (
-                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full flex items-center gap-1">
-                              <FaCheckCircle className="w-3 h-3" />
-                              Completed
-                            </span>
-                          )}
+                          {/* Status badges - removed for fully funded projects */}
                         </div>
                         {project.category && (
                           <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">
@@ -549,11 +543,13 @@ const Funding: React.FC = () => {
                         )}
                       </button>
                       
-                      {/* Time Left Indicator */}
-                      <div className="flex items-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-md border border-gray-200 min-w-[120px] justify-center">
-                        <FaClock className="mr-2 text-gray-500" />
-                        <span className="font-medium">{fundingService.formatDeadline(project.funding_deadline)}</span>
-                      </div>
+                      {/* Time Left Indicator - only show if not fully funded */}
+                      {!project.is_funded && (
+                        <div className="flex items-center text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-md border border-gray-200 min-w-[120px] justify-center">
+                          <FaClock className="mr-2 text-gray-500" />
+                          <span className="font-medium">{fundingService.formatDeadline(project.funding_deadline)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
