@@ -5,7 +5,7 @@ import { FaTimes, FaWallet } from 'react-icons/fa';
 import vesperIcon from '../assets/vesper.png';
 import laceIcon from '../assets/lace.png';
 import eternlIcon from '../assets/eternal.png';
-import geroIcon from '../../images/gero.png';
+import geroIcon from '../assets/gero.png';
 // Fallback icons for wallets without specific images
 import walletFallbackIcon from '../assets/Wallet Icon.png';
 
