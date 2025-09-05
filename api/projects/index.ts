@@ -82,7 +82,7 @@ async function handleGet(req: VercelRequest, res: VercelResponse) {
            COALESCE(pf_sum.backer_count, 0) as backers
     FROM projects p
     LEFT JOIN (
-      SELECT project_id, SUM(amount) as total_funding, COUNT(*) as backer_count
+      SELECT project_id, SUM(current_funding) as total_funding, COUNT(*) as backer_count
       FROM project_funding 
       GROUP BY project_id
     ) pf_sum ON p.id = pf_sum.project_id
@@ -309,13 +309,13 @@ async function handlePut(req: VercelRequest, res: VercelResponse) {
 
     // Record the funding
     await getPool().query(
-      'INSERT INTO project_funding (project_id, wallet_address, amount, tx_hash) VALUES ($1, $2, $3, $4)',
+      'INSERT INTO project_funding (project_id, wallet_address, current_funding, tx_hash) VALUES ($1, $2, $3, $4)',
       [id, funderWalletAddress, amount, txHash]
     );
 
     // Update project funding totals
     const fundingResult = await getPool().query(
-      'SELECT SUM(amount) as total_funding, COUNT(*) as backer_count FROM project_funding WHERE project_id = $1',
+      'SELECT SUM(current_funding) as total_funding, COUNT(*) as backer_count FROM project_funding WHERE project_id = $1',
       [id]
     );
 
